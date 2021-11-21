@@ -1,6 +1,7 @@
-# Getting Started with Create React App
+# Getting Started with Physical Risk React App
+![Physrisk-UI](./screen-shot.png)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Javascript and Typescript are currently supported, but this may change.
 
 ## Available Scripts
 
@@ -12,10 +13,10 @@ In the project directory, you can run:
 An environment variable REACT_APP_MAPBOX_TOKEN is required, set to the Mapbox API token
 This can be set in the command line. For example in Powershell:
 
-### $env:REACT_APP_MAPBOX_TOKEN="pk.eyJ1Ijoiam9l..."
+### `$env:REACT_APP_MAPBOX_TOKEN="pk.eyJ1Ijoiam9l..."`
 
 Or Bash:
-### REACT_APP_MAPBOX_TOKEN=pk.eyJ1Ijoiam9l...
+### `REACT_APP_MAPBOX_TOKEN=pk.eyJ1Ijoiam9l...`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
