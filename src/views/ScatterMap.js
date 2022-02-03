@@ -10,7 +10,10 @@ import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN
+// note *public* access token
+// committing into code-base for now; public token is available on client
+mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
+//process.env.REACT_APP_MAPBOX_TOKEN
 
 export default function ScatterMap() {    
     const theme = useTheme();
@@ -40,9 +43,9 @@ export default function ScatterMap() {
             //     'sources': {
             //         'raster-tiles': {
             //             'type': 'raster',
-            //             'tiles': [
-            //                 //'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}@2x.png'
-            //                 'https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg'
+            //             'tiles': [ 
+            //               //'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}.png',
+            //               'https://stamen-tiles.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg'
             //             ],
             //             'tileSize': 256,
             //             'attribution':
@@ -66,9 +69,9 @@ export default function ScatterMap() {
 
         map.on('load', () => {
             map.addSource('hazard', {
-                type: 'raster',
+                type: 'raster', // joemoorhouse.0zy9pvov
                 tiles: [
-                    'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}@2x.png'
+                    'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg'
                 ],
                 'tileSize': 256,
             });
