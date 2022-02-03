@@ -1,0 +1,88 @@
+# Workflow to build Docker image, based on openshift.yml (excluding OpenShift deployment)
+
+name: Run tests, build and push image
+
+env:
+  APP_NAME: "physrisk-ui"
+  IMAGE_REGISTRY: "quay.io/os-climate"
+  IMAGE_TAGS: ""
+
+on:
+  # https://docs.github.com/en/actions/reference/events-that-trigger-workflows
+  push
+
+jobs:
+  build:
+    name: Build and push to Quay
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check for required secrets
+      uses: actions/github-script@v4
+      with:
+        script: |
+          const secrets = {
+            OSC_PHYSRISK_QUAY_USER: `${{ secrets.OSC_PHYSRISK_QUAY_USER }}`,
+            OSC_PHYSRISK_QUAY_TOKEN: `${{ secrets.OSC_PHYSRISK_QUAY_TOKEN }}`,
+          };
+
+          const missingSecrets = Object.entries(secrets).filter(([ name, value ]) => {
+            if (value.length === 0) {
+              core.error(`Secret "${name}" is not set`);
+              return true;
+            }
+            core.info(`✔️ Secret "${name}" is set`);
+            return false;
+          });
+
+          if (missingSecrets.length > 0) {
+            core.setFailed(`❌ At least one required secret is not set in the repository. \n` +
+              "You can add it using:\n" +
+              "GitHub UI: https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-a-repository \n" +
+              "GitHub CLI: https://cli.github.com/manual/gh_secret_set \n" +
+              "Also, refer to https://github.com/redhat-actions/oc-login#getting-started-with-the-action-or-see-example");
+          }
+          else {
+            core.info(`✅ All the required secrets are set`);
+          }
+    
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Determine app name
+      if: env.APP_NAME == ''
+      run: |
+        echo "APP_NAME=$(basename $PWD)" | tee -a $GITHUB_ENV
+
+    - name: Determine image tags
+      if: env.IMAGE_TAGS == ''
+      run: |
+        echo "IMAGE_TAGS=latest ${GITHUB_SHA::12}" | tee -a $GITHUB_ENV
+
+    # https://github.com/redhat-actions/buildah-build#readme
+    - name: Build from Dockerfile
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: ${{ env.APP_NAME }}
+        tags: ${{ env.IMAGE_TAGS }}
+
+        # If you don't have a Dockerfile/Containerfile, refer to https://github.com/redhat-actions/buildah-build#scratch-build-inputs
+        # Or, perform a source-to-image build using https://github.com/redhat-actions/s2i-build
+        # Otherwise, point this to your Dockerfile/Containerfile relative to the repository root.
+        dockerfiles: |
+          ./Dockerfile
+
+    # https://github.com/redhat-actions/push-to-registry#readme
+    - name: Push to registry
+      id: push-image
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: ${{ steps.build-image.outputs.image }}
+        tags: ${{ steps.build-image.outputs.tags }}
+        registry: ${{ env.IMAGE_REGISTRY }}
+        username: ${{ secrets.OSC_PHYSRISK_QUAY_USER }}
+        password: ${{ secrets.OSC_PHYSRISK_QUAY_TOKEN }}
+          
+          
+
