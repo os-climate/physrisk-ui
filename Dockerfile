@@ -14,7 +14,7 @@ RUN npm run build
 FROM bitnami/nginx:latest  
 COPY --from=build-step /app/build /usr/share/nginx/html
 
-RUN chgrp -R 0 /usr/share/nginx/html
+#RUN chgrp -R 0 /usr/share/nginx/html
 RUN chmod g+rwX /usr/share/nginx/html
 
 #RUN chgrp -R 0 /var/cache/nginx /var/run
