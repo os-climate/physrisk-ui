@@ -14,8 +14,8 @@ RUN npm run build
 FROM bitnami/nginx:latest  
 COPY --from=build-step /appwork/build /app
 
-EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+#EXPOSE 8080
+#CMD ["nginx", "-g", "daemon off;"]
 
 #COPY --from=build-step /app/build /usr/share/nginx/html
 
