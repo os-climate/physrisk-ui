@@ -3,6 +3,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Javascript and Typescript are currently supported, but this may change.
 
+
 ## Available Scripts
 
 In the project directory, you can run:
