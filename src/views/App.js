@@ -41,7 +41,7 @@ function Copyright(props) {
   );
 }
 
-const drawerWidth = 220;
+const drawerWidth = 230;
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
@@ -122,15 +122,9 @@ function AppContent() {
     setMobileOpen(!mobileOpen);
   };
 
-  const resizeFunction = () => {
-    if (window.innerWidth >= 960) {
-      setMobileOpen(false);
-    }
-  };
-
   const drawer =
   (
-    <Box sx={{ zIndex: 5 , overflow: 'clip' }}>
+    <Box sx={{ zIndex: 5 }}>
       <Toolbar
         sx={{
           display: 'flex',
@@ -148,7 +142,6 @@ function AppContent() {
     </Box>
   );
 
-  //
   return (
     <ThemeProvider theme={mdTheme}>
       <Box sx={{ display: 'flex' }}>
@@ -159,11 +152,7 @@ function AppContent() {
               theme.palette.mode === 'light'
                 ? theme.palette.grey[100]
                 : theme.palette.grey[900]}}>  
-          <Toolbar
-            sx={{
-              pr: '24px', // keep right padding when drawer closed
-            }}
-          >
+          <Toolbar>
             <Typography
               component="h1"
               variant="h6"
@@ -183,7 +172,7 @@ function AppContent() {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{ mr: 2, display: { sm: 'none' }, pl: '24px' }}
             >
               <MenuIcon />
             </IconButton>
@@ -225,17 +214,15 @@ function AppContent() {
             width: drawerWidth,
             height: '100%',
             flexShrink: 0,
-            overflow: "hidden",
             display: { xs: 'none', sm: 'block' },
             '& .MuiDrawer-paper': {
-                // boxSizing: 'border-box',
                 width: drawerWidth },
           }}
           variant='permanent'
           anchor={"left"} 
           open={open}
         >
-          <Box sx = {{ overflow: 'hidden' }}>
+          <Box sx = {{ overflow: 'scroll' }}>
             <StyledDiv />
             {drawer}
           </Box>
