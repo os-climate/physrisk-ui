@@ -1,31 +1,21 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
+import { BrowserRouter, useLocation} from "react-router-dom";
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
 import Link from '@mui/material/Link';
 import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { mainListItems, secondaryListItems } from './listItems';
-import Chart from './Chart';
-import ScatterMap from './ScatterMap';
-import Summary from './Summary';
-import AssetTable from './AssetTable';
-import logo from "../assets/img/OscLogoWhite.png";
-
-//https://unsplash.com/photos/rxlx9Yi0298?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
-import bgImage from "../assets/img/noaa-rxlx9Yi0298-unsplash.jpg"; 
+import DrawerContents from '../components/DrawerContents';
+import routes from "../routes.js";
 
 
 function Copyright(props) {
@@ -54,47 +44,6 @@ const AppBar = styled(MuiAppBar, {
     }),
   )
 
-const StyledDivider = styled(Divider)`
-  opacity: 0.3;
-  z-index: 2;
-  background-color: #FFF;
-`;
-
-const StyledDiv = styled('div')(
-  ({ theme }) => ({
-    elevation: 0,
-    border: 0,
-    zIndex: 0,
-    position: 'absolute',
-    whiteSpace: 'nowrap',
-    top: '0',
-    left: '0',
-    overflow: 'hidden',
-    width: '100%',
-    height: '100%',
-    backgroundImage: "url(" + bgImage + ")",
-    backgroundSize: 'cover',
-    backgroundPosition: 'center center',
-    '&:after': {
-      elevation: 0,  
-      border: 0,
-      zIndex: 0,
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      overflow: "hidden",
-      whiteSpace: 'nowrap',
-      zIndex: 0,
-      content: '""',
-      display: 'flex',
-      background: '#000',
-      opacity: '0.8'
-    },
-  })
-)
-
 export const themeOptions = {
   palette: {
     primary: {
@@ -112,39 +61,79 @@ export const themeOptions = {
   },
 };
 
-const mdTheme = createTheme(themeOptions);
+const appTheme = createTheme(themeOptions);
+
+function Router(props) {
+  const { children } = props;
+  return (
+    <BrowserRouter initialEntries={['/hazards']} initialIndex={0}>
+      {children}
+    </BrowserRouter>
+  );
+}
+// to consider?
+// if (typeof window === 'undefined') {
+//   return <StaticRouter location="/hazards">{children}</StaticRouter>;
+// }
+
+// return (
+//   <MemoryRouter initialEntries={['/hazards']} initialIndex={0}>
+//     {children}
+//   </MemoryRouter>
+// );
+
+function ViewHeader() {
+  const useCurrentPath = () => {
+    const location = useLocation()
+    var route = routes.find(r => r.path === location.pathname)
+    return (route === undefined) ? "Unknown" : route.name
+  }
+  const currentPath = useCurrentPath() 
+  return (
+    <div>
+      {currentPath}
+    </div>
+  );
+}
+
+function ViewPanel(props) {
+  const { children, path, ...other } = props;
+
+  const [rendered, setRendered] = React.useState(false);
+
+  const location = useLocation()
+  const visible = (path === location.pathname)
+  if (visible && !rendered) setRendered(true)
+  
+  if (!rendered)
+      return null;
+  return (
+    <Box
+      sx={{display: visible ? 'block' : 'none' }}
+      //hidden={path !== location.pathname}
+      {...other}
+    >
+       {children}
+    </Box>
+  );
+}
+
+Router.propTypes = {
+  children: PropTypes.node,
+};
 
 function AppContent() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [open, setOpen] = React.useState(true);
+  const [open] = React.useState(true);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const drawer =
-  (
-    <Box sx={{ zIndex: 5 }}>
-      <Toolbar
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: [1],
-        }}
-      >
-        <img src={logo} alt="logo" width="104" height="64" /> 
-      </Toolbar>
-      <StyledDivider />
-      <List>{mainListItems}</List>
-      <StyledDivider />
-      <List>{secondaryListItems}</List>
-    </Box>
-  );
-
   return (
-    <ThemeProvider theme={mdTheme}>
+    <ThemeProvider theme={appTheme}>
       <Box sx={{ display: 'flex' }}>
+        <Router>
         <CssBaseline />
         <AppBar position="absolute" open={open}  elevation={0} border={0} sx={{
             color: (theme) => theme.palette.grey[800],
@@ -160,7 +149,7 @@ function AppContent() {
               noWrap
               sx={{ flexGrow: 1 }}
             >
-              Dashboard
+              <ViewHeader />
             </Typography>
             <IconButton color="inherit">
               <Badge badgeContent={4} color="secondary">
@@ -201,13 +190,8 @@ function AppContent() {
             keepMounted: true, // Better open performance on mobile.
           }}
           open={mobileOpen}
-        >     
-          
-          <Box sx={{ overflow: "scroll" }} >
-            <StyledDiv />
-            {drawer}
-          </Box>
-
+        >             
+          <DrawerContents routes={routes} />
         </MuiDrawer>
         <MuiDrawer // the large screen drawer
           sx={{
@@ -222,11 +206,7 @@ function AppContent() {
           anchor={"left"} 
           open={open}
         >
-          <Box sx = {{ overflow: 'scroll' }}>
-            <StyledDiv />
-            {drawer}
-          </Box>
- 
+          <DrawerContents routes={routes} />
         </MuiDrawer>
         </Box>
         <Box
@@ -243,55 +223,18 @@ function AppContent() {
         >
           <Toolbar />
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-            
-            <Grid container spacing={3}>
-              {/* Map */}
-              <Grid item xs={12} md={12} lg={12}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  <ScatterMap />
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={8} lg={9}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  <Chart />
-                </Paper>
-              </Grid>
-              {/* Summary */}
-              <Grid item xs={12} md={4} lg={3}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 240,
-                  }}
-                >
-                  <Summary />
-                </Paper>
-              </Grid>
-              {/* Asset table */}
-              <Grid item xs={12}>
-                <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                  <AssetTable />
-                </Paper>
-              </Grid>
-            </Grid>
+            {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
+            {routes.map((prop, key) => {
+                return (
+                  <ViewPanel path={prop.path} key={key} >
+                    {prop.component()}
+                  </ViewPanel>
+                );
+            })} 
             <Copyright sx={{ pt: 4 }} />
           </Container>
         </Box>
+      </Router>
       </Box>
     </ThemeProvider>
   );
