@@ -1,6 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter, useLocation} from "react-router-dom";
+import { BrowserRouter, MemoryRouter, useLocation} from "react-router-dom";
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -66,9 +66,9 @@ const appTheme = createTheme(themeOptions);
 function Router(props) {
   const { children } = props;
   return (
-    <BrowserRouter initialEntries={['/hazards']} initialIndex={0}>
+    <MemoryRouter initialEntries={['/hazards']} initialIndex={0}> 
       {children}
-    </BrowserRouter>
+    </MemoryRouter>
   );
 }
 // to consider?
