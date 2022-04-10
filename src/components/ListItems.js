@@ -12,17 +12,18 @@ import { styled } from '@mui/material/styles';
 export function ListItemLink(props) {
   const { icon, primary, to } = props;
 
-  const renderLink = React.useMemo(
-    () =>
-      React.forwardRef(function Link(itemProps, ref) {
-        return <RouterLink to={to} ref={ref} {...itemProps} role={undefined} />;
-      }),
-    [to],
-  );
+  // const renderLink = React.useMemo(
+  //   () =>
+  //     React.forwardRef(function Link(itemProps, ref) {
+  //       return <RouterLink to={to} ref={ref} {...itemProps} role={undefined} />;
+  //     }),
+  //   [to],
+  // );
 
   return (
     <li>
-      <StyledListItem button component={renderLink}>
+      <StyledListItem button>
+        {/* component={renderLink}> */}
         {icon ? <StyledListItemIcon>{icon}</StyledListItemIcon> : null}
         <StyledListItemText primary={<Typography style={{ fontSize: 14 }}>{primary}</Typography>} />
       </StyledListItem>
