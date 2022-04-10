@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DrawerContents from '../components/DrawerContents';
 import routes from "../routes.js";
-
+import ScatterMap from "../components/ScatterMap";
 
 function Copyright(props) {
   return (
@@ -224,13 +224,14 @@ function AppContent() {
           <Toolbar />
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
-            {routes.map((prop, key) => {
+            {/* {routes.map((prop, key) => {
                 return (
                   <ViewPanel path={prop.path} key={key} >
                     {prop.component()}
                   </ViewPanel>
                 );
-            })} 
+            })}  */}
+               <ScatterMap/ >
             <Copyright sx={{ pt: 4 }} />
           </Container>
         </Box>
