@@ -1,16 +1,44 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-import Title from './Title';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Tooltip from '@mui/material/Tooltip';
 
 // note *public* access token
 // committing into code-base; public token is available on client
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
 
 export default function ScatterMap(props) {    
+  const hazardTypeOptions = [
+    'Riverine Inundation',
+    'Coastal Inundation',
+    'Drought'
+  ]
+  const [hazTypSelectedIndex, setHazTypSelectedIndex] = React.useState(0)
+  const [anchorHazTyp, setAnchorHazTyp] = React.useState(null);
+  
+  const handleHazardTypeItemClick = (event, index) => {
+    setHazTypSelectedIndex(index);
+    setAnchorHazTyp(null);
+  }
+
+  const open = Boolean(anchorHazTyp);
+  const handleHazTypMenuClick = (event) => {
+    setAnchorHazTyp(event.currentTarget);
+  };
+  
+  const handleHazTypMenuClose = () => {
+    setAnchorHazTyp(null);
+  };
+
+  const scenarioOptions = [
+    'RCP4.5',
+    'RCP8.5'
+  ]
+  const [scenOptionsSelectedIndex, setscenOptionsSelectedIndex] = React.useState(1)
+  
   const { onClick } = props; 
   //const theme = useTheme();
     
@@ -21,14 +49,6 @@ export default function ScatterMap(props) {
   
   const [, setMap] = useState(null);
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
 
   useEffect(() => {
       const newMap = new mapboxgl.Map({
@@ -91,29 +111,48 @@ export default function ScatterMap(props) {
   
   return (
     <React.Fragment>
-      <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-        <Title>Hazard map</Title>
-        <Button onClick={handleClick} sx={{ minWidth: 80, ml: 2 }} size="small" >
-            Hazards
+      <Box component='div' sx={{ display: 'flex',
+            alignItems: 'center', 
+            textAlign: 'center',
+            whitespace: 'nowrap',
+            overflow: 'auto',
+            '&::-webkit-scrollbar' : {
+              display: 'none'
+            }
+            }}>
+        <Tooltip title="Hazard type" arrow>
+          <Button sx={{ flexShrink: 0 }} onClick={handleHazTypMenuClick} size="medium">
+            {hazardTypeOptions[hazTypSelectedIndex]}
+          </Button>
+        </Tooltip>
+        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+          2080
         </Button>
-        <Button sx={{ minWidth: 80, ml: 2 }} size="small" >
-            Scenarios
+        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+          RCP8.5
+        </Button>
+        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+          MIROC-ESM-CHEM
         </Button>
       </Box>
       <Menu
-        anchorEl={anchorEl}
+        anchorEl={anchorHazTyp}
         open={open}
-        onClose={handleClose}
-        onClick={handleClose}
+        onClose={handleHazTypMenuClose}
+        onClick={handleHazTypMenuClose}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem>
-            Inundation
-        </MenuItem>
-        <MenuItem>
-            Wildfire
-        </MenuItem>
+        {hazardTypeOptions.map((option, index) => (
+          <MenuItem
+            key={option}
+            //disabled={index == 0}
+            selected={index == hazTypSelectedIndex}
+            onClick={(event) => handleHazardTypeItemClick(event, index)}
+          >
+            {option}
+          </MenuItem>
+        ))}
       </Menu>
       <Box ref={mapContainerRef} className="map-container" /> 
       {/* sx = {{ height: '400px', width: '100%' }} /> */}
