@@ -11,40 +11,109 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 // committing into code-base; public token is available on client
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
 
+function ScatterMapMenu()
+{
+  const menus = [
+    {
+      name: "Hazard type",
+      options: [ 'Riverine Inundation', 'Coastal Inundation', 'Drought' ],
+      size: "medium"
+    },
+    {
+      name: "Year",
+      options: [ 'Baseline', '2030', '2050', '2080' ],
+      size: "small"
+    },
+    {
+      name: "Scenario",
+      options: [ 'RCP4.5', 'RCP8.5' ],
+      size: "small"
+    },
+    {
+      name: "Model",
+      options: [ 'MIROC-ESM-CHEM' ],
+      size: "small"
+    },
+  ];
+
+  const options = menus.map(m => m.options)
+
+  const [selectedIndex0, setSelectedIndex0] = React.useState(0);
+  const [selectedIndex1, setSelectedIndex1] = React.useState(0);
+  const [selectedIndex2, setSelectedIndex2] = React.useState(0);
+  const [selectedIndex3, setSelectedIndex3] = React.useState(0);
+
+  const selectedIndices = [selectedIndex0, selectedIndex1, selectedIndex2, selectedIndex3];
+  const setSelectedIndices = [setSelectedIndex0, setSelectedIndex1, setSelectedIndex2, setSelectedIndex3];
+
+  const [anchorEl0, setAnchorEl0] = React.useState(null);
+  const [anchorEl1, setAnchorEl1] = React.useState(null);
+  const [anchorEl2, setAnchorEl2] = React.useState(null);
+  const [anchorEl3, setAnchorEl3] = React.useState(null);
+
+  const anchorEls = [anchorEl0, anchorEl1, anchorEl2, anchorEl3];
+  const setAnchorEls = [setAnchorEl0, setAnchorEl1, setAnchorEl2, setAnchorEl3];
+
+  const opens = [Boolean(anchorEl0), Boolean(anchorEl1), Boolean(anchorEl2), Boolean(anchorEl3)];
+
+  const handleItemClicks = menus.map((m, i) => (event, index) => {
+    setSelectedIndices[i](index);
+    setAnchorEls[i](null); });
+
+  const handleMenuClicks = menus.map((m, i) => (event) => {
+    setAnchorEls[i](event.currentTarget); });  
+
+  const handleMenuCloses = menus.map((m, i) => () => {
+    setAnchorEls[i](null); });  
+
+  return (
+    <Box component='div' sx={{ display: 'flex',
+      alignItems: 'center', 
+      textAlign: 'center',
+      whitespace: 'nowrap',
+      overflow: 'auto',
+      '&::-webkit-scrollbar' : {
+        display: 'none'
+        }
+      }}>
+      {menus.map((item, mIndex) => {
+        return (
+          <Tooltip title={item.name} arrow>
+            <Button sx={{ flexShrink: 0 }} onClick={handleMenuClicks[mIndex]} size={item.size} endIcon={<KeyboardArrowDownIcon />}>
+              {options[mIndex][selectedIndices[mIndex]]}
+            </Button>
+          </Tooltip>
+        );
+      })}
+      {menus.map((item, mIndex) => {
+        return (
+          <Menu
+            anchorEl={anchorEls[mIndex]}
+            open={opens[mIndex]}
+            onClose={handleMenuCloses[mIndex]}
+            onClick={handleMenuCloses[mIndex]}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            {options[mIndex].map((option, index) => (
+              <MenuItem
+                key={option}
+                //disabled={index == 0}
+                selected={index === selectedIndices[mIndex]}
+                onClick={(event) => handleItemClicks[mIndex](event, index)}
+              >
+                {option}
+              </MenuItem>
+            ))}
+          </Menu>
+        );
+      })}
+    </Box> 
+  );
+};
+
 export default function ScatterMap(props) {    
-  const hazardTypeOptions = [
-    'Riverine Inundation',
-    'Coastal Inundation',
-    'Drought'
-  ]
-  const [hazTypSelectedIndex, setHazTypSelectedIndex] = React.useState(0)
-  const [anchorHazTyp, setAnchorHazTyp] = React.useState(null);
-  
-  const menus = [ "Hazard Type", "Year", "Scenario", "Model" ]
-  const handleItemClick = menus.map((m, i) => (event, index) => {
-    setHazTypSelectedIndex(i);
-    setAnchorHazTyp(null); });
 
-  const handleHazardTypeItemClick = (event, index) => {
-    setHazTypSelectedIndex(index);
-    setAnchorHazTyp(null);
-  }
-
-  const open = Boolean(anchorHazTyp);
-  const handleHazTypMenuClick = (event) => {
-    setAnchorHazTyp(event.currentTarget);
-  };
-  
-  const handleHazTypMenuClose = () => {
-    setAnchorHazTyp(null);
-  };
-
-  const scenarioOptions = [
-    'RCP4.5',
-    'RCP8.5'
-  ]
-  const [scenOptionsSelectedIndex, setscenOptionsSelectedIndex] = React.useState(1)
-  
   const { onClick } = props; 
   //const theme = useTheme();
     
@@ -101,7 +170,6 @@ export default function ScatterMap(props) {
           "circle-color": "hsla(0,0%,0%,0.75)",
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "white",
-
           }
       });
 
@@ -117,51 +185,8 @@ export default function ScatterMap(props) {
   
   return (
     <React.Fragment>
-      <Box component='div' sx={{ display: 'flex',
-            alignItems: 'center', 
-            textAlign: 'center',
-            whitespace: 'nowrap',
-            overflow: 'auto',
-            '&::-webkit-scrollbar' : {
-              display: 'none'
-            }
-            }}>
-        <Tooltip title="Hazard type" arrow>
-          <Button sx={{ flexShrink: 0 }} onClick={handleHazTypMenuClick} size="medium" endIcon={<KeyboardArrowDownIcon />}>
-            {hazardTypeOptions[hazTypSelectedIndex]}
-          </Button>
-        </Tooltip>
-        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
-          2080
-        </Button>
-        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
-          RCP8.5
-        </Button>
-        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
-          MIROC-ESM-CHEM
-        </Button>
-      </Box>
-      <Menu
-        anchorEl={anchorHazTyp}
-        open={open}
-        onClose={handleHazTypMenuClose}
-        onClick={handleHazTypMenuClose}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        {hazardTypeOptions.map((option, index) => (
-          <MenuItem
-            key={option}
-            //disabled={index == 0}
-            selected={index == hazTypSelectedIndex}
-            onClick={(event) => handleHazardTypeItemClick(event, index)}
-          >
-            {option}
-          </MenuItem>
-        ))}
-      </Menu>
+      <ScatterMapMenu />
       <Box ref={mapContainerRef} className="map-container" /> 
-      {/* sx = {{ height: '400px', width: '100%' }} /> */}
     </React.Fragment>
   );
 }
