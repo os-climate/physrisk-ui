@@ -84,8 +84,8 @@ function Router(props) {
 
 function ViewHeader() {
   const useCurrentPath = () => {
-    //const location = useLocation()
-    var route = routes.find(r => r.path === '/hazards')//location.pathname)
+    const location = useLocation()
+    var route = routes.find(r => r.path === location.pathname)
     return (route === undefined) ? "Unknown" : route.name
   }
   const currentPath = useCurrentPath() 
@@ -101,8 +101,8 @@ function ViewPanel(props) {
 
   const [rendered, setRendered] = React.useState(false);
 
-  //const location = useLocation()
-  const visible = (path === '/hazards')//location.pathname)
+  const location = useLocation()
+  const visible = (path === location.pathname)
   if (visible && !rendered) setRendered(true)
   
   if (!rendered)
@@ -133,7 +133,7 @@ function AppContent() {
   return (
     <ThemeProvider theme={appTheme}>
       <Box sx={{ display: 'flex' }}>
-        {/* <Router> */}
+        <Router>
         <CssBaseline />
         <AppBar position="absolute" open={open}  elevation={0} border={0} sx={{
             color: (theme) => theme.palette.grey[800],
@@ -224,18 +224,17 @@ function AppContent() {
           <Toolbar />
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
-            {/* {routes.map((prop, key) => {
+            {routes.map((prop, key) => {
                 return (
                   <ViewPanel path={prop.path} key={key} >
                     {prop.component()}
                   </ViewPanel>
                 );
-            })}  */}
-               <ScatterMap/ >
+            })} 
             <Copyright sx={{ pt: 4 }} />
           </Container>
         </Box>
-      {/* </Router> */}
+      </Router>
       </Box>
     </ThemeProvider>
   );
