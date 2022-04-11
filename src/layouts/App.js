@@ -1,6 +1,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { BrowserRouter, MemoryRouter, useLocation} from "react-router-dom";
+import { MemoryRouter, useLocation} from "react-router-dom";
 import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import MuiDrawer from '@mui/material/Drawer';
@@ -16,7 +16,6 @@ import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DrawerContents from '../components/DrawerContents';
 import routes from "../routes.js";
-import ScatterMap from "../components/ScatterMap";
 
 function Copyright(props) {
   return (
@@ -66,21 +65,12 @@ const appTheme = createTheme(themeOptions);
 function Router(props) {
   const { children } = props;
   return (
+    // can also use BrowserRouter if preferred
     <MemoryRouter initialEntries={['/hazards']} initialIndex={0}> 
       {children}
     </MemoryRouter>
   );
 }
-// to consider?
-// if (typeof window === 'undefined') {
-//   return <StaticRouter location="/hazards">{children}</StaticRouter>;
-// }
-
-// return (
-//   <MemoryRouter initialEntries={['/hazards']} initialIndex={0}>
-//     {children}
-//   </MemoryRouter>
-// );
 
 function ViewHeader() {
   const useCurrentPath = () => {
@@ -110,7 +100,6 @@ function ViewPanel(props) {
   return (
     <Box
       sx={{display: visible ? 'block' : 'none' }}
-      //hidden={path !== location.pathname}
       {...other}
     >
        {children}
@@ -161,7 +150,7 @@ function AppContent() {
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' }, pl: '24px' }}
+              sx={{ ml: '8px', display: { sm: 'none' } }}
             >
               <MenuIcon />
             </IconButton>
@@ -222,7 +211,7 @@ function AppContent() {
           }}
         >
           <Toolbar />
-          <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+          <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
             {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
             {routes.map((prop, key) => {
                 return (
