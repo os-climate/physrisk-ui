@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -19,6 +20,11 @@ export default function ScatterMap(props) {
   const [hazTypSelectedIndex, setHazTypSelectedIndex] = React.useState(0)
   const [anchorHazTyp, setAnchorHazTyp] = React.useState(null);
   
+  const menus = [ "Hazard Type", "Year", "Scenario", "Model" ]
+  const handleItemClick = menus.map((m, i) => (event, index) => {
+    setHazTypSelectedIndex(i);
+    setAnchorHazTyp(null); });
+
   const handleHazardTypeItemClick = (event, index) => {
     setHazTypSelectedIndex(index);
     setAnchorHazTyp(null);
@@ -121,17 +127,17 @@ export default function ScatterMap(props) {
             }
             }}>
         <Tooltip title="Hazard type" arrow>
-          <Button sx={{ flexShrink: 0 }} onClick={handleHazTypMenuClick} size="medium">
+          <Button sx={{ flexShrink: 0 }} onClick={handleHazTypMenuClick} size="medium" endIcon={<KeyboardArrowDownIcon />}>
             {hazardTypeOptions[hazTypSelectedIndex]}
           </Button>
         </Tooltip>
-        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
           2080
         </Button>
-        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
           RCP8.5
         </Button>
-        <Button sx={{ ml: 0, flexShrink: 0 }} size="small" >
+        <Button sx={{ ml: 1, flexShrink: 0 }} size="small" endIcon={<KeyboardArrowDownIcon />} >
           MIROC-ESM-CHEM
         </Button>
       </Box>

@@ -5,7 +5,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 
@@ -60,22 +59,4 @@ const StyledListItemText = styled(ListItemText)`
     font-size: 2;
   }
 `;
-
-const StyledListSubheader = styled(ListSubheader)`
-  color: #AAA;
-  background: rgba(255, 255, 255, 0);
-`;
-
-export const secondaryListItems = (
-  <div>
-    <StyledListSubheader inset>Saved results</StyledListSubheader>
-    <StyledListItem button>
-      <StyledListItemIcon>
-        <AssignmentIcon />
-      </StyledListItemIcon>
-      <ListItemText primary="Risk analysis" />
-    </StyledListItem>
-
-  </div>
-);
 
