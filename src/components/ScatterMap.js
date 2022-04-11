@@ -128,7 +128,8 @@ export default function ScatterMap(props) {
             Wildfire
         </MenuItem>
       </Menu>
-      <Box ref={mapContainerRef} sx = {{ height: '400px', width: '100%' }} />
+      <Box ref={mapContainerRef} className="map-container" /> 
+      {/* sx = {{ height: '400px', width: '100%' }} /> */}
     </React.Fragment>
   );
 }
