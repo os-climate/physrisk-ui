@@ -1,5 +1,4 @@
 import { styled } from '@mui/material/styles';
-import { secondaryListItems } from '../components/ListItems';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import { ListItemLink } from "../components/ListItems"
@@ -54,7 +53,9 @@ export default function DrawerContents(props) {
 
     var links = (
         <List>
-          {routes.map((prop, key) => {
+          {routes
+          .filter(prop => prop.category === "primary")
+          .map((prop, key) => {
             return (
               <ListItemLink to={prop.path} primary={prop.name} icon={<prop.icon />} key={key} />
             );
@@ -77,14 +78,24 @@ export default function DrawerContents(props) {
         </Toolbar>
         <StyledDivider />
         {links}
-        {/* <List>{mainListItems}</List> */}
         <StyledDivider />
-        <List>{secondaryListItems}</List>
+        <List>
+          {routes
+            .filter(prop => prop.category === "secondary")
+            .map((prop, key) => {
+              return (
+                <ListItemLink to={prop.path} primary={prop.name} icon={<prop.icon />} key={key} />
+              );
+            })}
+        </List>
       </Box>
     );
 
     return (
-        <Box sx = {{ overflow: 'scroll' }}>
+        <Box sx = {{ overflow: 'auto',
+        '&::-webkit-scrollbar' : {
+          display: 'none'
+        } }}>
             <StyledDiv />
             {drawer}
         </Box>

@@ -1,3 +1,4 @@
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { LocalFireDepartment, PrecisionManufacturing } from '@mui/icons-material';
@@ -6,13 +7,14 @@ import AssetViewer from "./views/AssetViewer.js";
 import HazardViewer from "./views/HazardViewer.js";
 import RiskViewer from "./views/RiskViewer.js";
 
-const dashboardRoutes = [
+export const routes = [
     {
         path: "/hazards",
         name: "Hazards",
         icon: LocalFireDepartment,
         component: HazardViewer,
         layout: "/standard",
+        category: "primary"
     },
     {
         path: "/assets",
@@ -20,6 +22,7 @@ const dashboardRoutes = [
         icon: PrecisionManufacturing,
         component: AssetViewer,
         layout: "/standard",
+        category: "primary"
     },
     {
         path: "/risk",
@@ -27,6 +30,7 @@ const dashboardRoutes = [
         icon: BarChartIcon,
         component: RiskViewer,
         layout: "/standard",
+        category: "primary"
     },
     {
         path: "/about",
@@ -34,8 +38,16 @@ const dashboardRoutes = [
         icon: DashboardIcon,
         component: AboutPage,
         layout: "/standard",
+        category: "primary"
     },
-
-  ];
+    {
+        path: "/savedResults",
+        name: "Saved results",
+        icon: AssignmentIcon,
+        component: AboutPage, // change to its on page!
+        layout: "/standard",
+        category: "secondary"
+    }
+];
   
-  export default dashboardRoutes;
+export default routes;
