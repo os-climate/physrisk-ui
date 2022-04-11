@@ -1,26 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
- // @ts-ignore
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-//import mapboxgl from 'mapbox-gl'
+import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 import Title from './Title';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
-// The following is required to stop "npm build" from transpiling mapbox code.
-// notice the exclamation point in the import.
-// @ts-ignore
-// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
-mapboxgl.workerClass = require('worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker').default;
-// https://stackoverflow.com/questions/65434964/mapbox-blank-map-react-map-gl-reactjs
-
 // note *public* access token
-// committing into code-base for now; public token is available on client
+// committing into code-base; public token is available on client
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
-//process.env.REACT_APP_MAPBOX_TOKEN
-
 
 export default function ScatterMap(props) {    
   const { onClick } = props; 
@@ -62,13 +50,13 @@ export default function ScatterMap(props) {
             'maxzoom': 6
         });
       
-        newMap.addLayer({
-          'id': 'hazard-layer',
-          'type': 'raster',
-          'source': 'hazard',
-          'layout': {
-              'visibility': 'visible'
-          }
+      newMap.addLayer({
+        'id': 'hazard-layer',
+        'type': 'raster',
+        'source': 'hazard',
+        'layout': {
+            'visibility': 'visible'
+        }
       });
 
       // Example about how to add a circle layer
@@ -100,7 +88,6 @@ export default function ScatterMap(props) {
       return () => newMap.remove();
   }, []);
    
-
   
   return (
     <React.Fragment>
