@@ -1,45 +1,59 @@
+
+/** Holds hazard event availability data */
 export class HazardAvailability {
     constructor(modelsJson) {
         var models = JSON.parse(modelsJson);
-        this.models = {}
-        this.modelDescription = {}
+        this.models = models;   
+        this.modelsOfHazardType = {};
+        
         models.forEach(model => { 
-            model.scenarios.forEach(scenario =>
-                {
-                    this.set(model.event_type, model.display_name, scenario.id, scenario.years);
-                }
-            );
-            this.modelDescription[model.display_name] = model.description
+            addItemToList(this.modelsOfHazardType, model.event_type, model);
         });
     } 
 
-    set(hazard, model, scenario, years)
-    {
-        if (!(hazard in this.models)) this.models[hazard] = {}
-        if (!(model in this.models[hazard])) this.models[hazard][model] = {}
-        if (!(scenario in this.models[hazard][model])) this.models[hazard][model][scenario] = {}
-        this.models[hazard][model][scenario] = years
-    }
-
-    getDescription(model) {
-        return this.modelDescription[model]
-    }
-
+    /** Return hazard event types. */
     getHazardTypeOptions() {
-        return Object.keys(this.models)
-      }
+        return Object.keys(this.modelsOfHazardType);
+    }
 
+    /** Return Model instance with given hazard event type and display name. */
+    getModel(hazardType, modelDisplayName) {
+        return this.modelsOfHazardType[hazardType]
+            .find(model => model.display_name === modelDisplayName);
+    }
+    
+    /** Return display names of Models for given hazard event types. */
     getModelOptions(hazardType) {
-        return Object.keys(this.models[hazardType])
+        return this.modelsOfHazardType[hazardType]
+            .map(model => model.display_name);
       }
 
-    getScenarioOptions(hazardType, model) {
-        return Object.keys(this.models[hazardType][model])
+    /** Return scenarios for Model with given hazard event type and display name. */
+    getScenarioOptions(hazardType, modelDisplayName) {
+        return this.getModel(hazardType, modelDisplayName)
+            .scenarios
+            .map(scen => scen.id);
       }
 
-    getYears(hazardType, model, scenario) {
-        return this.models[hazardType][model][scenario]
+    /** Return description for Model with given hazard event type and display name.  */
+    getModelDescription(hazardType, modelDisplayName) {
+        return this.getModel(hazardType, modelDisplayName)?.description; // '?' needed to handle transient state
+    }
+
+    /** Return valid projection years for Model with given hazard event type, display name and scenario.  */
+    getYearOptions(hazardType, modelDisplayName, scenario) {
+        return this.getModel(hazardType, modelDisplayName)
+            .scenarios
+            .find(scen => scen.id === scenario)
+            .years;
       }
+}
+
+/** Add an item to a dictionary were the value is a list */
+function addItemToList(dict, key, item)
+{
+    if (!(key in dict)) dict[key] = [];
+    dict[key].push(item);
 }
 
 export const inventory = [

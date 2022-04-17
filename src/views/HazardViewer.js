@@ -57,7 +57,7 @@ export default function HazardViewer() {
           }
       ],
     }
-    fetchData("get_hazard_data", JSON.stringify(request))
+    //fetchData("get_hazard_data", JSON.stringify(request))
   };
   
   useEffect(
@@ -74,7 +74,7 @@ export default function HazardViewer() {
         var model = modelOptions[selectedIndices[1]]
         var scenarioOptions = data.current.getScenarioOptions(hazard, model);
         var scenario = scenarioOptions[selectedIndices[2]]
-        var yearOptions = data.current.getYears(hazard, model, scenario)
+        var yearOptions = data.current.getYearOptions(hazard, model, scenario)
         setMenuOptions([hazardOptions, modelOptions, scenarioOptions, yearOptions])
       }
       updateMenuOptions()
@@ -109,7 +109,8 @@ export default function HazardViewer() {
               height: 240,
             }}
           >
-            <Chart title={"Model: " + menuOptions[1][selectedIndices[1]]} />
+            <Chart title={menuOptions[1][selectedIndices[1]] + 
+                (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "")} />
           </Paper>
         </Grid>
         {/* Summary */}
@@ -124,7 +125,9 @@ export default function HazardViewer() {
           >
             <Summary 
               modelName={menuOptions[1][selectedIndices[1]]} 
-              modelDescription={data.current ? data.current.getDescription(menuOptions[1][selectedIndices[1]]) : ""} />
+              modelDescription={data.current ? data.current.getModelDescription(menuOptions[0][selectedIndices[0]],
+                menuOptions[1][selectedIndices[1]]) : ""} 
+            />
           </Paper>
         </Grid>
         {/* Asset table */}

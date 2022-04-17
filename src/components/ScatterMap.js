@@ -105,7 +105,8 @@ export default function ScatterMap(props) {
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
   
-  const [, setMap] = useState(null);
+  const [map, setMap] = useState(null);
+  const markerRef = useRef(null);
 
   // const handleMenuChanged = (e) =>
   // {
@@ -131,48 +132,62 @@ export default function ScatterMap(props) {
 
       newMap.on('load', () => {
       
-      newMap.addSource('hazard', {
-            type: 'raster', // joemoorhouse.0zy9pvov
-            tiles: [
-                'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg'
-            ],
-            'tileSize': 256,
-            'maxzoom': 6
+        newMap.addSource('hazard', {
+              type: 'raster', // joemoorhouse.0zy9pvov
+              tiles: [
+                  'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg'
+              ],
+              'tileSize': 256,
+              'maxzoom': 6
+          });
+        
+        newMap.addLayer({
+          'id': 'hazard-layer',
+          'type': 'raster',
+          'source': 'hazard',
+          'layout': {
+              'visibility': 'visible'
+          }
         });
-      
-      newMap.addLayer({
-        'id': 'hazard-layer',
-        'type': 'raster',
-        'source': 'hazard',
-        'layout': {
-            'visibility': 'visible'
-        }
-      });
 
       // Example about how to add a circle layer
-      newMap.addSource("trailheads", {
-          type: "geojson",
-          data: "https://services3.arcgis.com/GVgbJbqm8hXASVYi/arcgis/rest/services/Trailheads/FeatureServer/0/query?f=pgeojson&where=1=1",
+      // newMap.addSource("trailheads", {
+      //     type: "geojson",
+      //     data: "https://services3.arcgis.com/GVgbJbqm8hXASVYi/arcgis/rest/services/Trailheads/FeatureServer/0/query?f=pgeojson&where=1=1",
 
-      });
+      // });
     
-      newMap.addLayer({
-      id: "trailheads-circle",
-      type: "circle",
-      source: "trailheads",
+      // newMap.addLayer({
+      // id: "trailheads-circle",
+      // type: "circle",
+      // source: "trailheads",
 
-      paint: {
-          "circle-color": "hsla(0,0%,0%,0.75)",
-          "circle-stroke-width": 1.5,
-          "circle-stroke-color": "white",
-          }
+      // paint: {
+      //     "circle-color": "hsla(0,0%,0%,0.75)",
+      //     "circle-stroke-width": 1.5,
+      //     "circle-stroke-color": "white",
+      //     }
+      // });
+      
+      });  
+
+
+      newMap.on('click', (e) =>
+      {
+        if (markerRef.current)
+        {
+          markerRef.current.remove(newMap);
+        }
+        const marker = new mapboxgl.Marker()
+          .setLngLat([e.lngLat.lng, e.lngLat.lat])
+          .addTo(newMap);
+
+        markerRef.current = marker  
+        onClick(e)
       });
-
-      newMap.on('click', onClick);
 
       setMap(newMap);
-      
-    });  
+
       // Clean up on unmount
       return () => newMap.remove();
   }, []);
