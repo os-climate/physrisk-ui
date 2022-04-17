@@ -11,60 +11,41 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 // committing into code-base; public token is available on client
 mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
 
-function ScatterMapMenu()
+function ScatterMapMenu(props)
 {
-  const menus = [
-    {
-      name: "Hazard type",
-      options: [ 'Riverine Inundation', 'Coastal Inundation', 'Drought' ],
-      size: "medium"
-    },
-    {
-      name: "Year",
-      options: [ 'Baseline', '2030', '2050', '2080' ],
-      size: "small"
-    },
-    {
-      name: "Scenario",
-      options: [ 'RCP4.5', 'RCP8.5' ],
-      size: "small"
-    },
-    {
-      name: "Model",
-      options: [ 'MIROC-ESM-CHEM' ],
-      size: "small"
-    },
-  ];
+  const { menus, menuOptions, selectedIndices, setSelectedIndices } = props
+  
+  function setSelectedIndex(menuIndex, selectedIndex)
+  {
+    var newSelectedIndices = [...selectedIndices]
+    newSelectedIndices[menuIndex] = selectedIndex
+    setSelectedIndices(newSelectedIndices)
+  }
 
-  const options = menus.map(m => m.options)
+  const [anchorEls, setAnchorEls] = React.useState([null, null, null, null]);
 
-  const [selectedIndex0, setSelectedIndex0] = React.useState(0);
-  const [selectedIndex1, setSelectedIndex1] = React.useState(0);
-  const [selectedIndex2, setSelectedIndex2] = React.useState(0);
-  const [selectedIndex3, setSelectedIndex3] = React.useState(0);
+  function setAnchorEl(menuIndex, value)
+  {
+    var newAnchorEls = [...anchorEls]
+    newAnchorEls[menuIndex] = value
+    setAnchorEls(newAnchorEls)
+  }
 
-  const selectedIndices = [selectedIndex0, selectedIndex1, selectedIndex2, selectedIndex3];
-  const setSelectedIndices = [setSelectedIndex0, setSelectedIndex1, setSelectedIndex2, setSelectedIndex3];
-
-  const [anchorEl0, setAnchorEl0] = React.useState(null);
-  const [anchorEl1, setAnchorEl1] = React.useState(null);
-  const [anchorEl2, setAnchorEl2] = React.useState(null);
-  const [anchorEl3, setAnchorEl3] = React.useState(null);
-
-  const anchorEls = [anchorEl0, anchorEl1, anchorEl2, anchorEl3];
-  const setAnchorEls = [setAnchorEl0, setAnchorEl1, setAnchorEl2, setAnchorEl3];
-
-  const opens = [Boolean(anchorEl0), Boolean(anchorEl1), Boolean(anchorEl2), Boolean(anchorEl3)];
+  function isOpen(menuIndex)
+  {
+    return Boolean(anchorEls[menuIndex])
+  }
 
   const handleItemClicks = menus.map((m, i) => (event, index) => {
-    setSelectedIndices[i](index);
-    setAnchorEls[i](null); });
+    setSelectedIndex(i, index);
+    setAnchorEl(i, null); 
+  });
 
   const handleMenuClicks = menus.map((m, i) => (event) => {
-    setAnchorEls[i](event.currentTarget); });  
+    setAnchorEl(i, event.currentTarget); });  
 
   const handleMenuCloses = menus.map((m, i) => () => {
-    setAnchorEls[i](null); });  
+    setAnchorEl(i, null); });  
 
   return (
     <Box component='div' sx={{ display: 'flex',
@@ -78,9 +59,9 @@ function ScatterMapMenu()
       }}>
       {menus.map((item, mIndex) => {
         return (
-          <Tooltip title={item.name} arrow>
+          <Tooltip title={item.name} key={mIndex} arrow>
             <Button sx={{ flexShrink: 0 }} onClick={handleMenuClicks[mIndex]} size={item.size} endIcon={<KeyboardArrowDownIcon />}>
-              {options[mIndex][selectedIndices[mIndex]]}
+              {menuOptions[mIndex][selectedIndices[mIndex]]}
             </Button>
           </Tooltip>
         );
@@ -89,16 +70,17 @@ function ScatterMapMenu()
         return (
           <Menu
             anchorEl={anchorEls[mIndex]}
-            open={opens[mIndex]}
+            open={isOpen(mIndex)}
             onClose={handleMenuCloses[mIndex]}
             onClick={handleMenuCloses[mIndex]}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            key={mIndex}
           >
-            {options[mIndex].map((option, index) => (
+            {menuOptions[mIndex].map((option, index) => (
               <MenuItem
+                sx ={{ fontSize: 14 }}
                 key={option}
-                //disabled={index == 0}
                 selected={index === selectedIndices[mIndex]}
                 onClick={(event) => handleItemClicks[mIndex](event, index)}
               >
@@ -114,9 +96,10 @@ function ScatterMapMenu()
 
 export default function ScatterMap(props) {    
 
-  const { onClick } = props; 
+  const { menus, menuOptions, onClick, selectedIndices, setSelectedIndices } = props; 
   //const theme = useTheme();
     
+
   const mapContainerRef = useRef(null);
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
@@ -124,6 +107,18 @@ export default function ScatterMap(props) {
   
   const [, setMap] = useState(null);
 
+  // const handleMenuChanged = (e) =>
+  // {
+  //   onMenuChanged(e);
+  // }
+
+  // const onMapSelectionChanged = () => {
+  //   if (mapContainerRef.current)
+  //   {
+  //     mapContainerRef.current.removeSource('hazard')
+
+  //   }
+  // };
 
   useEffect(() => {
       const newMap = new mapboxgl.Map({
@@ -185,7 +180,13 @@ export default function ScatterMap(props) {
   
   return (
     <React.Fragment>
-      <ScatterMapMenu />
+      <ScatterMapMenu 
+        menus={menus}
+        menuOptions={menuOptions}
+        //onMenuChanged={handleMenuChanged}
+        selectedIndices={selectedIndices}
+        setSelectedIndices={setSelectedIndices} 
+      />
       <Box ref={mapContainerRef} className="map-container" /> 
     </React.Fragment>
   );

@@ -37,7 +37,7 @@ function preventDefault(event) {
 export default function AssetTable() {
   return (
     <React.Fragment>
-      <Title>Recent Orders</Title>
+      <Title>Example asset table</Title>
       <Table size="small">
         <TableHead>
           <TableRow>
