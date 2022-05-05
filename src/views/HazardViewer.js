@@ -5,10 +5,13 @@ import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Summary from '../components/Summary';
 import AssetTable from '../components/AssetTable';
-import { inventory, HazardAvailability } from '../data/HazardDataAvailability.js';
+import { HazardAvailability } from '../data/HazardDataAvailability.js';
+import {v4 as uuidv4} from 'uuid';
+import axios from 'axios';
+
 
 export default function HazardViewer() {
-  
+
   const menus = [
     {
       name: "Hazard type",
@@ -32,53 +35,62 @@ export default function HazardViewer() {
   const data = useRef();
   const [selectedIndices, setSelectedIndices] = useState([0, 0, 0, 0]);
   const [lngLat, setLngLat] = useState(null);
-  
-  const fetchData = async(request_id, json) => 
+  const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
+
+  function getHazardProps()
   {
-    const response = await fetch("http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org/api/get_hazard_data", { 
-        method: 'POST',
-        body: json });
-    const data = await response.json();
-    // update graph here
+    var currentOptions = [];
+    var currentIndices = [];
+    setMenuOptions((current) => { currentOptions = current; return current; });
+    setSelectedIndices((current) => { currentIndices = current; return current; });
+    var hazard = currentOptions[0][currentIndices[0]];
+    var model = currentOptions[1][currentIndices[1]];
+    var scenario = currentOptions[2][currentIndices[2]];
+    var year = currentOptions[3][currentIndices[3]];
+    return { hazard, model, scenario, year };
   }
 
-  const handleClick = (e) => {
-    setLngLat(e.lngLat)
-    const request = {
+  const handleClick = async(e) => {
+    setLngLat(e.lngLat);
+
+    var { hazard, model, scenario, year } = getHazardProps();
+    var hazardModel = data.current.getModel(hazard, model)
+    var payload = {
       "items": [
           {
-              "request_item_id": "test_inundation",
-              "event_type": "RiverineInundation",
-              "longitudes": [69.4787],
-              "latitudes": [34.556],
-              "year": 2080,
-              "scenario": "rcp8p5",
-              "model": "MIROC-ESM-CHEM",
-          }
+              "request_item_id": uuidv4(),
+              "event_type": hazard,
+              "longitudes": [e.lngLat.lng],
+              "latitudes": [e.lngLat.lat],
+              "year": year,
+              "scenario": scenario,
+              "model": hazardModel.id,
+          },
       ],
-    }
-    //fetchData("get_hazard_data", JSON.stringify(request))
+    };
+    var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
+
+    // TODO: update graph
   };
-  
-  useEffect(
-     () => {
-      data.current = new HazardAvailability(JSON.stringify(inventory));
-    }, [])
 
   useEffect(
-    () => {
+    async() => {
+      var response = await axios.post(apiHost+'/api/get_hazard_data_availability', {});
+      data.current = new HazardAvailability(response.data.models);
+
       const updateMenuOptions = () => {
         var hazardOptions = data.current.getHazardTypeOptions();
-        var hazard = hazardOptions[selectedIndices[0]]
+        var hazard = hazardOptions[selectedIndices[0]];
         var modelOptions = data.current.getModelOptions(hazard);
-        var model = modelOptions[selectedIndices[1]]
+        var model = modelOptions[selectedIndices[1]];
         var scenarioOptions = data.current.getScenarioOptions(hazard, model);
-        var scenario = scenarioOptions[selectedIndices[2]]
-        var yearOptions = data.current.getYearOptions(hazard, model, scenario)
-        setMenuOptions([hazardOptions, modelOptions, scenarioOptions, yearOptions])
-      }
-      updateMenuOptions()
-    }, [data, selectedIndices])
+        var scenario = scenarioOptions[selectedIndices[2]];
+        var yearOptions = data.current.getYearOptions(hazard, model, scenario);
+        setMenuOptions([hazardOptions, modelOptions, scenarioOptions, yearOptions]);
+      };
+
+      updateMenuOptions();
+    }, [data, selectedIndices]);
 
   return (
         <Grid container spacing={3}>
@@ -139,4 +151,3 @@ export default function HazardViewer() {
       </Grid>
     );
   }
-  

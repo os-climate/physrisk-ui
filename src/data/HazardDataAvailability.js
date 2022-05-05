@@ -1,15 +1,13 @@
 
 /** Holds hazard event availability data */
 export class HazardAvailability {
-    constructor(modelsJson) {
-        var models = JSON.parse(modelsJson);
-        this.models = models;   
+    constructor(models) {
         this.modelsOfHazardType = {};
-        
-        models.forEach(model => { 
-            addItemToList(this.modelsOfHazardType, model.event_type, model);
+
+        models.forEach(model => {
+            addItemToDict(this.modelsOfHazardType, model.event_type, model);
         });
-    } 
+    }
 
     /** Return hazard event types. */
     getHazardTypeOptions() {
@@ -21,7 +19,7 @@ export class HazardAvailability {
         return this.modelsOfHazardType[hazardType]
             .find(model => model.display_name === modelDisplayName);
     }
-    
+
     /** Return display names of Models for given hazard event types. */
     getModelOptions(hazardType) {
         return this.modelsOfHazardType[hazardType]
@@ -50,7 +48,7 @@ export class HazardAvailability {
 }
 
 /** Add an item to a dictionary were the value is a list */
-function addItemToList(dict, key, item)
+function addItemToDict(dict, key, item)
 {
     if (!(key in dict)) dict[key] = [];
     dict[key].push(item);
