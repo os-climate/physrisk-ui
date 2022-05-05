@@ -3,25 +3,8 @@ import { useTheme } from '@mui/material/styles';
 import { LineChart, Line, XAxis, YAxis, Label, ResponsiveContainer } from 'recharts';
 import Title from './Title';
 
-// Generate Sales Data
-function createData(time, amount) {
-  return { time, amount };
-}
-
-const data = [
-  createData('00:00', 0),
-  createData('03:00', 300),
-  createData('06:00', 600),
-  createData('09:00', 800),
-  createData('12:00', 1500),
-  createData('15:00', 2000),
-  createData('18:00', 2400),
-  createData('21:00', 2400),
-  createData('24:00', undefined),
-];
-
 export default function Chart(props) {
-  const { title } = props
+  const { title, data } = props
   const theme = useTheme();
 
   return (
@@ -33,15 +16,27 @@ export default function Chart(props) {
           margin={{
             top: 16,
             right: 16,
-            bottom: 0,
+            bottom: 16,
             left: 24,
           }}
         >
           <XAxis
-            dataKey="time"
+            dataKey="x"
             stroke={theme.palette.text.secondary}
             style={theme.typography.body2}
-          />
+            >
+            <Label
+              position="bottom"
+              offset={0}
+              style={{
+                textAnchor: 'middle',
+                fill: theme.palette.text.primary,
+                ...theme.typography.body1,
+              }}
+            >
+              Exceedance probability
+            </Label>
+          </XAxis>
           <YAxis
             stroke={theme.palette.text.secondary}
             style={theme.typography.body2}
@@ -55,13 +50,13 @@ export default function Chart(props) {
                 ...theme.typography.body1,
               }}
             >
-              Some quantity
+              Depth [m]
             </Label>
           </YAxis>
           <Line
             isAnimationActive={false}
             type="monotone"
-            dataKey="amount"
+            dataKey="y"
             stroke={theme.palette.primary.main}
             dot={false}
           />

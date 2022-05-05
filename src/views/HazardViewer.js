@@ -31,7 +31,8 @@ export default function HazardViewer() {
     },
   ];
 
-  const [menuOptions, setMenuOptions] = useState([[], [], [], []])  
+  const [menuOptions, setMenuOptions] = useState([[], [], [], []]);
+  const [graphData, setGraphData] = useState(null);
   const data = useRef();
   const [selectedIndices, setSelectedIndices] = useState([0, 0, 0, 0]);
   const [lngLat, setLngLat] = useState(null);
@@ -48,6 +49,10 @@ export default function HazardViewer() {
     var scenario = currentOptions[2][currentIndices[2]];
     var year = currentOptions[3][currentIndices[3]];
     return { hazard, model, scenario, year };
+  }
+
+  function graphDataPoint(x, y) {
+    return { x, y };
   }
 
   const handleClick = async(e) => {
@@ -69,8 +74,10 @@ export default function HazardViewer() {
       ],
     };
     var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
+    var curve_set = response.data.items[0].intensity_curve_set[0]
+    var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
 
-    // TODO: update graph
+    setGraphData(points)
   };
 
   useEffect(
@@ -121,8 +128,11 @@ export default function HazardViewer() {
               height: 240,
             }}
           >
-            <Chart title={menuOptions[1][selectedIndices[1]] + 
-                (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "")} />
+            <Chart
+              title={menuOptions[1][selectedIndices[1]] + 
+                (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "")}
+              data={graphData}
+            />
           </Paper>
         </Grid>
         {/* Summary */}
