@@ -4,7 +4,6 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Summary from '../components/Summary';
-import AssetTable from '../components/AssetTable';
 import { HazardAvailability } from '../data/HazardDataAvailability.js';
 import {v4 as uuidv4} from 'uuid';
 import axios from 'axios';
@@ -150,12 +149,6 @@ export default function HazardViewer() {
               modelDescription={data.current ? data.current.getModelDescription(menuOptions[0][selectedIndices[0]],
                 menuOptions[1][selectedIndices[1]]) : ""} 
             />
-          </Paper>
-        </Grid>
-        {/* Asset table */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-            <AssetTable />
           </Paper>
         </Grid>
       </Grid>

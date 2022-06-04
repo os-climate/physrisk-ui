@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, Fragment } from 'react';
 import Link from '@mui/material/Link';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -6,56 +6,56 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Title from './Title';
-
-function createData(id, name, longitude, latitude, property1, property2) {
-  return { id, name, longitude, latitude, property1, property2 };
-}
-
-const rows = [
-  createData(
-    0,
-    'Asset 1',
-    12.4,
-    14.9,
-    'Power plant',
-    123000000,
-  ),
-  createData(
-    1,
-    'Asset 2',
-    54.3,
-    6.7,
-    'Power plant',
-    456000000,
-  ),
-];
+import {v4 as uuidv4} from 'uuid';
 
 function preventDefault(event) {
   event.preventDefault();
 }
 
 export default function AssetTable() {
+  const [ JsonData, setJsonData ] = useState({"items": []});
+
+  const uploadFile = (event) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = JSON.parse(event.target.result);
+      if (content.items) {
+        setJsonData(content);
+      }
+      else {
+        // TODO: improve validation (JSON schema?) & error handling
+        setJsonData({"items": [{"asset_class": "Invalid file; no asset items found."}]});
+      }
+    }
+    reader.readAsText(event.target.files[0]);
+  }
+
   return (
-    <React.Fragment>
-      <Title>Example asset table</Title>
+    <Fragment>
+      <Title>Asset Table</Title>
+      <input
+        type="file"
+        multiple={false}
+        accept=".json,application/json"
+        onChange={uploadFile}
+      >
+      </input>
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
+            <TableCell>Asset</TableCell>
+            <TableCell>Type</TableCell>
             <TableCell>Longitude</TableCell>
             <TableCell>Latitude</TableCell>
-            <TableCell>Property 1</TableCell>
-            <TableCell align="right">Property 2</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.longitude}</TableCell>
-              <TableCell>{row.latitude}</TableCell>
-              <TableCell>{row.property1}</TableCell>
-              <TableCell align="right">{`\u20AC${row.property2.toLocaleString('en-US')}`}</TableCell>
+          {JsonData.items.map((row) => (
+            <TableRow key={uuidv4()}>
+              <TableCell>{row.asset_class?.toLocaleString('en-US')}</TableCell>
+              <TableCell>{row.type?.toLocaleString('en-US')}</TableCell>
+              <TableCell>{row.longitude?.toLocaleString('en-US')}</TableCell>
+              <TableCell>{row.latitude?.toLocaleString('en-US')}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -63,6 +63,6 @@ export default function AssetTable() {
       <Link color="primary" href="#" onClick={preventDefault} sx={{ mt: 3 }}>
         See more details
       </Link>
-    </React.Fragment>
+    </Fragment>
   );
 }
