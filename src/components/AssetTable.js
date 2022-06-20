@@ -12,34 +12,12 @@ function preventDefault(event) {
   event.preventDefault();
 }
 
-export default function AssetTable() {
-  const [ JsonData, setJsonData ] = useState({"items": []});
-
-  const uploadFile = (event) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = JSON.parse(event.target.result);
-      if (content.items) {
-        setJsonData(content);
-      }
-      else {
-        // TODO: improve validation (JSON schema?) & error handling
-        setJsonData({"items": [{"asset_class": "Invalid file; no asset items found."}]});
-      }
-    }
-    reader.readAsText(event.target.files[0]);
-  }
+export default function AssetTable(props) {
+  const { data } = props
 
   return (
     <Fragment>
       <Title>Asset Table</Title>
-      <input
-        type="file"
-        multiple={false}
-        accept=".json,application/json"
-        onChange={uploadFile}
-      >
-      </input>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -50,7 +28,7 @@ export default function AssetTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {JsonData.items.map((row) => (
+          {data.items.map((row) => (
             <TableRow key={uuidv4()}>
               <TableCell>{row.asset_class?.toLocaleString('en-US')}</TableCell>
               <TableCell>{row.type?.toLocaleString('en-US')}</TableCell>
