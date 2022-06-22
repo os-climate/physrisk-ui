@@ -95,16 +95,12 @@ function ScatterMapMenu(props)
 };
 
 export default function ScatterMap(props) {    
-
-  const { menus, menuOptions, onClick, selectedIndices, setSelectedIndices } = props; 
-  //const theme = useTheme();
-    
+  const { menus, menuOptions, onClick, selectedIndices, setSelectedIndices, assetData } = props; 
 
   const mapContainerRef = useRef(null);
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
-  
   const [map, setMap] = useState(null);
   const markerRef = useRef(null);
 
@@ -131,7 +127,6 @@ export default function ScatterMap(props) {
       });
 
       newMap.on('load', () => {
-      
         newMap.addSource('hazard', {
               type: 'raster', // joemoorhouse.0zy9pvov
               tiles: [
@@ -140,7 +135,7 @@ export default function ScatterMap(props) {
               'tileSize': 256,
               'maxzoom': 6
           });
-        
+
         newMap.addLayer({
           'id': 'hazard-layer',
           'type': 'raster',
@@ -150,30 +145,41 @@ export default function ScatterMap(props) {
           }
         });
 
-      // Example about how to add a circle layer
-      // newMap.addSource("trailheads", {
-      //     type: "geojson",
-      //     data: "https://services3.arcgis.com/GVgbJbqm8hXASVYi/arcgis/rest/services/Trailheads/FeatureServer/0/query?f=pgeojson&where=1=1",
+        if (assetData) {
+          newMap.addSource('assets', {
+            type: 'geojson',
+            data: {
+              'type': 'FeatureCollection',
+              'features': assetData.items.map((item) => (
+                {
+                  'type': 'Feature',
+                  'properties': {},
+                  'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                      item.longitude,
+                      item.latitude,
+                    ]
+                  }
+                }
+              ))
+            }
+          });
+  
+          newMap.addLayer({
+            id: 'assets-circle',
+            type: 'circle',
+            source: 'assets',
+            paint: {
+              'circle-color': 'hsla(145,100%,30%,1)',
+              'circle-stroke-width': 1.5,
+              'circle-stroke-color': 'white',
+            }
+          });
+        }
+      });
 
-      // });
-    
-      // newMap.addLayer({
-      // id: "trailheads-circle",
-      // type: "circle",
-      // source: "trailheads",
-
-      // paint: {
-      //     "circle-color": "hsla(0,0%,0%,0.75)",
-      //     "circle-stroke-width": 1.5,
-      //     "circle-stroke-color": "white",
-      //     }
-      // });
-      
-      });  
-
-
-      newMap.on('click', (e) =>
-      {
+      newMap.on('click', (e) => {
         if (markerRef.current)
         {
           markerRef.current.remove(newMap);
@@ -182,7 +188,7 @@ export default function ScatterMap(props) {
           .setLngLat([e.lngLat.lng, e.lngLat.lat])
           .addTo(newMap);
 
-        markerRef.current = marker  
+        markerRef.current = marker
         onClick(e)
       });
 
@@ -190,20 +196,18 @@ export default function ScatterMap(props) {
 
       // Clean up on unmount
       return () => newMap.remove();
-  }, []);
-   
-  
+  }, [assetData]);
+
   return (
     <React.Fragment>
-      <ScatterMapMenu 
+      <ScatterMapMenu
         menus={menus}
         menuOptions={menuOptions}
         //onMenuChanged={handleMenuChanged}
         selectedIndices={selectedIndices}
-        setSelectedIndices={setSelectedIndices} 
+        setSelectedIndices={setSelectedIndices}
       />
-      <Box ref={mapContainerRef} className="map-container" /> 
+      <Box ref={mapContainerRef} className='map-container'/>
     </React.Fragment>
   );
 }
-
