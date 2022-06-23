@@ -17,7 +17,7 @@ export default function AssetTable(props) {
 
   return (
     <Fragment>
-      <Title>Asset Table</Title>
+      <Title>Assets</Title>
       <Table size="small">
         <TableHead>
           <TableRow>
