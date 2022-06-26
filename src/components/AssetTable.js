@@ -1,12 +1,9 @@
-import { useState, Fragment } from 'react';
+import { Fragment } from 'react';
+import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Title from './Title';
-import {v4 as uuidv4} from 'uuid';
+import { DataGrid } from '@mui/x-data-grid';
+
 
 function preventDefault(event) {
   event.preventDefault();
@@ -15,29 +12,48 @@ function preventDefault(event) {
 export default function AssetTable(props) {
   const { data } = props
 
+  const columns = [
+    {
+      field: 'asset_class',
+      headerName: 'Asset class',
+      width: 170,
+    },
+    {
+      field: 'type',
+      headerName: 'Type',
+      width: 150,
+      description: 'Hierarchical specification of asset type.',
+    },
+    {
+      field: 'latitude',
+      headerName: 'Latitude',
+      type: 'number',
+      width: 110,
+      editable: true,
+    },
+    {
+      field: 'longitude',
+      headerName: 'Longitude',
+      type: 'number',
+      width: 110,
+    },
+  ];
+  
+  const rows = data.items.map((row, i) => { return { ...row, id: i} })
+
   return (
     <Fragment>
-      <Title>Asset Table</Title>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Asset</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Longitude</TableCell>
-            <TableCell>Latitude</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.items.map((row) => (
-            <TableRow key={uuidv4()}>
-              <TableCell>{row.asset_class?.toLocaleString('en-US')}</TableCell>
-              <TableCell>{row.type?.toLocaleString('en-US')}</TableCell>
-              <TableCell>{row.longitude?.toLocaleString('en-US')}</TableCell>
-              <TableCell>{row.latitude?.toLocaleString('en-US')}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Title>Assets</Title>
+      <Box sx={{ height: 400, width: '100%' }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          pageSize={100}
+          rowsPerPageOptions={[100]}
+          checkboxSelection
+          disableSelectionOnClick
+        />
+      </Box>
       <Link color="primary" href="#" onClick={preventDefault} sx={{ mt: 3 }}>
         See more details
       </Link>

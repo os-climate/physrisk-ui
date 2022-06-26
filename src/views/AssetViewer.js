@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
+import Stack from '@mui/material/Stack';
 import AssetTable from '../components/AssetTable';
 import { HazardAvailability } from '../data/HazardDataAvailability.js';
 import axios from 'axios';
 
 export default function AssetViewer() {
-  const menus = [
-    {
-      name: "Hazard type",
-      size: "medium"
-    }
-  ];
+  const menus = [];
   const [menuOptions, setMenuOptions] = useState([[], [], [], []]);
   const data = useRef();
   const [selectedIndices, setSelectedIndices] = useState([0, 0, 0, 0]);
@@ -51,7 +48,8 @@ export default function AssetViewer() {
 
       const updateMenuOptions = () => {
         var hazardOptions = data.current.getHazardTypeOptions();
-        setMenuOptions([hazardOptions]);
+        setMenuOptions([]);
+        //setMenuOptions([hazardOptions]);
       };
 
       updateMenuOptions();
@@ -87,13 +85,22 @@ export default function AssetViewer() {
       {/* Asset table */}
       <Grid item xs={12} md={12} lg={12}>
         <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-          <input
-            type="file"
-            multiple={false}
-            accept=".json,application/json"
-            onChange={uploadFile}
+          <Stack spacing={2} direction="row">
+          <Button
+              variant="text"
+              component="label"
           >
-          </input>
+            Upload File
+            <input
+              type="file"
+              multiple={false}
+              accept=".json,application/json"
+              onChange={uploadFile}
+              hidden
+            >
+            </input>
+          </Button>
+          </Stack>
           <AssetTable data={jsonData}/>
         </Paper>
       </Grid>
