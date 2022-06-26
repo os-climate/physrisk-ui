@@ -1,3 +1,88 @@
+import axios from 'axios';
+
+export const hazardMenuInitialState = {
+    inventory: null,
+    menus: [],
+    menuOptions: [[],[],[],[]],
+    selectedIndices: [0, 0, 0, 0]
+}
+
+export const hazardMenuInitialiser = () => {
+    return {
+        inventory: null,
+        menus: [],
+        menuOptions: [[],[],[],[]],
+        selectedIndices: [0, 0, 0, 0]
+    }
+};
+
+export const hazardMenuReducer = (state, action) => {
+    console.log(action);
+    switch (action.type) {
+        case "initialise":
+            return {
+                inventory: action.payload.inventory,
+                selectedIndices: action.payload.selectedIndices,
+                menus: action.payload.menus,
+                menuOptions: getMenuOptions(action.payload.inventory, action.payload.selectedIndices) 
+            };
+        case "update":
+            return {
+                ...state,
+                selectedIndices: action.payload.selectedIndices,
+                menuOptions: getMenuOptions(state.inventory, action.payload.selectedIndices) 
+            };
+      default:
+        return state;
+    }
+  };
+
+function getMenuOptions(inventory, selectedIndices)
+{
+    var hazardOptions = inventory.getHazardTypeOptions();
+    var hazard = hazardOptions[selectedIndices[0]];
+    var modelOptions = inventory.getModelOptions(hazard);
+    var model = modelOptions[selectedIndices[1]];
+    var scenarioOptions = inventory.getScenarioOptions(hazard, model);
+    var scenario = scenarioOptions[selectedIndices[2]];
+    var yearOptions = inventory.getYearOptions(hazard, model, scenario);
+    return [ hazardOptions, modelOptions, scenarioOptions, yearOptions ]
+}
+
+export const loadHazardMenuData = async () => {
+    try {
+        const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
+        var response = await axios.post(apiHost+'/api/get_hazard_data_availability', {});
+        var inventory = new HazardAvailability(response.data.models);
+        const menus = [
+            {
+                name: "Hazard type",
+                size: "medium"
+            },
+            {
+                name: "Model",
+                size: "small"
+            },
+            {
+                name: "Scenario",
+                size: "small"
+            },
+            {
+                name: "Year",
+                size: "small"
+            },
+        ];
+        return {
+            inventory: inventory,
+            menus: menus,
+            selectedIndices: [0, 0, 0, 0]
+        };
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
 /** Holds hazard event availability data */
 export class HazardAvailability {

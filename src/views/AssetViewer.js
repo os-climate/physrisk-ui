@@ -1,18 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Stack from '@mui/material/Stack';
 import AssetTable from '../components/AssetTable';
-import { HazardAvailability } from '../data/HazardDataAvailability.js';
+import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardDataAvailability.js';
 import axios from 'axios';
 
 export default function AssetViewer() {
-  const menus = [];
-  const [menuOptions, setMenuOptions] = useState([[], [], [], []]);
-  const data = useRef();
-  const [selectedIndices, setSelectedIndices] = useState([0, 0, 0, 0]);
+
+  const hazardMenuInitialState = {
+    inventory: null,
+    menus: [],
+    menuOptions: [[],[],[],[]],
+    selectedIndices: [0, 0, 0, 0]
+  }
+  
+  const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
+
   const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
   const [ jsonData, setJsonData ] = useState({"items": []});
 
@@ -31,29 +37,13 @@ export default function AssetViewer() {
     reader.readAsText(event.target.files[0]);
   }
 
-  function getAssetProps()
-  {
-    var currentOptions = [];
-    var currentIndices = [];
-    setMenuOptions((current) => { currentOptions = current; return current; });
-    setSelectedIndices((current) => { currentIndices = current; return current; });
-    var hazard = currentOptions[0][currentIndices[0]];
-    return { hazard };
-  }
-
-  useEffect(
-    async() => {
-      var response = await axios.post(apiHost+'/api/get_hazard_data_availability', {});
-      data.current = new HazardAvailability(response.data.models);
-
-      const updateMenuOptions = () => {
-        var hazardOptions = data.current.getHazardTypeOptions();
-        setMenuOptions([]);
-        //setMenuOptions([hazardOptions]);
-      };
-
-      updateMenuOptions();
-    }, [data, selectedIndices]);
+  useEffect(() => {
+    async function fetchHazardMenuData() {
+      const hazardMenuData = await loadHazardMenuData()
+      hazardMenuUpdate({ type: "initialise", payload: hazardMenuData })
+    }
+    fetchHazardMenuData()
+    }, []);
 
   const handleClick = async(e) => {
     // This is currently a no-op.
@@ -73,11 +63,9 @@ export default function AssetViewer() {
           }}
         >
           <ScatterMap 
-            menus={menus}
-            menuOptions={menuOptions}
+            hazardMenu={hazardMenu}
+            hazardMenuUpdate={hazardMenuUpdate}
             onClick={handleClick}
-            selectedIndices={selectedIndices}
-            setSelectedIndices={setSelectedIndices}
             assetData={jsonData}
           />
         </Paper>
