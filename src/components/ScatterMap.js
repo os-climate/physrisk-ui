@@ -14,7 +14,7 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd
 function ScatterMapMenu(props)
 {
   const { hazardMenu, hazardMenuUpdate } = props
-  
+
   function setSelectedIndex(menuIndex, selectedIndex)
   {
     var newSelectedIndices = [...hazardMenu.selectedIndices]
@@ -95,14 +95,24 @@ function ScatterMapMenu(props)
 };
 
 export default function ScatterMap(props) {    
-  const { hazardMenu, hazardMenuUpdate, onClick, assetData } = props; 
+  const { hazardMenu, hazardMenuUpdate, onClick, assetData, visible } = props; 
 
   const mapContainerRef = useRef(null);
+
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
   const [map, setMap] = useState(null);
   const markerRef = useRef(null);
+
+  useEffect(() => {
+    var map = null;
+    setMap(prev => {
+      map = prev;
+      return prev;
+    });
+    map?.resize()
+  }, [visible]); 
 
   useEffect(() => {
       const newMap = new mapboxgl.Map({

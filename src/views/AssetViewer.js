@@ -8,8 +8,8 @@ import AssetTable from '../components/AssetTable';
 import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardDataAvailability.js';
 import axios from 'axios';
 
-export default function AssetViewer() {
-
+export default function AssetViewer(props) {
+  const { visible } = props
   const hazardMenuInitialState = {
     inventory: null,
     menus: [],
@@ -67,6 +67,7 @@ export default function AssetViewer() {
             hazardMenuUpdate={hazardMenuUpdate}
             onClick={handleClick}
             assetData={jsonData}
+            visible={visible}
           />
         </Paper>
       </Grid>

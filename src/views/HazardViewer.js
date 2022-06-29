@@ -4,20 +4,21 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Summary from '../components/Summary';
-import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardDataAvailability.js';
+import { hazardMenuReducer, loadHazardMenuData, updateMenuOptions } from '../data/HazardDataAvailability.js';
 import {v4 as uuidv4} from 'uuid';
 import axios from 'axios';
 
 
-export default function HazardViewer() {
-
+export default function HazardViewer(props) {
+  const { visible } = props
   const hazardMenuInitialState = {
     inventory: null,
-    menus: [],
-    menuOptions: [[],[],[],[]],
-    selectedIndices: [0, 0, 0, 0]
+    menus: ["", "", "", ""],
+    menuOptions: [[""], [""], [""], [""]],
+    selectedIndices: [0]
   }
-  
+
+  // holds both the inventory of available hazard data and the menu state
   const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
 
   const [graphData, setGraphData] = useState(null);
@@ -43,31 +44,29 @@ export default function HazardViewer() {
 
   useEffect(() => {
     async function fetchGraphData() {
-      const menuOptions = hazardMenu.menuOptions
-      const selectedIndices = hazardMenu.selectedIndices
-      var hazard = menuOptions[0][selectedIndices[0]]
-      var model = menuOptions[1][selectedIndices[1]];
-      var scenario = menuOptions[2][selectedIndices[2]];
-      var year = menuOptions[3][selectedIndices[3]];
+      var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(hazardMenu.inventory, hazardMenu.selectedIndices)
+      var [hazard, model, scenario, year] = selection
+      if (lngLat)
+      {
+        var payload = {
+          "items": [
+              {
+                  "request_item_id": uuidv4(),
+                  "event_type": hazard,
+                  "longitudes": [lngLat.lng],
+                  "latitudes": [lngLat.lat],
+                  "year": year,
+                  "scenario": scenario.id,
+                  "model": model.id,
+              },
+          ],
+        };
+        var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
+        var curve_set = response.data.items[0].intensity_curve_set[0]
+        var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
 
-      var payload = {
-        "items": [
-            {
-                "request_item_id": uuidv4(),
-                "event_type": hazard,
-                "longitudes": [lngLat.lng],
-                "latitudes": [lngLat.lat],
-                "year": year,
-                "scenario": scenario,
-                "model": hazardMenu.inventory.getModel(hazard, model).id,
-            },
-        ],
-      };
-      var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
-      var curve_set = response.data.items[0].intensity_curve_set[0]
-      var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
-
-      setGraphData(points)
+        setGraphData(points)
+    }
     }
     fetchGraphData()
     }, [hazardMenu, lngLat]);
@@ -87,6 +86,7 @@ export default function HazardViewer() {
               hazardMenu={hazardMenu}
               hazardMenuUpdate={hazardMenuUpdate}
               onClick={handleClick}
+              visible={visible}
             />
           </Paper>
         </Grid>
