@@ -1,3 +1,96 @@
+import axios from 'axios';
+
+export const hazardMenuInitialState = {
+    inventory: null,
+    menus: [],
+    menuOptions: [[],[],[],[]],
+    selectedIndices: [0, 0, 0, 0]
+}
+
+export const hazardMenuInitialiser = () => {
+    return {
+        inventory: null,
+        menus: [],
+        menuOptions: [[],[],[],[]],
+        selectedIndices: [0, 0, 0, 0]
+    }
+};
+
+export const hazardMenuReducer = (state, action) => {
+    console.log(action);
+    switch (action.type) {
+        case "initialise":
+            var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(action.payload.inventory, action.payload.selectedIndices)  
+            return {
+                inventory: action.payload.inventory,
+                selectedIndices: newSelectedIndices,
+                menus: action.payload.menus,
+                menuOptions: menuOptions 
+            };
+        case "update":
+            var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(state.inventory, action.payload.selectedIndices)
+            return {
+                ...state,
+                selectedIndices: newSelectedIndices,
+                menuOptions: menuOptions 
+            };
+      default:
+        return state;
+    }
+  };
+
+/** Update options as necessary and get current selection, adjusting indices as needed. */
+export function updateMenuOptions(inventory, selectedIndices)
+{
+    // menu order: hazard types, models, scenarios, years
+    var newSelectedIndices = [...selectedIndices]
+    var hazardTypeId = inventory.getHazardTypeIds()[selectedIndices[0]]
+    var models = inventory.modelsOfHazardType[hazardTypeId]
+    newSelectedIndices[1] = Math.min(selectedIndices[1], models.length - 1)
+    var model = models[newSelectedIndices[1]]
+    newSelectedIndices[2] = Math.min(selectedIndices[2], model.scenarios.length - 1)
+    var scenario = model.scenarios[newSelectedIndices[2]]
+    newSelectedIndices[3] = Math.min(selectedIndices[3], scenario.years.length - 1)
+    var year = scenario.years[newSelectedIndices[3]]
+    return [[inventory.getHazardTypeIds().map(h => prettifyPascalCase(h)), models.map(m => m.display_name), model.scenarios.map(s => prettifyScenarioId(s.id)), scenario.years],
+        newSelectedIndices,
+        [hazardTypeId, model, scenario, year]];
+}
+
+export const loadHazardMenuData = async () => {
+    try {
+        const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
+        var response = await axios.post(apiHost+'/api/get_hazard_data_availability', {});
+        var inventory = new HazardAvailability(response.data.models);
+        const menus = [
+            {
+                name: "Hazard type",
+                size: "medium"
+            },
+            {
+                name: "Model",
+                size: "small"
+            },
+            {
+                name: "Scenario",
+                size: "small"
+            },
+            {
+                name: "Year",
+                size: "small"
+            },
+        ];
+        return {
+            inventory: inventory,
+            menus: menus,
+            selectedIndices: [0, 0, 0, 0]
+        };
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
 
 /** Holds hazard event availability data */
 export class HazardAvailability {
@@ -10,41 +103,14 @@ export class HazardAvailability {
     }
 
     /** Return hazard event types. */
-    getHazardTypeOptions() {
+    getHazardTypeIds() {
         return Object.keys(this.modelsOfHazardType);
     }
-
-    /** Return Model instance with given hazard event type and display name. */
-    getModel(hazardType, modelDisplayName) {
-        return this.modelsOfHazardType[hazardType]
-            .find(model => model.display_name === modelDisplayName);
-    }
-
-    /** Return display names of Models for given hazard event types. */
-    getModelOptions(hazardType) {
-        return this.modelsOfHazardType[hazardType]
-            .map(model => model.display_name);
-      }
-
-    /** Return scenarios for Model with given hazard event type and display name. */
-    getScenarioOptions(hazardType, modelDisplayName) {
-        return this.getModel(hazardType, modelDisplayName)
-            .scenarios
-            .map(scen => scen.id);
-      }
 
     /** Return description for Model with given hazard event type and display name.  */
     getModelDescription(hazardType, modelDisplayName) {
         return this.getModel(hazardType, modelDisplayName)?.description; // '?' needed to handle transient state
     }
-
-    /** Return valid projection years for Model with given hazard event type, display name and scenario.  */
-    getYearOptions(hazardType, modelDisplayName, scenario) {
-        return this.getModel(hazardType, modelDisplayName)
-            .scenarios
-            .find(scen => scen.id === scenario)
-            .years;
-      }
 }
 
 /** Add an item to a dictionary were the value is a list */
@@ -52,6 +118,26 @@ function addItemToDict(dict, key, item)
 {
     if (!(key in dict)) dict[key] = [];
     dict[key].push(item);
+}
+
+function prettifyScenarioId(id)
+{
+    switch (id)
+    {
+        case "rcp4p5":
+            return "RCP 4.5"
+        case "rcp8p5":
+            return "RCP 8.5"
+        case "historical":
+            return "Historical"
+        default:
+            return id;
+    }
+}
+
+function prettifyPascalCase(text)
+{
+    return text.replace( /([A-Z])/g, " $1" ).trim(0);
 }
 
 export const inventory = [

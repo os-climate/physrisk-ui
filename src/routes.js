@@ -7,12 +7,16 @@ import AssetViewer from "./views/AssetViewer.js";
 import HazardViewer from "./views/HazardViewer.js";
 import RiskViewer from "./views/RiskViewer.js";
 
+/** Provides app routes. Note factory method for component passes 'visible' property,
+ * Can be used for transitions from hidden to visible etc and needed for mapbox-gl components 
+ * which seemingly need resizing once made visible. 
+ */
 export const routes = [
     {
         path: "/hazards",
         name: "Hazards",
         icon: LocalFireDepartment,
-        component: HazardViewer,
+        component: (visible) => <HazardViewer visible={visible}/>,
         layout: "/standard",
         category: "primary"
     },
@@ -20,7 +24,7 @@ export const routes = [
         path: "/assets",
         name: "Assets",
         icon: PrecisionManufacturing,
-        component: AssetViewer,
+        component: (visible) => <AssetViewer visible={visible}/>,
         layout: "/standard",
         category: "primary"
     },
@@ -28,7 +32,7 @@ export const routes = [
         path: "/risk",
         name: "Risk",
         icon: BarChartIcon,
-        component: RiskViewer,
+        component: (visible) => <RiskViewer/>,
         layout: "/standard",
         category: "primary"
     },
@@ -36,7 +40,7 @@ export const routes = [
         path: "/about",
         name: "About",
         icon: DashboardIcon,
-        component: AboutPage,
+        component: (visible) => <AboutPage/>,
         layout: "/standard",
         category: "primary"
     },
@@ -44,7 +48,7 @@ export const routes = [
         path: "/savedResults",
         name: "Saved results",
         icon: AssignmentIcon,
-        component: AboutPage, // change to its on page!
+        component: (visible) => <AboutPage/>, // change to its on page!
         layout: "/standard",
         category: "secondary"
     }

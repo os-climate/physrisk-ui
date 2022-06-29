@@ -87,7 +87,7 @@ function ViewHeader() {
 }
 
 function ViewPanel(props) {
-  const { children, path, ...other } = props;
+  const { component, path, ...other } = props;
 
   const [rendered, setRendered] = React.useState(false);
 
@@ -97,12 +97,21 @@ function ViewPanel(props) {
   
   if (!rendered)
       return null;
+  
+  let child;
+  if (!component)
+    child = null
+  else {
+    child = component(visible)
+  }
   return (
     <Box
-      sx={{display: visible ? 'block' : 'none' }}
+      hidden={!visible}
+      // sx={{display: visible ? 'block' : 'none' }}
       {...other}
     >
-       {children}
+       {child}
+       {/* {children.name == 'HazardViewer' ? children(visible) : children()}  */}
     </Box>
   );
 }
@@ -215,9 +224,7 @@ function AppContent() {
             {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
             {routes.map((prop, key) => {
                 return (
-                  <ViewPanel path={prop.path} key={key} >
-                    {prop.component()}
-                  </ViewPanel>
+                  <ViewPanel component={prop.component} path={prop.path} key={key} />
                 );
             })} 
             <Copyright sx={{ pt: 4 }} />

@@ -13,13 +13,13 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd
 
 function ScatterMapMenu(props)
 {
-  const { menus, menuOptions, selectedIndices, setSelectedIndices } = props
-  
+  const { hazardMenu, hazardMenuUpdate } = props
+
   function setSelectedIndex(menuIndex, selectedIndex)
   {
-    var newSelectedIndices = [...selectedIndices]
+    var newSelectedIndices = [...hazardMenu.selectedIndices]
     newSelectedIndices[menuIndex] = selectedIndex
-    setSelectedIndices(newSelectedIndices)
+    hazardMenuUpdate({ type: "update", payload: { selectedIndices: newSelectedIndices }})
   }
 
   const [anchorEls, setAnchorEls] = React.useState([null, null, null, null]);
@@ -36,15 +36,15 @@ function ScatterMapMenu(props)
     return Boolean(anchorEls[menuIndex])
   }
 
-  const handleItemClicks = menus.map((m, i) => (event, index) => {
+  const handleItemClicks = hazardMenu.menus.map((m, i) => (event, index) => {
     setSelectedIndex(i, index);
     setAnchorEl(i, null); 
   });
 
-  const handleMenuClicks = menus.map((m, i) => (event) => {
+  const handleMenuClicks = hazardMenu.menus.map((m, i) => (event) => {
     setAnchorEl(i, event.currentTarget); });  
 
-  const handleMenuCloses = menus.map((m, i) => () => {
+  const handleMenuCloses = hazardMenu.menus.map((m, i) => () => {
     setAnchorEl(i, null); });  
 
   return (
@@ -57,16 +57,16 @@ function ScatterMapMenu(props)
         display: 'none'
         }
       }}>
-      {menus.map((item, mIndex) => {
+      {hazardMenu.menus.map((item, mIndex) => {
         return (
           <Tooltip title={item.name} key={mIndex} arrow>
             <Button sx={{ flexShrink: 0 }} onClick={handleMenuClicks[mIndex]} size={item.size} endIcon={<KeyboardArrowDownIcon />}>
-              {menuOptions[mIndex][selectedIndices[mIndex]]}
+              {hazardMenu.menuOptions[mIndex][hazardMenu.selectedIndices[mIndex]]}
             </Button>
           </Tooltip>
         );
       })}
-      {menus.map((item, mIndex) => {
+      {hazardMenu.menus.map((item, mIndex) => {
         return (
           <Menu
             anchorEl={anchorEls[mIndex]}
@@ -77,11 +77,11 @@ function ScatterMapMenu(props)
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             key={mIndex}
           >
-            {menuOptions[mIndex].map((option, index) => (
+            {hazardMenu.menuOptions[mIndex].map((option, index) => (
               <MenuItem
                 sx ={{ fontSize: 14 }}
                 key={option}
-                selected={index === selectedIndices[mIndex]}
+                selected={index === hazardMenu.selectedIndices[mIndex]}
                 onClick={(event) => handleItemClicks[mIndex](event, index)}
               >
                 {option}
@@ -95,27 +95,24 @@ function ScatterMapMenu(props)
 };
 
 export default function ScatterMap(props) {    
-  const { menus, menuOptions, onClick, selectedIndices, setSelectedIndices, assetData } = props; 
+  const { hazardMenu, hazardMenuUpdate, onClick, assetData, visible } = props; 
 
   const mapContainerRef = useRef(null);
+
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
   const [map, setMap] = useState(null);
   const markerRef = useRef(null);
 
-  // const handleMenuChanged = (e) =>
-  // {
-  //   onMenuChanged(e);
-  // }
-
-  // const onMapSelectionChanged = () => {
-  //   if (mapContainerRef.current)
-  //   {
-  //     mapContainerRef.current.removeSource('hazard')
-
-  //   }
-  // };
+  useEffect(() => {
+    var map = null;
+    setMap(prev => {
+      map = prev;
+      return prev;
+    });
+    map?.resize()
+  }, [visible]); 
 
   useEffect(() => {
       const newMap = new mapboxgl.Map({
@@ -201,11 +198,8 @@ export default function ScatterMap(props) {
   return (
     <React.Fragment>
       <ScatterMapMenu
-        menus={menus}
-        menuOptions={menuOptions}
-        //onMenuChanged={handleMenuChanged}
-        selectedIndices={selectedIndices}
-        setSelectedIndices={setSelectedIndices}
+        hazardMenu={hazardMenu}
+        hazardMenuUpdate={hazardMenuUpdate}
       />
       <Box ref={mapContainerRef} className='map-container'/>
     </React.Fragment>

@@ -1,54 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import Chart from '../components/Chart';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Summary from '../components/Summary';
-import { HazardAvailability } from '../data/HazardDataAvailability.js';
+import { hazardMenuReducer, loadHazardMenuData, updateMenuOptions } from '../data/HazardDataAvailability.js';
 import {v4 as uuidv4} from 'uuid';
 import axios from 'axios';
 
 
-export default function HazardViewer() {
+export default function HazardViewer(props) {
+  const { visible } = props
+  const hazardMenuInitialState = {
+    inventory: null,
+    menus: ["", "", "", ""],
+    menuOptions: [[""], [""], [""], [""]],
+    selectedIndices: [0]
+  }
 
-  const menus = [
-    {
-      name: "Hazard type",
-      size: "medium"
-    },
-    {
-      name: "Model",
-      size: "small"
-    },
-    {
-      name: "Scenario",
-      size: "small"
-    },
-    {
-      name: "Year",
-      size: "small"
-    },
-  ];
+  // holds both the inventory of available hazard data and the menu state
+  const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
 
-  const [menuOptions, setMenuOptions] = useState([[], [], [], []]);
   const [graphData, setGraphData] = useState(null);
   const data = useRef();
-  const [selectedIndices, setSelectedIndices] = useState([0, 0, 0, 0]);
   const [lngLat, setLngLat] = useState(null);
   const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
-
-  function getHazardProps()
-  {
-    var currentOptions = [];
-    var currentIndices = [];
-    setMenuOptions((current) => { currentOptions = current; return current; });
-    setSelectedIndices((current) => { currentIndices = current; return current; });
-    var hazard = currentOptions[0][currentIndices[0]];
-    var model = currentOptions[1][currentIndices[1]];
-    var scenario = currentOptions[2][currentIndices[2]];
-    var year = currentOptions[3][currentIndices[3]];
-    return { hazard, model, scenario, year };
-  }
 
   function graphDataPoint(x, y) {
     return { x, y };
@@ -56,47 +32,44 @@ export default function HazardViewer() {
 
   const handleClick = async(e) => {
     setLngLat(e.lngLat);
-
-    var { hazard, model, scenario, year } = getHazardProps();
-    var hazardModel = data.current.getModel(hazard, model)
-    var payload = {
-      "items": [
-          {
-              "request_item_id": uuidv4(),
-              "event_type": hazard,
-              "longitudes": [e.lngLat.lng],
-              "latitudes": [e.lngLat.lat],
-              "year": year,
-              "scenario": scenario,
-              "model": hazardModel.id,
-          },
-      ],
-    };
-    var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
-    var curve_set = response.data.items[0].intensity_curve_set[0]
-    var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
-
-    setGraphData(points)
   };
 
-  useEffect(
-    async() => {
-      var response = await axios.post(apiHost+'/api/get_hazard_data_availability', {});
-      data.current = new HazardAvailability(response.data.models);
+  useEffect(() => {
+    async function fetchHazardMenuData() {
+      const hazardMenuData = await loadHazardMenuData()
+      hazardMenuUpdate({ type: "initialise", payload: hazardMenuData })
+    }
+    fetchHazardMenuData()
+    }, []);
 
-      const updateMenuOptions = () => {
-        var hazardOptions = data.current.getHazardTypeOptions();
-        var hazard = hazardOptions[selectedIndices[0]];
-        var modelOptions = data.current.getModelOptions(hazard);
-        var model = modelOptions[selectedIndices[1]];
-        var scenarioOptions = data.current.getScenarioOptions(hazard, model);
-        var scenario = scenarioOptions[selectedIndices[2]];
-        var yearOptions = data.current.getYearOptions(hazard, model, scenario);
-        setMenuOptions([hazardOptions, modelOptions, scenarioOptions, yearOptions]);
-      };
+  useEffect(() => {
+    async function fetchGraphData() {
+      var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(hazardMenu.inventory, hazardMenu.selectedIndices)
+      var [hazard, model, scenario, year] = selection
+      if (lngLat)
+      {
+        var payload = {
+          "items": [
+              {
+                  "request_item_id": uuidv4(),
+                  "event_type": hazard,
+                  "longitudes": [lngLat.lng],
+                  "latitudes": [lngLat.lat],
+                  "year": year,
+                  "scenario": scenario.id,
+                  "model": model.id,
+              },
+          ],
+        };
+        var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
+        var curve_set = response.data.items[0].intensity_curve_set[0]
+        var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
 
-      updateMenuOptions();
-    }, [data, selectedIndices]);
+        setGraphData(points)
+    }
+    }
+    fetchGraphData()
+    }, [hazardMenu, lngLat]);
 
   return (
         <Grid container spacing={3}>
@@ -109,12 +82,11 @@ export default function HazardViewer() {
               flexDirection: 'column'
             }}
           >
-            <ScatterMap 
-              menus={menus}
-              menuOptions={menuOptions}
+            <ScatterMap
+              hazardMenu={hazardMenu}
+              hazardMenuUpdate={hazardMenuUpdate}
               onClick={handleClick}
-              selectedIndices={selectedIndices}
-              setSelectedIndices={setSelectedIndices}
+              visible={visible}
             />
           </Paper>
         </Grid>
@@ -128,7 +100,7 @@ export default function HazardViewer() {
             }}
           >
             <Chart
-              title={menuOptions[1][selectedIndices[1]] + 
+              title={hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] + 
                 (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "")}
               data={graphData}
             />
@@ -145,9 +117,9 @@ export default function HazardViewer() {
             }}
           >
             <Summary 
-              modelName={menuOptions[1][selectedIndices[1]]} 
-              modelDescription={data.current ? data.current.getModelDescription(menuOptions[0][selectedIndices[0]],
-                menuOptions[1][selectedIndices[1]]) : ""} 
+              modelName={hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]]} 
+              modelDescription={data.current ? data.current.getModelDescription(hazardMenu.menuOptions[0][hazardMenu.selectedIndices[0]],
+                hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]]) : ""} 
             />
           </Paper>
         </Grid>

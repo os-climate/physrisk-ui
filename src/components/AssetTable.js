@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Title from './Title';
-import { DataGrid } from '@mui/x-data-grid';
+import { DataGrid, GridToolbar, useGridApiRef } from '@mui/x-data-grid';
 
 
 function preventDefault(event) {
@@ -52,6 +52,7 @@ export default function AssetTable(props) {
           rowsPerPageOptions={[100]}
           checkboxSelection
           disableSelectionOnClick
+          components={{ Toolbar: GridToolbar }}
         />
       </Box>
       <Link color="primary" href="#" onClick={preventDefault} sx={{ mt: 3 }}>
