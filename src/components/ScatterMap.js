@@ -52,6 +52,7 @@ function ScatterMapMenu(props)
       alignItems: 'center', 
       textAlign: 'center',
       whitespace: 'nowrap',
+      position:"relative",			       
       overflow: 'auto',
       '&::-webkit-scrollbar' : {
         display: 'none'
@@ -90,6 +91,16 @@ function ScatterMapMenu(props)
           </Menu>
         );
       })}
+            <div style={{ position: "absolute", right: 0 }}>
+        <form>
+          <input name="" type="text" value="" placeholder="latitude" />
+          <div style={{ transform: "scale(2)", display: "inline-block" }}>
+            &nbsp;/&nbsp;
+          </div>
+          <input name="" type="text" value="" placeholder="longitude" />
+          <input name="" type="button" value=">" />
+        </form>
+      </div>
     </Box> 
   );
 };
