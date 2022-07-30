@@ -99,21 +99,16 @@ function ScatterMapMenu(props)
 export default function ScatterMap(props) {    
   const { hazardMenu, hazardMenuUpdate, onClick, assetData, visible } = props; 
 
+  const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
 
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
-  const [map, setMap] = useState(null);
   const markerRef = useRef(null);
 
   useEffect(() => {
-    var map = null;
-    setMap(prev => {
-      map = prev;
-      return prev;
-    });
-    map?.resize()
+    mapRef.current?.resize()
   }, [visible]); 
 
   useEffect(() => {
@@ -153,6 +148,10 @@ export default function ScatterMap(props) {
               'visibility': 'visible'
           },
         }, firstSymbolId);
+
+        const timer = setTimeout(() => {
+          mapRef.current?.resize()
+          }, 2000);
 
         if (assetData) {
           newMap.addSource('assets', {
@@ -201,8 +200,7 @@ export default function ScatterMap(props) {
         onClick(e)
       });
 
-      setMap(newMap);
-
+      mapRef.current = newMap;
 
       // Clean up on unmount
       return () => newMap.remove();
