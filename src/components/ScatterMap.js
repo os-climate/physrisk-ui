@@ -14,6 +14,10 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd
 function ScatterMapMenu(props)
 {
   const { hazardMenu, hazardMenuUpdate } = props
+  const [anchorEls, setAnchorEls] = React.useState([null, null, null, null]);
+
+  if (!hazardMenu.menus)
+    return (null);
 
   function setSelectedIndex(menuIndex, selectedIndex)
   {
@@ -21,8 +25,6 @@ function ScatterMapMenu(props)
     newSelectedIndices[menuIndex] = selectedIndex
     hazardMenuUpdate({ type: "update", payload: { selectedIndices: newSelectedIndices }})
   }
-
-  const [anchorEls, setAnchorEls] = React.useState([null, null, null, null]);
 
   function setAnchorEl(menuIndex, value)
   {
@@ -45,7 +47,7 @@ function ScatterMapMenu(props)
     setAnchorEl(i, event.currentTarget); });  
 
   const handleMenuCloses = hazardMenu.menus.map((m, i) => () => {
-    setAnchorEl(i, null); });  
+    setAnchorEl(i, null); });
 
   return (
     <Box component='div' sx={{ display: 'flex',
@@ -124,6 +126,16 @@ export default function ScatterMap(props) {
       });
 
       newMap.on('load', () => {
+        const layers = newMap.getStyle().layers;
+          // Find the index of the first symbol layer in the map style.
+          let firstSymbolId;
+          for (const layer of layers) {
+            if (layer.type === 'symbol') {
+              firstSymbolId = layer.id;
+              break;
+            }
+          }
+        
         newMap.addSource('hazard', {
               type: 'raster', // joemoorhouse.0zy9pvov
               tiles: [
@@ -139,8 +151,8 @@ export default function ScatterMap(props) {
           'source': 'hazard',
           'layout': {
               'visibility': 'visible'
-          }
-        });
+          },
+        }, firstSymbolId);
 
         if (assetData) {
           newMap.addSource('assets', {
@@ -190,6 +202,7 @@ export default function ScatterMap(props) {
       });
 
       setMap(newMap);
+
 
       // Clean up on unmount
       return () => newMap.remove();

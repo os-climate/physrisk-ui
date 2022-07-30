@@ -13,8 +13,8 @@ export default function HazardViewer(props) {
   const { visible } = props
   const hazardMenuInitialState = {
     inventory: null,
-    menus: ["", "", "", ""],
-    menuOptions: [[""], [""], [""], [""]],
+    menus: null,
+    menuOptions: null,
     selectedIndices: [0]
   }
 
@@ -44,29 +44,32 @@ export default function HazardViewer(props) {
 
   useEffect(() => {
     async function fetchGraphData() {
-      var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(hazardMenu.inventory, hazardMenu.selectedIndices)
-      var [hazard, model, scenario, year] = selection
-      if (lngLat)
+      if (hazardMenu.inventory)
       {
-        var payload = {
-          "items": [
-              {
-                  "request_item_id": uuidv4(),
-                  "event_type": hazard,
-                  "longitudes": [lngLat.lng],
-                  "latitudes": [lngLat.lat],
-                  "year": year,
-                  "scenario": scenario.id,
-                  "model": model.id,
-              },
-          ],
-        };
-        var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
-        var curve_set = response.data.items[0].intensity_curve_set[0]
-        var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
+        var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(hazardMenu.inventory, hazardMenu.selectedIndices)
+        var [hazard, model, scenario, year] = selection
+        if (lngLat)
+        {
+          var payload = {
+            "items": [
+                {
+                    "request_item_id": uuidv4(),
+                    "event_type": hazard,
+                    "longitudes": [lngLat.lng],
+                    "latitudes": [lngLat.lat],
+                    "year": year,
+                    "scenario": scenario.id,
+                    "model": model.id,
+                },
+            ],
+          };
+          var response = await axios.post(apiHost+'/api/get_hazard_data', payload);
+          var curve_set = response.data.items[0].intensity_curve_set[0]
+          var points = curve_set.return_periods.map((item, i) => graphDataPoint(1.0/ item, curve_set.intensities[i]));
 
-        setGraphData(points)
-    }
+          setGraphData(points)
+        }
+      }
     }
     fetchGraphData()
     }, [hazardMenu, lngLat]);
@@ -100,8 +103,8 @@ export default function HazardViewer(props) {
             }}
           >
             <Chart
-              title={hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] + 
-                (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "")}
+              title={hazardMenu.menuOptions ? hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] + 
+                (lngLat ? " @ (" + lngLat.lng.toFixed(4) + "\u00b0, " + lngLat.lat.toFixed(4) + "\u00b0)" : "") : ""}
               data={graphData}
             />
           </Paper>
@@ -117,7 +120,7 @@ export default function HazardViewer(props) {
             }}
           >
             <Summary 
-              modelName={hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]]} 
+              modelName={hazardMenu.menuOptions ? hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] : ""} 
               modelDescription={data.current ? data.current.getModelDescription(hazardMenu.menuOptions[0][hazardMenu.selectedIndices[0]],
                 hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]]) : ""} 
             />

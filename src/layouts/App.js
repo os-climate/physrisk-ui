@@ -72,13 +72,15 @@ function Router(props) {
   );
 }
 
+
 function ViewHeader() {
-  const useCurrentPath = () => {
-    const location = useLocation()
+  const location = useLocation()
+  
+  const getCurrentPath = () => {
     var route = routes.find(r => r.path === location.pathname)
     return (route === undefined) ? "Unknown" : route.name
   }
-  const currentPath = useCurrentPath() 
+  const currentPath = getCurrentPath() 
   return (
     <div>
       {currentPath}

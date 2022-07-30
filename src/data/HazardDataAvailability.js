@@ -17,7 +17,6 @@ export const hazardMenuInitialiser = () => {
 };
 
 export const hazardMenuReducer = (state, action) => {
-    console.log(action);
     switch (action.type) {
         case "initialise":
             var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(action.payload.inventory, action.payload.selectedIndices)  
