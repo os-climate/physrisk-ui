@@ -101,7 +101,6 @@ export default function ScatterMap(props) {
 
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
-  const placeBeforeLayerIdRef = useRef(null);
 
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
@@ -143,10 +142,19 @@ export default function ScatterMap(props) {
 
   function updateRaster(mapBoxId)
   {
-    if (mapRef.current) {
+    if (mapRef.current) {    
       const map = mapRef.current
       removeRasterLayer(map)
-      addRasterLayer(map, 'osc-mapbox.' + mapBoxId, placeBeforeLayerIdRef.current)
+      const layers = map.getStyle().layers;
+          // Find the index of the first symbol layer in the map style.
+          let firstSymbolId;
+          for (const layer of layers) {
+            if (layer.type === 'symbol') {
+              firstSymbolId = layer.id;
+              break;
+            }
+          }
+      addRasterLayer(map, 'osc-mapbox.' + mapBoxId, firstSymbolId)
       map.resize()
       map.triggerRepaint()
     }
@@ -169,20 +177,6 @@ export default function ScatterMap(props) {
       });
 
       newMap.on('load', () => {
-        const layers = newMap.getStyle().layers;
-          // Find the index of the first symbol layer in the map style.
-          let firstSymbolId;
-          for (const layer of layers) {
-            if (layer.type === 'symbol') {
-              firstSymbolId = layer.id;
-              break;
-            }
-          }
-          
-        placeBeforeLayerIdRef.current = firstSymbolId
-
-        //addRasterLayer(newMap, 'osc-mapbox.yid3ew', firstSymbolId)
-
         const timer = setTimeout(() => {
           mapRef.current?.resize()
           }, 1000);
