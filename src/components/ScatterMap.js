@@ -6,6 +6,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import CoordinatesInput from './CoordinatesInput.js'
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -52,7 +53,6 @@ function ScatterMapMenu(props)
       alignItems: 'center', 
       textAlign: 'center',
       whitespace: 'nowrap',
-      position:"relative",			       
       overflow: 'auto',
       '&::-webkit-scrollbar' : {
         display: 'none'
@@ -91,16 +91,6 @@ function ScatterMapMenu(props)
           </Menu>
         );
       })}
-            <div style={{ position: "absolute", right: 0 }}>
-        <form>
-          <input name="" type="text" value="" placeholder="latitude" />
-          <div style={{ transform: "scale(2)", display: "inline-block" }}>
-            &nbsp;/&nbsp;
-          </div>
-          <input name="" type="text" value="" placeholder="longitude" />
-          <input name="" type="button" value=">" />
-        </form>
-      </div>
     </Box> 
   );
 };
@@ -147,7 +137,7 @@ export default function ScatterMap(props) {
         newMap.addLayer({
           'id': 'hazard-layer',
           'type': 'raster',
-          'source': 'hazard',
+          'Source': 'hazard',
           'layout': {
               'visibility': 'visible'
           }
@@ -201,7 +191,6 @@ export default function ScatterMap(props) {
       });
 
       setMap(newMap);
-
       // Clean up on unmount
       return () => newMap.remove();
   }, [assetData]);
@@ -211,7 +200,8 @@ export default function ScatterMap(props) {
       <ScatterMapMenu
         hazardMenu={hazardMenu}
         hazardMenuUpdate={hazardMenuUpdate}
-      />
+	  />
+	  <CoordinatesInput map={map} markerRef={markerRef} onClick={onClick}/>
       <Box ref={mapContainerRef} className='map-container'/>
     </React.Fragment>
   );
