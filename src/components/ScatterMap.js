@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -9,7 +9,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 // note *public* access token
 // committing into code-base; public token is available on client
-mapboxgl.accessToken = 'pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg';
+mapboxgl.accessToken = 'pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbDExYnVhaXYwMDZ5M2lxcnRjYXlrb3NlIn0.O_r7LgQjNux4I8g9WBlUBQ'
 
 function ScatterMapMenu(props)
 {
@@ -101,15 +101,63 @@ export default function ScatterMap(props) {
 
   const mapRef = useRef(null);
   const mapContainerRef = useRef(null);
+  const placeBeforeLayerIdRef = useRef(null);
 
   const [lng,] = useState(0); // setLng
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
   const markerRef = useRef(null);
 
+  function addRasterLayer(map, mapBoxId, placeBeforeLayerId)
+  {
+    map.addSource('hazard', {
+        type: 'raster', 
+        tiles: [
+            'https://api.mapbox.com/v4/' + mapBoxId + '/{z}/{x}/{y}.png'
+        ],
+        'tileSize': 256,
+        'maxzoom': 6
+    });
+
+    map.addLayer({
+      'id': 'hazard',
+      'type': 'raster',
+      'source': 'hazard',
+      'layout': {
+          'visibility': 'visible'
+      },
+    }, placeBeforeLayerId);
+  }
+
+  function removeRasterLayer(map)
+  {
+    const layerId = 'hazard'
+    if (map.getLayer(layerId)){
+      map.removeLayer(layerId);
+    }
+    
+    if (map.getSource(layerId)){
+      map.removeSource(layerId);
+    }
+  }
+
+  function updateRaster(mapBoxId)
+  {
+    if (mapRef.current) {
+      const map = mapRef.current
+      removeRasterLayer(map)
+      addRasterLayer(map, 'osc-mapbox.' + mapBoxId, placeBeforeLayerIdRef.current)
+      map.resize()
+      map.triggerRepaint()
+    }
+  }
+
+  const memoizedValue = useMemo(() => updateRaster(hazardMenu.mapId), [hazardMenu.mapId]);
+
   useEffect(() => {
     mapRef.current?.resize()
   }, [visible]); 
+
 
   useEffect(() => {
       const newMap = new mapboxgl.Map({
@@ -130,28 +178,14 @@ export default function ScatterMap(props) {
               break;
             }
           }
-        
-        newMap.addSource('hazard', {
-              type: 'raster', // joemoorhouse.0zy9pvov
-              tiles: [
-                  'https://api.mapbox.com/v4/joemoorhouse.0zy9pvov/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoiam9lbW9vcmhvdXNlIiwiYSI6ImNrejdlaDBzdDE4aXEyd3J4dnEwZGxvN3EifQ.Mx9efwIBjR3k6y77FT7czg'
-              ],
-              'tileSize': 256,
-              'maxzoom': 6
-          });
+          
+        placeBeforeLayerIdRef.current = firstSymbolId
 
-        newMap.addLayer({
-          'id': 'hazard-layer',
-          'type': 'raster',
-          'source': 'hazard',
-          'layout': {
-              'visibility': 'visible'
-          },
-        }, firstSymbolId);
+        //addRasterLayer(newMap, 'osc-mapbox.yid3ew', firstSymbolId)
 
         const timer = setTimeout(() => {
           mapRef.current?.resize()
-          }, 2000);
+          }, 1000);
 
         if (assetData) {
           newMap.addSource('assets', {
@@ -201,6 +235,7 @@ export default function ScatterMap(props) {
       });
 
       mapRef.current = newMap;
+      newMap.resize()
 
       // Clean up on unmount
       return () => newMap.remove();

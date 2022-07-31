@@ -20,17 +20,23 @@ export const hazardMenuReducer = (state, action) => {
     switch (action.type) {
         case "initialise":
             var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(action.payload.inventory, action.payload.selectedIndices)  
+            var [hazard, model, scenario, year] = selection
             return {
                 inventory: action.payload.inventory,
                 selectedIndices: newSelectedIndices,
+                selection: selection,
+                mapId: action.payload.inventory.getMapId(hazard, model.id, scenario.id, year),
                 menus: action.payload.menus,
                 menuOptions: menuOptions 
             };
         case "update":
             var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(state.inventory, action.payload.selectedIndices)
+            var [hazard, model, scenario, year] = selection
             return {
                 ...state,
                 selectedIndices: newSelectedIndices,
+                selection: selection,
+                mapId: state.inventory.getMapId(hazard, model.id, scenario.id, year),
                 menuOptions: menuOptions 
             };
       default:
@@ -55,6 +61,7 @@ export function updateMenuOptions(inventory, selectedIndices)
         newSelectedIndices,
         [hazardTypeId, model, scenario, year]];
 }
+
 
 export const loadHazardMenuData = async () => {
     try {
@@ -99,11 +106,17 @@ export class HazardAvailability {
         models.forEach(model => {
             addItemToDict(this.modelsOfHazardType, model.event_type, model);
         });
+
+        this._mapLookup = createMapLookup()
     }
 
     /** Return hazard event types. */
     getHazardTypeIds() {
         return Object.keys(this.modelsOfHazardType);
+    }
+
+    getMapId(hazardType, model, scenario, year) {
+        return this._mapLookup[[hazardType, model, scenario, year]] ?? ""
     }
 
     /** Return description for Model with given hazard event type and display name.  */
@@ -137,6 +150,25 @@ function prettifyScenarioId(id)
 function prettifyPascalCase(text)
 {
     return text.replace( /([A-Z])/g, " $1" ).trim(0);
+}
+
+function createMapLookup() {
+    let mapLookup = {}
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp8p5", "2030"]] = "1gpawk" 
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp8p5", "2030"]] = "yid3ew"
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp4p5", "2050"]] = "nw142i"
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp8p5", "2050"]] = "btdx4q"
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp8p5", "2080"]] = "5r61pa"
+    mapLookup[["RiverineInundation", "000000000WATCH", "historical", "1980"]] = "gw4vgq"
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp8p5", "2050"]] = "dib9no"
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp4p5", "2080"]] = "rsjuuu"
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp4p5", "2050"]] = "1k4boi"
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp4p5", "2030"]] = "ht2kn3"
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp8p5", "2080"]] = "rjwfx9"
+    mapLookup[["RiverineInundation", "MIROC-ESM-CHEM", "rcp4p5", "2080"]] = "3rok7b"
+    mapLookup[["CoastalInundation", "wtsub/95", "rcp4p5", "2030"]] = "g9rt30"
+    mapLookup[["CoastalInundation", "nosub/95", "historical", "hist"]] = "5mcwjr"
+    return mapLookup  
 }
 
 export const inventory = [
