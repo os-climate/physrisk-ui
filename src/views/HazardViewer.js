@@ -46,8 +46,7 @@ export default function HazardViewer(props) {
     async function fetchGraphData() {
       if (hazardMenu.inventory)
       {
-        var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(hazardMenu.inventory, hazardMenu.selectedIndices)
-        var [hazard, model, scenario, year] = selection
+        var [hazard, model, scenario, year] = hazardMenu.selection
         if (lngLat)
         {
           var payload = {
