@@ -6,6 +6,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import CoordinatesInput from './CoordinatesInput.js'
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -240,7 +241,8 @@ export default function ScatterMap(props) {
       <ScatterMapMenu
         hazardMenu={hazardMenu}
         hazardMenuUpdate={hazardMenuUpdate}
-      />
+	  />
+	  <CoordinatesInput map={map} markerRef={markerRef} onClick={onClick}/>
       <Box ref={mapContainerRef} className='map-container'/>
     </React.Fragment>
   );
