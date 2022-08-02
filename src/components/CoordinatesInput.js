@@ -42,14 +42,14 @@ const CoordinatesInput = (props) => {
             type="button"
             onClick={() => {
               if (props.markerRef.current) {
-                props.markerRef.current.remove(props.map);
+                props.markerRef.current.remove(props.map.current);
               }
               const marker = new Marker()
                 .setLngLat([lat, lng])
-                .addTo(props.map);
+                .addTo(props.map.current);
 		
               props.markerRef.current = marker;
-		props.map.flyTo({ center: [lat, lng], essential: true });
+		props.map.current.flyTo({ center: [lat, lng], essential: true });
 		let e = {lngLat:{lng:parseInt(lng),lat:parseInt(lat)}};
 		props.onClick(e)
             }}
