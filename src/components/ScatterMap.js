@@ -214,7 +214,7 @@ export default function ScatterMap(props) {
             }
           });
         }
-	  CoordinatesInput(mapRef,mapboxgl,markerRef)
+	  CoordinatesInput(mapRef,mapboxgl,markerRef,onClick)
       });
 
       newMap.on('click', (e) => {

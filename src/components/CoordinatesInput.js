@@ -1,8 +1,7 @@
-import { Marker } from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 
-function CoordinateInput(mapRef, mapboxgl, markerRef) {
+function CoordinateInput(mapRef, mapboxgl, markerRef,onClick) {
   /* Given a query in the form "lng, lat" or "lat, lng"
    * returns the matching geographic coordinate(s)
    * as search results in carmen geojson format,
@@ -73,7 +72,10 @@ function CoordinateInput(mapRef, mapboxgl, markerRef) {
         .setLngLat([lng, lat])
         .addTo(mapRef.current);
 
-      markerRef.current = marker;
+	markerRef.current = marker;
+	let lngLat = {lng,lat};
+	e.lngLat=lngLat
+	onClick(e)
     })
   );
 }
