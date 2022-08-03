@@ -1,7 +1,8 @@
+import {Marker} from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
-function CoordinateInput2(mapRef,mapboxgl) {
+function CoordinateInput(mapRef,mapboxgl,markerRef) {
  
 /* Given a query in the form "lng, lat" or "lat, lng"
 * returns the matching geographic coordinate(s)
@@ -60,11 +61,21 @@ new MapboxGeocoder({
 accessToken: mapboxgl.accessToken,
 localGeocoder: coordinatesGeocoder,
 zoom: 4,
+marker:false,
 placeholder: 'Try: -40, 170',
 mapboxgl: mapboxgl,
 reverseGeocode: true
-})
-)
-}
+}).on("result",(e) => {
+    let [lng,lat] = e.result.geometry.coordinates
+            if (markerRef.current)
+        {
+          markerRef.current.remove(mapRef.current);
+        }
+        const marker =  new mapboxgl.Marker()
+          .setLngLat([lng, lat])
+          .addTo(mapRef.current);
 
-export default CoordinateInput2
+        markerRef.current = marker
+}))
+}
+export default CoordinateInput

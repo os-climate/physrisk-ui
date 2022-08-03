@@ -214,7 +214,7 @@ export default function ScatterMap(props) {
             }
           });
         }
-	  CoordinatesInput(mapRef,mapboxgl)
+	  CoordinatesInput(mapRef,mapboxgl,markerRef)
       });
 
       newMap.on('click', (e) => {
@@ -235,6 +235,7 @@ export default function ScatterMap(props) {
 
       // Clean up on unmount
       return () => newMap.remove();
+
   }, [assetData]);
 
   return (
@@ -243,7 +244,6 @@ export default function ScatterMap(props) {
         hazardMenu={hazardMenu}
         hazardMenuUpdate={hazardMenuUpdate}
 	  />
-
       <Box ref={mapContainerRef} className='map-container'/>
     </React.Fragment>
   );
