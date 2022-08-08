@@ -36,6 +36,7 @@
     "lint:fix": "npm run lint -- --fix",
     "prettier": "npx prettier src --check",
     "prettier:fix": "npm run prettier -- --write",
+    "format": "npm run prettier:fix && npm run lint:fix"
   },
   "eslintConfig": {
     "extends": [
@@ -58,6 +59,7 @@
   "devDependencies": {
     "prettier": "^2.7.1",
     "eslint": "^8.21.0",
-    "eslint-plugin-react": "^7.30.1"
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-config-prettier": "^8.5.0",
   }
 }
