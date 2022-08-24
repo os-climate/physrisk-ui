@@ -7,6 +7,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Area, AreaChart, CartesianGrid, CartesianAxis, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import CoordinatesInput from './CoordinatesInput.js'
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -224,6 +225,7 @@ export default function ScatterMap(props) {
 
         mapRef.current = newMap;
         updateRaster(mapIdRef.current);
+	      CoordinatesInput(mapRef, mapboxgl, markerRef, onClick)
       });
 
       newMap.on('click', (e) => {
@@ -241,6 +243,7 @@ export default function ScatterMap(props) {
 
       // Clean up on unmount
       return () => newMap.remove();
+
   }, [assetData]);
 
   const colorbarData = [
