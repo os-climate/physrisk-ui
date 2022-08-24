@@ -16,7 +16,7 @@ export default function AssetViewer(props) {
     menuOptions: [[],[],[],[]],
     selectedIndices: [0, 0, 0, 0]
   }
-  
+
   const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
 
   const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
