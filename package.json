@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.5.0",
     "@emotion/styled": "^11.3.0",
+    "@mapbox/mapbox-gl-geocoder": "^5.0.1",
     "@mui/icons-material": "^5.1.0",
     "@mui/material": "^5.1.0",
     "@mui/x-data-grid": "^5.12.2",
@@ -50,8 +51,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@mapbox/mapbox-gl-geocoder": "^5.0.1"
   }
 }
