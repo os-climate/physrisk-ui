@@ -6,6 +6,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { Area, AreaChart, CartesianGrid, CartesianAxis, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import CoordinatesInput from './CoordinatesInput.js'
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -106,6 +108,7 @@ export default function ScatterMap(props) {
   const [lat,] = useState(45);
   const [zoom,] = useState(2);
   const markerRef = useRef(null);
+  const mapIdRef = useRef(null);
 
   function addRasterLayer(map, mapBoxId, placeBeforeLayerId)
   {
@@ -141,26 +144,32 @@ export default function ScatterMap(props) {
   }
 
   function updateRaster(mapBoxId)
-  {
+  {    
     if (mapRef.current) {    
       const map = mapRef.current
-      removeRasterLayer(map)
+      
       const layers = map.getStyle().layers;
-          // Find the index of the first symbol layer in the map style.
-          let firstSymbolId;
-          for (const layer of layers) {
-            if (layer.type === 'symbol') {
-              firstSymbolId = layer.id;
-              break;
-            }
-          }
+      // Find the index of the first symbol layer in the map style.
+      let firstSymbolId;
+      for (const layer of layers) {
+        if (layer.type === 'symbol') {
+          firstSymbolId = layer.id;
+          break;
+        }
+      }
+      removeRasterLayer(map)
       addRasterLayer(map, 'osc-mapbox.' + mapBoxId, firstSymbolId)
+      
       map.resize()
       map.triggerRepaint()
     }
   }
 
-  const memoizedValue = useMemo(() => updateRaster(hazardMenu.mapId), [hazardMenu.mapId]);
+  if (mapIdRef.current != hazardMenu.mapId)
+  {
+    mapIdRef.current = hazardMenu.mapId;
+    updateRaster(hazardMenu.mapId);
+  }
 
   useEffect(() => {
     mapRef.current?.resize()
@@ -213,6 +222,10 @@ export default function ScatterMap(props) {
             }
           });
         }
+
+        mapRef.current = newMap;
+        updateRaster(mapIdRef.current);
+	      CoordinatesInput(mapRef, mapboxgl, markerRef, onClick)
       });
 
       newMap.on('click', (e) => {
@@ -228,20 +241,53 @@ export default function ScatterMap(props) {
         onClick(e)
       });
 
-      mapRef.current = newMap;
-      newMap.resize()
-
       // Clean up on unmount
       return () => newMap.remove();
+
   }, [assetData]);
 
+  const colorbarData = [
+    { xValue: 0, value: 1 },
+    { xValue: 2.5, value: 1 },
+  ]
+
+  const colorbarStops = hazardMenu.mapColorbar ?? []
+
   return (
-    <React.Fragment>
-      <ScatterMapMenu
-        hazardMenu={hazardMenu}
-        hazardMenuUpdate={hazardMenuUpdate}
-      />
-      <Box ref={mapContainerRef} className='map-container'/>
+    <React.Fragment >
+      <Box sx={{ position: 'relative' }}>
+        <ScatterMapMenu
+          hazardMenu={hazardMenu}
+          hazardMenuUpdate={hazardMenuUpdate}
+        />
+        <Box ref={mapContainerRef} className='map-container' />
+        <Box sx={{ height: 45, width: 175, backgroundColor: 'rgba(255, 255, 255, 0.9)', position: 'absolute', bottom: 0, right: 0, zIndex: 1 }}>
+          <ResponsiveContainer width={"100%"} height={45}>
+            <AreaChart data={colorbarData}
+              margin={{ top: 7, right: 7, left: 7, bottom: 0 }} backgroundColor='white'>
+              <defs>
+                <linearGradient id={"colorUv"} x1="0" y1="0" x2="1" y2="0">
+                {colorbarStops.map((prop, key) => {
+                  return (
+                    <stop offset={prop.offset} stopColor={prop.stopColor} key={key} />
+                  );
+                })} 
+                  {/* <stop offset="0%" stopColor="#FF0000" stopOpacity={1.0}/>
+                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity={1.0}/> */}
+                </linearGradient>
+
+              </defs>
+              <Area type="monotone" dataKey="value" fillOpacity={1.0} fill={"url(#colorUv)"} />
+              <XAxis dataKey="xValue" tickCount="5" interval="preserveStartEnd" domain={['dataMin', 'dataMax']} type='number' fontSize='11' stroke='black'
+                label={{ value: 'Intensity (m)', position: 'insideBottom', dy: 3, fontSize: 11 }} />
+                
+              <YAxis hide={true}></YAxis>
+              <CartesianAxis />
+              <CartesianGrid strokeDasharray="0" vertical={true} horizontal={true} stroke="black" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
     </React.Fragment>
   );
 }
