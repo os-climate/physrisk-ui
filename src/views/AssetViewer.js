@@ -5,7 +5,7 @@ import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Stack from '@mui/material/Stack';
 import AssetTable from '../components/AssetTable';
-import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardDataAvailability.js';
+import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardInventory.js';
 import axios from 'axios';
 
 export default function AssetViewer(props) {

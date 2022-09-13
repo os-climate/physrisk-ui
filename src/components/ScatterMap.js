@@ -81,6 +81,7 @@ function ScatterMapMenu(props)
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             key={mIndex}
           >
+            
             {hazardMenu.menuOptions[mIndex].map((option, index) => (
               <MenuItem
                 sx ={{ fontSize: 14 }}
@@ -248,10 +249,10 @@ export default function ScatterMap(props) {
 
   const colorbarData = [
     { xValue: 0, value: 1 },
-    { xValue: 2.5, value: 1 },
+    { xValue: hazardMenu?.mapColorbar?.maxValue ?? 1, value: 1 },
   ]
 
-  const colorbarStops = hazardMenu.mapColorbar ?? []
+  const colorbarStops = hazardMenu.mapColorbar?.stops ?? []
 
   return (
     <React.Fragment >
@@ -261,7 +262,7 @@ export default function ScatterMap(props) {
           hazardMenuUpdate={hazardMenuUpdate}
         />
         <Box ref={mapContainerRef} className='map-container' />
-        <Box sx={{ height: 45, width: 175, backgroundColor: 'rgba(255, 255, 255, 0.9)', position: 'absolute', bottom: 0, right: 0, zIndex: 1 }}>
+        <Box sx={{ height: 45, width: 175, backgroundColor: 'rgba(255, 255, 255, 1.0)', position: 'absolute', bottom: 4, right: 4, zIndex: 1, borderRadius: '4px', boxShadow: '0 0 10px 2px rgba(0,0,0,.1)' }}>
           <ResponsiveContainer width={"100%"} height={45}>
             <AreaChart data={colorbarData}
               margin={{ top: 7, right: 7, left: 7, bottom: 0 }} backgroundColor='white'>
@@ -278,12 +279,12 @@ export default function ScatterMap(props) {
 
               </defs>
               <Area type="monotone" dataKey="value" fillOpacity={1.0} fill={"url(#colorUv)"} />
-              <XAxis dataKey="xValue" tickCount="5" interval="preserveStartEnd" domain={['dataMin', 'dataMax']} type='number' fontSize='11' stroke='black'
-                label={{ value: 'Intensity (m)', position: 'insideBottom', dy: 3, fontSize: 11 }} />
+              <XAxis dataKey="xValue" tickCount="5" interval="preserveStart" domain={['dataMin', 'dataMax']} type='number' fontSize='11' fontFamily='Arial' stroke='rgb(117,117,117'
+                label={{ value: 'Intensity (' + hazardMenu?.mapColorbar?.units + ')', position: 'insideBottom', dy: 3, fontSize: 11, fontFamily: 'Arial', fill: 'rgb(117,117,117' }} />
                 
               <YAxis hide={true}></YAxis>
               <CartesianAxis />
-              <CartesianGrid strokeDasharray="0" vertical={true} horizontal={true} stroke="black" />
+              <CartesianGrid strokeDasharray="0" vertical={true} horizontal={true} stroke='rgb(117,117,117' />
             </AreaChart>
           </ResponsiveContainer>
         </Box>

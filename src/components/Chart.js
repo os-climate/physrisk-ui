@@ -16,7 +16,7 @@ export default function Chart(props) {
           margin={{
             top: 16,
             right: 16,
-            bottom: 16,
+            bottom: 34,
             left: 24,
           }}
         >
