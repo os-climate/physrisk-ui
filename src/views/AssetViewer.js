@@ -1,12 +1,11 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useState, React } from 'react';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Stack from '@mui/material/Stack';
 import AssetTable from '../components/AssetTable';
-import { hazardMenuInitialiser, hazardMenuReducer, loadHazardMenuData } from '../data/HazardDataAvailability.js';
-import axios from 'axios';
+import { hazardMenuReducer, loadHazardMenuData } from '../data/HazardInventory.js';
 
 export default function AssetViewer(props) {
   const { visible } = props
@@ -19,7 +18,6 @@ export default function AssetViewer(props) {
 
   const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
 
-  const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
   const [ jsonData, setJsonData ] = useState({"items": []});
 
   const uploadFile = (event) => {
@@ -45,7 +43,7 @@ export default function AssetViewer(props) {
     fetchHazardMenuData()
     }, []);
 
-  const handleClick = async(e) => {
+  const handleClick = async() => {
     // This is currently a no-op.
     // There are no plans for an effect as of writing.
     return

@@ -28,7 +28,11 @@
     "worker-loader": "^3.0.8"
   },
   "devDependencies": {
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "prettier": "^2.7.1",
+    "eslint": "^8.21.0",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-config-prettier": "^8.5.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -58,11 +62,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "prettier": "^2.7.1",
-    "eslint": "^8.21.0",
-    "eslint-plugin-react": "^7.30.1",
-    "eslint-config-prettier": "^8.5.0"
   }
 }

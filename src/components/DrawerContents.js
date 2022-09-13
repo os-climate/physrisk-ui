@@ -1,3 +1,4 @@
+import { React } from 'react';
 import { styled } from '@mui/material/styles';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
@@ -15,7 +16,7 @@ const StyledDivider = styled(Divider)`
 `;
 
 const StyledDiv = styled('div')(
-  ({ theme }) => ({
+  () => ({
     elevation: 0,
     border: 0,
     zIndex: 0,
