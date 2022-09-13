@@ -1,11 +1,11 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useState, React } from 'react';
 import Chart from '../components/Chart';
 import ChronicHazard from '../components/ChronicHazard';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import ScatterMap from '../components/ScatterMap';
 import Summary from '../components/Summary';
-import { hazardMenuReducer, hazardMenuInitialiser, loadHazardMenuData, updateMenuOptions } from '../data/HazardInventory.js';
+import { hazardMenuReducer, hazardMenuInitialiser, loadHazardMenuData } from '../data/HazardInventory.js';
 import {v4 as uuidv4} from 'uuid';
 import axios from 'axios';
 
@@ -19,7 +19,6 @@ export default function HazardViewer(props) {
   const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
 
   const [graphData, setGraphData] = useState(null);
-  const data = useRef();
   const [lngLat, setLngLat] = useState(null);
   const apiHost = 'http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org';
 

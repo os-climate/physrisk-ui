@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useMemo, useState } from 'react';
-import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+import React, { useRef, useEffect, useState } from 'react';
+import mapboxgl from '!mapbox-gl'; 
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Menu from '@mui/material/Menu';
@@ -187,9 +187,10 @@ export default function ScatterMap(props) {
       });
 
       newMap.on('load', () => {
-        const timer = setTimeout(() => {
-          mapRef.current?.resize()
-          }, 1000);
+        setTimeout(() => {
+        mapRef.current?.resize()
+        }, 1000);
+
 
         if (assetData) {
           newMap.addSource('assets', {

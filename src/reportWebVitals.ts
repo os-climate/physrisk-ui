@@ -1,4 +1,4 @@
-import { ReportHandler } from 'web-vitals';
+import { ReportHandler } from 'web-vitals'; // eslint-disable-line no-unused-vars
 
 const reportWebVitals = (onPerfEntry?: ReportHandler) => {
   if (onPerfEntry && onPerfEntry instanceof Function) {

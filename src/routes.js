@@ -1,3 +1,4 @@
+import { React } from 'react';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -32,7 +33,7 @@ export const routes = [
         path: "/risk",
         name: "Risk",
         icon: BarChartIcon,
-        component: (visible) => <RiskViewer/>,
+        component: () => <RiskViewer/>,
         layout: "/standard",
         category: "primary"
     },
@@ -40,7 +41,7 @@ export const routes = [
         path: "/about",
         name: "About",
         icon: DashboardIcon,
-        component: (visible) => <AboutPage/>,
+        component: () => <AboutPage/>,
         layout: "/standard",
         category: "primary"
     },
@@ -48,7 +49,7 @@ export const routes = [
         path: "/savedResults",
         name: "Saved results",
         icon: AssignmentIcon,
-        component: (visible) => <AboutPage/>, // change to its on page!
+        component: () => <AboutPage/>, // change to its on page!
         layout: "/standard",
         category: "secondary"
     }

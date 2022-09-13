@@ -35,7 +35,7 @@ const drawerWidth = 220;
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
   })
-  (({ theme, open }) => 
+  (({ theme }) => 
     ({
       [theme.breakpoints.up("sm")]: {
         width: `calc(100% - ${drawerWidth}px)`,

@@ -29,9 +29,9 @@ export const hazardMenuReducer = (state, action) => {
                 menuOptions: menuOptions 
             };
         case "update":
-            var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(state.inventory, action.payload.selectedIndices)
-            var [hazardTypeId, model, scenario, year] = selection
-            var [mapId, colorbar] = state.inventory.getMapIdColorbar(hazardTypeId, model.id, scenario.id, year)
+            var [menuOptions, newSelectedIndices, selection] = updateMenuOptions(state.inventory, action.payload.selectedIndices) // eslint-disable-line no-redeclare
+            var [hazardTypeId, model, scenario, year] = selection // eslint-disable-line no-redeclare
+            var [mapId, colorbar] = state.inventory.getMapIdColorbar(hazardTypeId, model.id, scenario.id, year) // eslint-disable-line no-redeclare
             return {
                 ...state,
                 selectedIndices: newSelectedIndices,
