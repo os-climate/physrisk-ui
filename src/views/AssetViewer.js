@@ -1,96 +1,101 @@
-import { useEffect, useReducer, useState, React } from 'react';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import ScatterMap from '../components/ScatterMap';
-import Stack from '@mui/material/Stack';
-import AssetTable from '../components/AssetTable';
-import { hazardMenuReducer, loadHazardMenuData } from '../data/HazardInventory.js';
+import { useEffect, useReducer, useState, React } from "react"
+import Button from "@mui/material/Button"
+import Grid from "@mui/material/Grid"
+import Paper from "@mui/material/Paper"
+import ScatterMap from "../components/ScatterMap"
+import Stack from "@mui/material/Stack"
+import AssetTable from "../components/AssetTable"
+import {
+    hazardMenuReducer,
+    loadHazardMenuData,
+} from "../data/HazardInventory.js"
 
 export default function AssetViewer(props) {
-  const { visible } = props
-  const hazardMenuInitialState = {
-    inventory: null,
-    menus: [],
-    menuOptions: [[],[],[],[]],
-    selectedIndices: [0, 0, 0, 0]
-  }
-
-  const [hazardMenu, hazardMenuUpdate] = useReducer(hazardMenuReducer, hazardMenuInitialState);
-
-  const [ jsonData, setJsonData ] = useState({"items": []});
-
-  const uploadFile = (event) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = JSON.parse(event.target.result);
-      if (content.items) {
-        setJsonData(content);
-      }
-      else {
-        // TODO: improve validation (JSON schema?) & error handling
-        setJsonData({"items": [{"asset_class": "Invalid file; no asset items found."}]});
-      }
+    const { visible } = props
+    const hazardMenuInitialState = {
+        inventory: null,
+        menus: [],
+        menuOptions: [[], [], [], []],
+        selectedIndices: [0, 0, 0, 0],
     }
-    reader.readAsText(event.target.files[0]);
-  }
 
-  useEffect(() => {
-    async function fetchHazardMenuData() {
-      const hazardMenuData = await loadHazardMenuData()
-      hazardMenuUpdate({ type: "initialise", payload: hazardMenuData })
+    const [hazardMenu, hazardMenuUpdate] = useReducer(
+        hazardMenuReducer,
+        hazardMenuInitialState
+    )
+
+    const [jsonData, setJsonData] = useState({ items: [] })
+
+    const uploadFile = (event) => {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            const content = JSON.parse(event.target.result)
+            if (content.items) {
+                setJsonData(content)
+            } else {
+                // TODO: improve validation (JSON schema?) & error handling
+                setJsonData({
+                    items: [
+                        { asset_class: "Invalid file; no asset items found." },
+                    ],
+                })
+            }
+        }
+        reader.readAsText(event.target.files[0])
     }
-    fetchHazardMenuData()
-    }, []);
 
-  const handleClick = async() => {
-    // This is currently a no-op.
-    // There are no plans for an effect as of writing.
-    return
-  };
+    useEffect(() => {
+        async function fetchHazardMenuData() {
+            const hazardMenuData = await loadHazardMenuData()
+            hazardMenuUpdate({ type: "initialise", payload: hazardMenuData })
+        }
+        fetchHazardMenuData()
+    }, [])
 
-  return (
-    <Grid container spacing={3}>
-      {/* Map */}
-      <Grid item xs={12} md={12} lg={12}>
-        <Paper
-          sx={{
-            p: 2,
-            display: 'flex',
-            flexDirection: 'column'
-          }}
-        >
-          <ScatterMap 
-            hazardMenu={hazardMenu}
-            hazardMenuUpdate={hazardMenuUpdate}
-            onClick={handleClick}
-            assetData={jsonData}
-            visible={visible}
-          />
-        </Paper>
-      </Grid>
-      {/* Asset table */}
-      <Grid item xs={12} md={12} lg={12}>
-        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-          <Stack spacing={2} direction="row">
-          <Button
-              variant="text"
-              component="label"
-          >
-            Upload File
-            <input
-              type="file"
-              multiple={false}
-              accept=".json,application/json"
-              onChange={uploadFile}
-              hidden
-            >
-            </input>
-          </Button>
-          </Stack>
-          <AssetTable data={jsonData}/>
-        </Paper>
-      </Grid>
-    </Grid>
-    );
-  }
+    const handleClick = async () => {
+        // This is currently a no-op.
+        // There are no plans for an effect as of writing.
+        return
+    }
+
+    return (
+        <Grid container spacing={3}>
+            {/* Map */}
+            <Grid item xs={12} md={12} lg={12}>
+                <Paper
+                    sx={{
+                        p: 2,
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
+                >
+                    <ScatterMap
+                        hazardMenu={hazardMenu}
+                        hazardMenuUpdate={hazardMenuUpdate}
+                        onClick={handleClick}
+                        assetData={jsonData}
+                        visible={visible}
+                    />
+                </Paper>
+            </Grid>
+            {/* Asset table */}
+            <Grid item xs={12} md={12} lg={12}>
+                <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
+                    <Stack spacing={2} direction="row">
+                        <Button variant="text" component="label">
+                            Upload File
+                            <input
+                                type="file"
+                                multiple={false}
+                                accept=".json,application/json"
+                                onChange={uploadFile}
+                                hidden
+                            ></input>
+                        </Button>
+                    </Stack>
+                    <AssetTable data={jsonData} />
+                </Paper>
+            </Grid>
+        </Grid>
+    )
+}
