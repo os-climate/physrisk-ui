@@ -15,6 +15,7 @@ import Link from "@mui/material/Link"
 import MenuIcon from "@mui/icons-material/Menu"
 import NotificationsIcon from "@mui/icons-material/Notifications"
 import DrawerContents from "../components/DrawerContents"
+import { globals, GlobalDataContext } from "../data/GlobalData"
 import routes from "../routes.js"
 
 function Copyright(props) {
@@ -104,11 +105,9 @@ function ViewPanel(props) {
     return (
         <Box
             hidden={!visible}
-            // sx={{display: visible ? 'block' : 'none' }}
             {...other}
         >
             {child}
-            {/* {children.name == 'HazardViewer' ? children(visible) : children()}  */}
         </Box>
     )
 }
@@ -126,126 +125,129 @@ function AppContent() {
     }
 
     return (
-        <ThemeProvider theme={appTheme}>
-            <Box sx={{ display: "flex" }}>
-                <Router>
-                    <CssBaseline />
-                    <AppBar
-                        position="absolute"
-                        open={open}
-                        elevation={0}
-                        border={0}
-                        sx={{
-                            color: (theme) => theme.palette.grey[800],
-                            backgroundColor: (theme) =>
-                                theme.palette.mode === "light"
-                                    ? theme.palette.grey[100]
-                                    : theme.palette.grey[900],
-                        }}
-                    >
-                        <Toolbar>
-                            <Typography
-                                component="h1"
-                                variant="h6"
-                                color="inherit"
-                                noWrap
-                                sx={{ flexGrow: 1 }}
-                            >
-                                <ViewHeader />
-                            </Typography>
-                            <IconButton color="inherit">
-                                <Badge badgeContent={4} color="secondary">
-                                    <NotificationsIcon />
-                                </Badge>
-                            </IconButton>
-                            <IconButton
-                                color="inherit"
-                                aria-label="open drawer"
-                                edge="start"
-                                onClick={handleDrawerToggle}
-                                sx={{ ml: "8px", display: { sm: "none" } }}
-                            >
-                                <MenuIcon />
-                            </IconButton>
-                        </Toolbar>
-                    </AppBar>
-                    <Box
-                        component="nav"
-                        sx={{
-                            width: { sm: drawerWidth },
-                            flexShrink: { sm: 0 },
-                        }}
-                        aria-label="mailbox folders"
-                    >
-                        <MuiDrawer // the small screen drawer
-                            sx={{
-                                width: drawerWidth,
-                                height: "100vh",
-                                flexShrink: 0,
-
-                                display: { xs: "block", sm: "none" },
-                                "& .MuiDrawer-paper": {
-                                    boxSizing: "border-box",
-                                    width: drawerWidth,
-                                },
-                            }}
-                            anchor="right"
-                            variant="temporary"
-                            onClose={handleDrawerToggle}
-                            ModalProps={{
-                                keepMounted: true, // Better open performance on mobile.
-                            }}
-                            open={mobileOpen}
-                        >
-                            <DrawerContents routes={routes} />
-                        </MuiDrawer>
-                        <MuiDrawer // the large screen drawer
-                            sx={{
-                                width: drawerWidth,
-                                height: "100%",
-                                flexShrink: 0,
-                                display: { xs: "none", sm: "block" },
-                                "& .MuiDrawer-paper": {
-                                    width: drawerWidth,
-                                },
-                            }}
-                            variant="permanent"
-                            anchor={"left"}
+        <GlobalDataContext.Provider value={globals}>
+            <ThemeProvider theme={appTheme}>
+                <Box sx={{ display: "flex" }}>
+                    <Router>
+                        <CssBaseline />
+                        <AppBar
+                            position="absolute"
                             open={open}
+                            elevation={0}
+                            border={0}
+                            sx={{
+                                color: (theme) => theme.palette.grey[800],
+                                marginRight: 2,
+                                backgroundColor: (theme) =>
+                                    theme.palette.mode === "light"
+                                        ? theme.palette.grey[100]
+                                        : theme.palette.grey[900],
+                            }}
                         >
-                            <DrawerContents routes={routes} />
-                        </MuiDrawer>
-                    </Box>
-                    <Box
-                        component="main"
-                        sx={{
-                            backgroundColor: (theme) =>
-                                theme.palette.mode === "light"
-                                    ? theme.palette.grey[100]
-                                    : theme.palette.grey[900],
-                            flexGrow: 1,
-                            height: "100vh",
-                            overflow: "auto",
-                        }}
-                    >
-                        <Toolbar />
-                        <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
-                            {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
-                            {routes.map((prop, key) => {
-                                return (
-                                    <ViewPanel
-                                        component={prop.component}
-                                        path={prop.path}
-                                        key={key}
-                                    />
-                                )
-                            })}
-                            <Copyright sx={{ pt: 4 }} />
-                        </Container>
-                    </Box>
-                </Router>
-            </Box>
-        </ThemeProvider>
+                            <Toolbar>
+                                <Typography
+                                    component="h1"
+                                    variant="h6"
+                                    color="inherit"
+                                    noWrap
+                                    sx={{ flexGrow: 1 }}
+                                >
+                                    <ViewHeader />
+                                </Typography>
+                                <IconButton color="inherit">
+                                    <Badge badgeContent={4} color="secondary">
+                                        <NotificationsIcon />
+                                    </Badge>
+                                </IconButton>
+                                <IconButton
+                                    color="inherit"
+                                    aria-label="open drawer"
+                                    edge="start"
+                                    onClick={handleDrawerToggle}
+                                    sx={{ ml: "8px", display: { sm: "none" } }}
+                                >
+                                    <MenuIcon />
+                                </IconButton>
+                            </Toolbar>
+                        </AppBar>
+                        <Box
+                            component="nav"
+                            sx={{
+                                width: { sm: drawerWidth },
+                                flexShrink: { sm: 0 },
+                            }}
+                            aria-label="mailbox folders"
+                        >
+                            <MuiDrawer // the small screen drawer
+                                sx={{
+                                    width: drawerWidth,
+                                    height: "100vh",
+                                    flexShrink: 0,
+
+                                    display: { xs: "block", sm: "none" },
+                                    "& .MuiDrawer-paper": {
+                                        boxSizing: "border-box",
+                                        width: drawerWidth,
+                                    },
+                                }}
+                                anchor="right"
+                                variant="temporary"
+                                onClose={handleDrawerToggle}
+                                ModalProps={{
+                                    keepMounted: true, // Better open performance on mobile.
+                                }}
+                                open={mobileOpen}
+                            >
+                                <DrawerContents routes={routes} />
+                            </MuiDrawer>
+                            <MuiDrawer // the large screen drawer
+                                sx={{
+                                    width: drawerWidth,
+                                    height: "100%",
+                                    flexShrink: 0,
+                                    display: { xs: "none", sm: "block" },
+                                    "& .MuiDrawer-paper": {
+                                        width: drawerWidth,
+                                    },
+                                }}
+                                variant="permanent"
+                                anchor={"left"}
+                                open={open}
+                            >
+                                <DrawerContents routes={routes} />
+                            </MuiDrawer>
+                        </Box>
+                        <Box
+                            component="main"
+                            sx={{
+                                backgroundColor: (theme) =>
+                                    theme.palette.mode === "light"
+                                        ? theme.palette.grey[100]
+                                        : theme.palette.grey[900],
+                                flexGrow: 1,
+                                height: "100vh",
+                                overflow: "auto",
+                            }}
+                        >
+                            <Toolbar />
+                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
+                                {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
+                                {routes.map((prop, key) => {
+                                    return (
+                                        <ViewPanel
+                                            component={prop.component}
+                                            path={prop.path}
+                                            key={key}
+                                        />
+                                    )
+                                })}
+                                <Copyright sx={{ pt: 4 }} />
+                            </Container>
+                        </Box>
+                    </Router>
+                </Box>
+            </ThemeProvider>
+        </GlobalDataContext.Provider>
     )
 }
 

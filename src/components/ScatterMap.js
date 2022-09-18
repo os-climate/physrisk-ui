@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react"
+import ReactDOM from "react-dom"
 import mapboxgl from "!mapbox-gl"
 import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
@@ -23,7 +24,7 @@ mapboxgl.accessToken =
     "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbDExYnVhaXYwMDZ5M2lxcnRjYXlrb3NlIn0.O_r7LgQjNux4I8g9WBlUBQ"
 
 function ScatterMapMenu(props) {
-    const { hazardMenu, hazardMenuUpdate } = props
+    const { hazardMenu, hazardMenuDispatch } = props
     const [anchorEls, setAnchorEls] = React.useState([null, null, null, null])
 
     if (!hazardMenu.menus) return null
@@ -31,7 +32,7 @@ function ScatterMapMenu(props) {
     function setSelectedIndex(menuIndex, selectedIndex) {
         var newSelectedIndices = [...hazardMenu.selectedIndices]
         newSelectedIndices[menuIndex] = selectedIndex
-        hazardMenuUpdate({
+        hazardMenuDispatch({
             type: "update",
             payload: { selectedIndices: newSelectedIndices },
         })
@@ -131,7 +132,7 @@ function ScatterMapMenu(props) {
 }
 
 export default function ScatterMap(props) {
-    const { hazardMenu, hazardMenuUpdate, onClick, assetData, visible } = props
+    const { hazardMenu, hazardMenuDispatch, onClick, assetData, visible } = props
 
     const mapRef = useRef(null)
     const mapContainerRef = useRef(null)
@@ -197,6 +198,13 @@ export default function ScatterMap(props) {
         }
     }
 
+    function AssetPopupContents(e) { 
+      return (<div><Box>
+        {"Hello" + e.lngLat.lng}
+      </Box>
+      </div>)
+    }
+
     if (mapIdRef.current != hazardMenu.mapId) {
         mapIdRef.current = hazardMenu.mapId
         updateRaster(hazardMenu.mapId)
@@ -225,9 +233,10 @@ export default function ScatterMap(props) {
                     type: "geojson",
                     data: {
                         type: "FeatureCollection",
-                        features: assetData.items.map((item) => ({
+                        features: assetData.items.map((item, index) => ({
                             type: "Feature",
-                            properties: {},
+                            id: index,
+                            properties: { },
                             geometry: {
                                 type: "Point",
                                 coordinates: [item.longitude, item.latitude],
@@ -246,6 +255,42 @@ export default function ScatterMap(props) {
                         "circle-stroke-color": "white",
                     },
                 })
+
+                const popup = new mapboxgl.Popup({
+                  closeButton: false,
+                  closeOnClick: false
+                })
+
+                newMap.on("mouseenter", "assets-circle", (e) => {
+                  newMap.getCanvas().style.cursor = "pointer"
+
+                  // Copy coordinates array.
+                  const coordinates = e.features[0].geometry.coordinates.slice();
+                  //const description = "Information goes here!" //e.features[0].properties.description;
+                  
+                  // Ensure that if the map is zoomed out such that multiple
+                  // copies of the feature are visible, the popup appears
+                  // over the copy being pointed to.
+                  while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                  coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                  }
+                  
+                  var contents = AssetPopupContents(e)
+                  //var check = mapIdRef.current
+
+                  // Populate the popup and set its coordinates
+                  // based on the feature found.
+                  //popup.setLngLat(coordinates).setHTML(description + check + data).addTo(newMap);
+                  const popupNode = document.createElement("div")
+                  ReactDOM.render(contents, popupNode) 
+
+                  popup.setLngLat(coordinates).setDOMContent(popupNode).addTo(newMap);
+                });
+                  
+                newMap.on("mouseleave", "assets-circle", () => {
+                  newMap.getCanvas().style.cursor = '';
+                  popup.remove();
+                });
             }
 
             mapRef.current = newMap
@@ -281,26 +326,30 @@ export default function ScatterMap(props) {
             <Box sx={{ position: "relative" }}>
                 <ScatterMapMenu
                     hazardMenu={hazardMenu}
-                    hazardMenuUpdate={hazardMenuUpdate}
+                    hazardMenuDispatch={hazardMenuDispatch}
                 />
-                <Box ref={mapContainerRef} className="map-container" />
+                <Box ref={mapContainerRef} className="map-container" 
+                    // sx={{ "&.geocoder": { width: "500px" },
+                    //     "&.mapboxgl-ctrl-geocoder" : { width: "500px" }
+                    //     }} 
+                        />
                 <Box
                     sx={{
                         height: 45,
                         width: 175,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
-                        bottom: 4,
-                        right: 4,
+                        bottom: 10,
+                        right: 10,
                         zIndex: 1,
                         borderRadius: "4px",
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.1)",
                     }}
                 >
-                    <ResponsiveContainer width={"100%"} height={45}>
+                    <ResponsiveContainer width={"100%"} height={50}>
                         <AreaChart
                             data={colorbarData}
-                            margin={{ top: 7, right: 7, left: 7, bottom: 0 }}
+                            margin={{ top: 6, right: 7, left: 7, bottom: 8 }}
                             backgroundColor="white"
                         >
                             <defs>
