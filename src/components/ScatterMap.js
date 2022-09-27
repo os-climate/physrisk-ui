@@ -129,7 +129,6 @@ export default function ScatterMap(props) {
 
     console.log(assetSummary)
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
-    //const popoverPermanent = React.useRef(false);
 
     const handlePopoverClose = () => {
         setPopoverAnchorPos(null);
