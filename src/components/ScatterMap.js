@@ -1,21 +1,14 @@
 import React, { useRef, useEffect, useState } from "react"
-import ReactDOM from "react-dom"
 import mapboxgl from "!mapbox-gl"
 import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
 import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import Tooltip from "@mui/material/Tooltip"
+import Popover from "@mui/material/Popover"
+//import Typography from "@mui/material/Typography"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    CartesianAxis,
-    XAxis,
-    YAxis,
-    ResponsiveContainer,
-} from "recharts"
+import { ColourBar } from "./ColourBar.js"
 import CoordinatesInput from "./CoordinatesInput.js"
 
 // note *public* access token
@@ -132,7 +125,17 @@ function ScatterMapMenu(props) {
 }
 
 export default function ScatterMap(props) {
-    const { hazardMenu, hazardMenuDispatch, onClick, assetData, visible } = props
+    const { hazardMenu, hazardMenuDispatch, onClick, assetData, assetSummary, visible } = props
+
+    console.log(assetSummary)
+    const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
+    //const popoverPermanent = React.useRef(false);
+
+    const handlePopoverClose = () => {
+        setPopoverAnchorPos(null);
+      };
+
+    const popoverOpen = Boolean(popoverAnchorPos);
 
     const mapRef = useRef(null)
     const mapContainerRef = useRef(null)
@@ -198,13 +201,6 @@ export default function ScatterMap(props) {
         }
     }
 
-    function AssetPopupContents(e) { 
-      return (<div><Box>
-        {"Hello" + e.lngLat.lng}
-      </Box>
-      </div>)
-    }
-
     if (mapIdRef.current != hazardMenu.mapId) {
         mapIdRef.current = hazardMenu.mapId
         updateRaster(hazardMenu.mapId)
@@ -251,45 +247,24 @@ export default function ScatterMap(props) {
                     source: "assets",
                     paint: {
                         "circle-color": "hsla(145,100%,30%,1)",
+                        "circle-radius": 7,
                         "circle-stroke-width": 1.5,
                         "circle-stroke-color": "white",
                     },
                 })
 
-                const popup = new mapboxgl.Popup({
-                  closeButton: false,
-                  closeOnClick: false
-                })
+                newMap.on("click", "assets-circle", (e) => { 
+                    const rect = mapContainerRef.current.getBoundingClientRect()
+                    setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
+                });
 
-                newMap.on("mouseenter", "assets-circle", (e) => {
-                  newMap.getCanvas().style.cursor = "pointer"
-
-                  // Copy coordinates array.
-                  const coordinates = e.features[0].geometry.coordinates.slice();
-                  //const description = "Information goes here!" //e.features[0].properties.description;
-                  
-                  // Ensure that if the map is zoomed out such that multiple
-                  // copies of the feature are visible, the popup appears
-                  // over the copy being pointed to.
-                  while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                  coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                  }
-                  
-                  var contents = AssetPopupContents(e)
-                  //var check = mapIdRef.current
-
-                  // Populate the popup and set its coordinates
-                  // based on the feature found.
-                  //popup.setLngLat(coordinates).setHTML(description + check + data).addTo(newMap);
-                  const popupNode = document.createElement("div")
-                  ReactDOM.render(contents, popupNode) 
-
-                  popup.setLngLat(coordinates).setDOMContent(popupNode).addTo(newMap);
+                newMap.on("mouseenter", "assets-circle", () => { // 
+                    newMap.getCanvas().style.cursor = "pointer"
                 });
                   
                 newMap.on("mouseleave", "assets-circle", () => {
-                  newMap.getCanvas().style.cursor = '';
-                  popup.remove();
+                    newMap.getCanvas().style.cursor = '';
+                    //setPopoverAnchorPos(null)
                 });
             }
 
@@ -299,15 +274,22 @@ export default function ScatterMap(props) {
         })
 
         newMap.on("click", (e) => {
-            if (markerRef.current) {
-                markerRef.current.remove(newMap)
+            if (assetData) {
+                //const rect = mapContainerRef.current.getBoundingClientRect()
+                //popoverPermanent.current = true
+                //setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
             }
-            const marker = new mapboxgl.Marker()
-                .setLngLat([e.lngLat.lng, e.lngLat.lat])
-                .addTo(newMap)
+            else {
+                if (markerRef.current) {
+                    markerRef.current.remove(newMap)
+                }
+                const marker = new mapboxgl.Marker()
+                    .setLngLat([e.lngLat.lng, e.lngLat.lat])
+                    .addTo(newMap)
 
-            markerRef.current = marker
-            onClick(e)
+                markerRef.current = marker
+                onClick(e)
+            }
         })
 
         // Clean up on unmount
@@ -346,72 +328,31 @@ export default function ScatterMap(props) {
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.1)",
                     }}
                 >
-                    <ResponsiveContainer width={"100%"} height={50}>
-                        <AreaChart
-                            data={colorbarData}
-                            margin={{ top: 6, right: 7, left: 7, bottom: 8 }}
-                            backgroundColor="white"
-                        >
-                            <defs>
-                                <linearGradient
-                                    id={"colorUv"}
-                                    x1="0"
-                                    y1="0"
-                                    x2="1"
-                                    y2="0"
-                                >
-                                    {colorbarStops.map((prop, key) => {
-                                        return (
-                                            <stop
-                                                offset={prop.offset}
-                                                stopColor={prop.stopColor}
-                                                key={key}
-                                            />
-                                        )
-                                    })}
-                                    {/* <stop offset="0%" stopColor="#FF0000" stopOpacity={1.0}/>
-                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity={1.0}/> */}
-                                </linearGradient>
-                            </defs>
-                            <Area
-                                type="monotone"
-                                dataKey="value"
-                                fillOpacity={1.0}
-                                fill={"url(#colorUv)"}
-                            />
-                            <XAxis
-                                dataKey="xValue"
-                                tickCount="5"
-                                interval="preserveStart"
-                                domain={["dataMin", "dataMax"]}
-                                type="number"
-                                fontSize="11"
-                                fontFamily="Arial"
-                                stroke="rgb(117,117,117"
-                                label={{
-                                    value:
-                                        "Intensity (" +
-                                        hazardMenu?.mapColorbar?.units +
-                                        ")",
-                                    position: "insideBottom",
-                                    dy: 3,
-                                    fontSize: 11,
-                                    fontFamily: "Arial",
-                                    fill: "rgb(117,117,117",
-                                }}
-                            />
-
-                            <YAxis hide={true}></YAxis>
-                            <CartesianAxis />
-                            <CartesianGrid
-                                strokeDasharray="0"
-                                vertical={true}
-                                horizontal={true}
-                                stroke="rgb(117,117,117"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />
                 </Box>
+                <Popover
+                    id="mouse-over-popover"
+                    sx={{
+                    //    pointerEvents: 'none',
+                        height: 400
+                    }}
+                    open={popoverOpen}
+                    anchorPosition={popoverAnchorPos}
+                    anchorReference="anchorPosition"
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    onClose={handlePopoverClose}
+                    //disableRestoreFocus
+                >
+                    {assetSummary ? assetSummary(0) : null}
+                    {/* <Typography sx={{ p: 1 }}>I use Popover.</Typography> */}
+                </Popover>
             </Box>
         </React.Fragment>
     )

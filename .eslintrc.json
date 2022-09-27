@@ -25,5 +25,5 @@
         "@typescript-eslint/no-unused-vars": "off",
         "@no-undef": "off"
     },
-    "ignorePatterns": ["*.ts"]
+    "ignorePatterns": ["*.ts*", "*.tsx"]
 }

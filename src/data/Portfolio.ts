@@ -3,7 +3,8 @@ import axios from "axios"
 export const portfolioInitialiser = () => {
     return {
         examplePortfolioNames: [],
-        status: PortfolioState.Empty
+        status: PortfolioState.Empty,
+        portfolioJson: { items: [] }
     }
 }
 
@@ -61,7 +62,7 @@ export const setExamplePortfolioNames = async (dispatch: any) => {
     dispatch(({ type: "setExamplePortfolioNames", examplePortfolioNames: ["Mixed portfolio"] }))
 }
 
-export const loadExamplePortfolio = async (dispatch: any, portexamplePortfolioName: string, globals: any) => {
+export const loadExamplePortfolio = async (dispatch: any, examplePortfolioName: string, globals: any) => {
     try {
         console.log(globals.services.apiHost)
 
@@ -75,11 +76,29 @@ export const loadExamplePortfolio = async (dispatch: any, portexamplePortfolioNa
         //)
         //console.log(response)
         
-        dispatch(({ type: "updatePortfolio", portfolioJson: "loading" }))
+        dispatch(({ type: "updatePortfolio", portfolioJson: examplePortfolios[examplePortfolioName] }))
         dispatch(({ type: "updateStatus", newState: PortfolioState.Loaded}))
         return {
             inventory: "AAA"
         }
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export const runCalculation = async (dispatch: any, globals: any) => {
+    try {
+        const apiHost = globals.services.apiHost; // "http://127.0.0.1:5000"
+        var payload = exampleRequest
+        
+        var response = await axios.post(
+            apiHost + "/api/get_asset_impact",
+            payload
+        )
+
+        return response.data
+        console.log(response)
+        return {}
     } catch (error) {
         console.log(error)
     }
@@ -107,13 +126,15 @@ const assets = {
     ],
 }
 
-const examplePortfolios = {
-    "Mixed portfolio": { 
-        "assets": assets,
+const examplePortfolios: { [id: string] : any; } = {
+    "Mixed portfolio": assets
+}
+
+const exampleRequest = {
+    "assets": assets,
         "include_asset_level": true,
         "include_calc_details": true,
-        "year": 2080,
-        "scenario": "rcp8p5" 
-    }
+        "year": 2050,
+        "scenario": "rcp8p5"
 }
 

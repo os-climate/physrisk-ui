@@ -60,7 +60,7 @@ function CoordinateInput(mapRef, mapboxgl, markerRef, onClick) {
             localGeocoder: coordinatesGeocoder,
             zoom: 4,
             marker: false,
-            placeholder: "Try: -40, 170",
+            placeholder: "e.g.: -40, 170",
             mapboxgl: mapboxgl,
             reverseGeocode: true,
         }).on("result", (e) => {
