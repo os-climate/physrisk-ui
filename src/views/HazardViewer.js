@@ -19,7 +19,7 @@ export default function HazardViewer(props) {
     const hazardMenuInitialState = hazardMenuInitialiser()
 
     // holds both the inventory of available hazard data and the menu state
-    const [hazardMenu, hazardMenuUpdate] = useReducer(
+    const [hazardMenu, hazardMenuDispatch] = useReducer(
         hazardMenuReducer,
         hazardMenuInitialState
     )
@@ -41,7 +41,7 @@ export default function HazardViewer(props) {
     useEffect(() => {
         async function fetchHazardMenuData() {
             const hazardMenuData = await loadHazardMenuData()
-            hazardMenuUpdate({ type: "initialise", payload: hazardMenuData })
+            hazardMenuDispatch({ type: "initialise", payload: hazardMenuData })
         }
         fetchHazardMenuData()
     }, [])
@@ -124,7 +124,7 @@ export default function HazardViewer(props) {
                 >
                     <ScatterMap
                         hazardMenu={hazardMenu}
-                        hazardMenuUpdate={hazardMenuUpdate}
+                        hazardMenuDispatch={hazardMenuDispatch}
                         onClick={handleClick}
                         visible={visible}
                     />

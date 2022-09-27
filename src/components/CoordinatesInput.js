@@ -1,5 +1,5 @@
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder"
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css"
+//import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css"
 
 function CoordinateInput(mapRef, mapboxgl, markerRef, onClick) {
     /* Given a query in the form "lng, lat" or "lat, lng"
@@ -60,7 +60,7 @@ function CoordinateInput(mapRef, mapboxgl, markerRef, onClick) {
             localGeocoder: coordinatesGeocoder,
             zoom: 4,
             marker: false,
-            placeholder: "Try: -40, 170",
+            placeholder: "e.g.: -40, 170",
             mapboxgl: mapboxgl,
             reverseGeocode: true,
         }).on("result", (e) => {

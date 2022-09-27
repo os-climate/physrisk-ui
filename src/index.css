@@ -15,3 +15,30 @@ code {
 .map-container {
     height: 400px;
 }
+
+/* .geocoder {
+    position: absolute !important;
+    z-index: 1 !important;
+    width: 50% !important;
+    left: 50% !important;
+    margin-left: -25% !important;
+    top: 10px !important;
+}
+
+.mapboxgl-ctrl-geocoder {
+    min-width: 100% !important;
+}
+
+.geocoder-dropdown-item {
+    padding: 5px !important;
+}
+
+.geocoder-dropdown-icon {
+    margin-right: 10px !important;
+}
+
+.geocoder-dropdown-text {
+    color: #5a3fc0 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: larger !important;
+} */

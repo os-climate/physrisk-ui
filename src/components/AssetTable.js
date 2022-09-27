@@ -50,6 +50,7 @@ export default function AssetTable(props) {
                     rows={rows}
                     columns={columns}
                     pageSize={100}
+                    density="compact"
                     rowsPerPageOptions={[100]}
                     checkboxSelection
                     disableSelectionOnClick
