@@ -129,6 +129,7 @@ export default function ScatterMap(props) {
 
     console.log(assetSummary)
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
+    const [selectedAssetIndex, setSelectedAssetIndex] = React.useState(null);
 
     const handlePopoverClose = () => {
         setPopoverAnchorPos(null);
@@ -255,6 +256,7 @@ export default function ScatterMap(props) {
                 newMap.on("click", "assets-circle", (e) => { 
                     const rect = mapContainerRef.current.getBoundingClientRect()
                     setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
+                    setSelectedAssetIndex(e.features[0].id)
                 });
 
                 newMap.on("mouseenter", "assets-circle", () => { // 
@@ -263,7 +265,6 @@ export default function ScatterMap(props) {
                   
                 newMap.on("mouseleave", "assets-circle", () => {
                     newMap.getCanvas().style.cursor = '';
-                    //setPopoverAnchorPos(null)
                 });
             }
 
@@ -273,12 +274,7 @@ export default function ScatterMap(props) {
         })
 
         newMap.on("click", (e) => {
-            if (assetData) {
-                //const rect = mapContainerRef.current.getBoundingClientRect()
-                //popoverPermanent.current = true
-                //setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
-            }
-            else {
+            if (!assetData) {
                 if (markerRef.current) {
                     markerRef.current.remove(newMap)
                 }
@@ -310,9 +306,6 @@ export default function ScatterMap(props) {
                     hazardMenuDispatch={hazardMenuDispatch}
                 />
                 <Box ref={mapContainerRef} className="map-container" 
-                    // sx={{ "&.geocoder": { width: "500px" },
-                    //     "&.mapboxgl-ctrl-geocoder" : { width: "500px" }
-                    //     }} 
                         />
                 <Box
                     sx={{
@@ -349,7 +342,7 @@ export default function ScatterMap(props) {
                     onClose={handlePopoverClose}
                     //disableRestoreFocus
                 >
-                    {assetSummary ? assetSummary(0) : null}
+                    {assetSummary ? assetSummary(selectedAssetIndex) : null}
                     {/* <Typography sx={{ p: 1 }}>I use Popover.</Typography> */}
                 </Popover>
             </Box>

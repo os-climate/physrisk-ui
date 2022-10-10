@@ -1,7 +1,6 @@
 import { Fragment, React } from "react"
 import Box from "@mui/material/Box"
 import Link from "@mui/material/Link"
-import Title from "./Title"
 import { DataGrid, GridToolbar } from "@mui/x-data-grid"
 
 function preventDefault(event) {
@@ -9,7 +8,7 @@ function preventDefault(event) {
 }
 
 export default function AssetTable(props) {
-    const { data } = props
+    const { data, classes } = props
 
     const columns = [
         {
@@ -44,8 +43,7 @@ export default function AssetTable(props) {
 
     return (
         <Fragment>
-            <Title>Assets</Title>
-            <Box sx={{ height: 400, width: "100%" }}>
+            <Box sx={{ height: 400, width: "100%" }} classes={classes}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
