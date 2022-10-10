@@ -86,14 +86,21 @@ export const loadExamplePortfolio = async (dispatch: any, examplePortfolioName: 
     }
 }
 
-export const runCalculation = async (dispatch: any, globals: any) => {
+export const runCalculation = async (portfolio: any, dispatch: any, globals: any) => {
     try {
         const apiHost = globals.services.apiHost; // "http://127.0.0.1:5000"
-        var payload = exampleRequest
         
+        const request = {
+            "assets": portfolio.portfolioJson,
+                "include_asset_level": true,
+                "include_calc_details": true,
+                "year": 2050,
+                "scenario": "rcp8p5"
+        }
+
         var response = await axios.post(
             apiHost + "/api/get_asset_impact",
-            payload
+            request
         )
 
         return response.data

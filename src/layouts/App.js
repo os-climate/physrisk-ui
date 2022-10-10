@@ -83,7 +83,7 @@ function ViewHeader() {
         return route === undefined ? "Unknown" : route.name
     }
     const currentPath = getCurrentPath()
-    return <div>{currentPath}</div>
+    return <Box sx={{ p: 0 }}>{currentPath}</Box>
 }
 
 function ViewPanel(props) {
@@ -225,12 +225,14 @@ function AppContent() {
                                         ? theme.palette.grey[100]
                                         : theme.palette.grey[900],
                                 flexGrow: 1,
+                                m: 0,
+                                p: 0,
                                 height: "100vh",
                                 overflow: "auto",
                             }}
                         >
                             <Toolbar />
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
+                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4, m: 0, pl: 1, pr: 2 }} disableGutters>
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
                                     return (

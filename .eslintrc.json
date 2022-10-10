@@ -21,9 +21,7 @@
     "rules": {
         "react/prop-types": "off",
         "semi": "off",
-        "quotes": "off",
-        "@typescript-eslint/no-unused-vars": "off",
-        "@no-undef": "off"
+        "quotes": "off"
     },
     "ignorePatterns": ["*.ts*", "*.tsx"]
 }

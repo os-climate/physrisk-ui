@@ -1,7 +1,8 @@
 import { useContext, useEffect, useReducer, React } from "react"
 import Button from "@mui/material/Button"
+import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
-//import Box from "@mui/material/Box"
+import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
 import { Upload, List, PlayArrow} from "@mui/icons-material"
 import LoadingButton from "@mui/lab/LoadingButton"
@@ -70,7 +71,7 @@ export default function AssetViewer(props) {
     const handleCalculateButtonClick = async () => {
         async function run() {
             portfolioDispatch(({ type: "updateStatus", newState: "running" }))
-            const result = await runCalculation(portfolioDispatch, globals)
+            const result = await runCalculation(portfolio, portfolioDispatch, globals)
             portfolioDispatch({ type: "updateCalculationResult", calculationResult: result })
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
             console.log(result)
@@ -79,7 +80,7 @@ export default function AssetViewer(props) {
     }
 
     return (
-        <Grid container spacing={3}>
+        <Grid container spacing={1}>
             {/* Map */}
             <Grid item xs={12} md={12} lg={12}>
                 <Paper
@@ -87,21 +88,9 @@ export default function AssetViewer(props) {
                         p: 2,
                         display: "flex",
                         flexDirection: "column",
+                        m: 0,
                     }}
                 >
-                    <ScatterMap
-                        hazardMenu={hazardMenu}
-                        hazardMenuDispatch={hazardMenuDispatch}
-                        onClick={handleClick}
-                        assetData={portfolio.portfolioJson}
-                        visible={visible}
-                        assetSummary={(index) => (<AssetImpactSummary assetIndex={index} assetImpact={portfolio?.calculationResult?.asset_impacts[index]}/>)} 
-                    />
-                </Paper>
-            </Grid>
-            {/* Asset table */}
-            <Grid item xs={12} md={12} lg={12}>
-                <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
                     <Stack spacing={2} direction="row">
                         <Button variant="text" component="label" endIcon={<Upload />}>
                             Load portfolio
@@ -128,6 +117,16 @@ export default function AssetViewer(props) {
                             Calculate impacts
                         </LoadingButton>
                     </Stack>
+                    <Divider light sx={{ mt: 2 }} />
+                    <ScatterMap
+                        hazardMenu={hazardMenu}
+                        hazardMenuDispatch={hazardMenuDispatch}
+                        onClick={handleClick}
+                        assetData={portfolio.portfolioJson}
+                        visible={visible}
+                        assetSummary={(index) => (<AssetImpactSummary assetIndex={index} assetImpact={portfolio?.calculationResult?.asset_impacts[index]}/>)} 
+                    />
+                    <Box sx={{ mt: 2 }} />
                     <AssetTable data={portfolio.portfolioJson} />
                 </Paper>
             </Grid>

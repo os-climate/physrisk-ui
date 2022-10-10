@@ -53,6 +53,14 @@ export default function AssetImpactSummary(props: { assetIndex: any, assetImpact
     const { assetIndex, assetImpact } = props
     const theme = useTheme()
     console.log(assetIndex)
+    if (assetIndex == null) {
+        return (
+            <React.Fragment>
+                <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom>
+                    Impact summary
+                </Typography>
+            </React.Fragment>)
+    }
     return (
         <React.Fragment>
             <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom>
