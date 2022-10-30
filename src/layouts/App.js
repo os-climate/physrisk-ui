@@ -235,14 +235,12 @@ function AppContent() {
                                 flexGrow: 1,
                                 m: 0,
                                 p: 0,
-                                m: 0,
-                                p: 0,
                                 height: "100vh",
                                 overflow: "auto",
                             }}
                         >
                             <Toolbar />
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4, m: 0, pl: 1, pr: 2, m: 0, pl: 1, pr: 2 }} disableGutters disableGutters>
+                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4, pl: 1, pr: 2 }} disableGutters>
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
                                     return (
