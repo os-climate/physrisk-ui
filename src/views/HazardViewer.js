@@ -1,10 +1,13 @@
 import { useEffect, useReducer, useState, React } from "react"
+import Box from "@mui/material/Box"
+import Grid from "@mui/material/Grid"
+import LinearProgress from "@mui/material/LinearProgress"
 import Chart from "../components/Chart"
 import ChronicHazard from "../components/ChronicHazard"
-import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
 import ScatterMap from "../components/ScatterMap"
 import Summary from "../components/Summary"
+import Title from "../components/Title"
 import {
     hazardMenuReducer,
     hazardMenuInitialiser,
@@ -24,7 +27,6 @@ export default function HazardViewer(props) {
         hazardMenuInitialState
     )
 
-    const [graphData, setGraphData] = useState(null)
     const [lngLat, setLngLat] = useState(null)
     const apiHost =
         "http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org"
@@ -46,10 +48,34 @@ export default function HazardViewer(props) {
         fetchHazardMenuData()
     }, [])
 
+
+
+    const hazardPointInitialState = {
+        status: 'idle',
+        error: null,
+        data: [],
+    };
+    
+    const [hazardPointState, hazardPointDispatch] = useReducer((state, action) => {
+        switch (action.type) {
+            case 'FETCHING':
+                return { ...hazardPointInitialState, status: 'fetching' };
+            case 'FETCHED':
+                return { ...hazardPointInitialState, status: 'fetched', data: action.payload };
+            case 'FETCH_ERROR':
+                return { ...hazardPointInitialState, status: 'error', error: action.payload };
+            default:
+                return state;
+        }
+    }, hazardPointInitialState);
+
+
+
     useEffect(() => {
         async function fetchGraphData() {
             if (hazardMenu.inventory) {
                 if (lngLat) {
+                    hazardPointDispatch({ type: 'FETCHING' });
                     var payload = {
                         items: [
                             {
@@ -63,23 +89,27 @@ export default function HazardViewer(props) {
                             },
                         ],
                     }
-                    var response = await axios.post(
-                        apiHost + "/api/get_hazard_data",
-                        payload
-                    )
-                    var curve_set =
-                        response.data.items[0].intensity_curve_set[0]
-                    var points =
-                        curve_set.intensities.length == 1
-                            ? [graphDataPoint(0, curve_set.intensities[0])]
-                            : curve_set.return_periods.map((item, i) =>
-                                  graphDataPoint(
-                                      1.0 / item,
-                                      curve_set.intensities[i]
-                                  )
-                              )
-
-                    setGraphData(points)
+                    try {
+                        var response = await axios.post(
+                            apiHost + "/api/get_hazard_data",
+                            payload
+                        )
+                        var curve_set =
+                            response.data.items[0].intensity_curve_set[0]
+                        var points =
+                            curve_set.intensities.length == 1
+                                ? [graphDataPoint(0, curve_set.intensities[0])]
+                                : curve_set.return_periods.map((item, i) =>
+                                    graphDataPoint(
+                                        1.0 / item,
+                                        curve_set.intensities[i]
+                                    )
+                                )
+                                hazardPointDispatch({ type: 'FETCHED', payload: points });
+                        // setGraphData(points)
+                    } catch (error) {
+                        hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
+                    }
                 }
             }
         }
@@ -87,24 +117,29 @@ export default function HazardViewer(props) {
     }, [hazardMenu, lngLat])
 
     var chart
-    if (graphData) {
-        var title = hazardMenu.menuOptions
-            ? hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] +
-              (lngLat
-                  ? " @ (" +
-                    lngLat.lng.toFixed(4) +
-                    "\u00b0, " +
-                    lngLat.lat.toFixed(4) +
-                    "\u00b0)"
-                  : "")
-            : ""
-        if (graphData.length > 1) {
-            chart = <Chart title={title} data={graphData} />
+    var title = hazardMenu.menuOptions
+        ? hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] +
+        (lngLat
+            ? " @ (" +
+                lngLat.lng.toFixed(4) +
+                "\u00b0, " +
+                lngLat.lat.toFixed(4) +
+                "\u00b0)"
+            : "")
+        : ""
+    if (hazardPointState.data && hazardPointState.data.length > 0) {
+        if (hazardPointState.data.length > 1) {
+            chart = (
+                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
+                    <Box sx={{ pb: 1, width: '60%', height: 200 }} >
+                        <Chart data={hazardPointState.data} />
+                    </Box>
+                </Box>
+            )
         } else {
             chart = (
                 <ChronicHazard
-                    title={title}
-                    data={graphData}
+                    data={hazardPointState.data}
                     units={hazardMenu.selectedModel.units}
                 />
             )
@@ -113,13 +148,13 @@ export default function HazardViewer(props) {
 
     return (
         <Grid container spacing={1}>
-            {/* Map */}
             <Grid item xs={12} md={12} lg={12}>
                 <Paper
                     sx={{
                         p: 2,
                         display: "flex",
                         flexDirection: "column",
+                        m: 0,
                     }}
                 >
                     <ScatterMap
@@ -128,42 +163,18 @@ export default function HazardViewer(props) {
                         onClick={handleClick}
                         visible={visible}
                     />
-                </Paper>
-            </Grid>
-            <Grid item xs={12} md={8} lg={9}>
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: "flex",
-                        flexDirection: "column",
-                        height: 240,
-                    }}
-                >
+                    <Title>{title}</Title>
+                    <Box sx={{ width: '100%' }}>
+                        {hazardPointState.status === 'fetching' ? (
+                        <LinearProgress /> ) : (<div></div>)}
+                    </Box>
                     {chart}
-                </Paper>
-            </Grid>
-            {/* Summary */}
-            <Grid item xs={12} md={4} lg={3}>
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: "flex",
-                        flexDirection: "column",
-                        height: 240,
-                    }}
-                >
                     <Summary
-                        modelName={
-                            hazardMenu.menuOptions
-                                ? hazardMenu.menuOptions[1][
-                                      hazardMenu.selectedIndices[1]
-                                  ]
-                                : ""
-                        }
                         modelDescription={
                             hazardMenu?.selectedModel?.description
                         }
-                    />
+                    /> 
+
                 </Paper>
             </Grid>
         </Grid>

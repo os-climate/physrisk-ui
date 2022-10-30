@@ -1,6 +1,7 @@
 import { useContext, useEffect, useReducer, React } from "react"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
+import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
@@ -71,7 +72,7 @@ export default function AssetViewer(props) {
     const handleCalculateButtonClick = async () => {
         async function run() {
             portfolioDispatch(({ type: "updateStatus", newState: "running" }))
-            const result = await runCalculation(portfolio, portfolioDispatch, globals)
+            const result = await runCalculation(portfolio, portfolio, portfolioDispatch, globals)
             portfolioDispatch({ type: "updateCalculationResult", calculationResult: result })
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
             console.log(result)
@@ -81,13 +82,13 @@ export default function AssetViewer(props) {
 
     return (
         <Grid container spacing={1}>
-            {/* Map */}
             <Grid item xs={12} md={12} lg={12}>
                 <Paper
                     sx={{
                         p: 2,
                         display: "flex",
                         flexDirection: "column",
+                        m: 0,
                         m: 0,
                     }}
                 >
@@ -117,6 +118,16 @@ export default function AssetViewer(props) {
                             Calculate impacts
                         </LoadingButton>
                     </Stack>
+                    <Divider light sx={{ mt: 2 }} />
+                    <ScatterMap
+                        hazardMenu={hazardMenu}
+                        hazardMenuDispatch={hazardMenuDispatch}
+                        onClick={handleClick}
+                        assetData={portfolio.portfolioJson}
+                        visible={visible}
+                        assetSummary={(index) => (<AssetImpactSummary assetIndex={index} assetImpact={portfolio?.calculationResult?.asset_impacts[index]}/>)} 
+                    />
+                    <Box sx={{ mt: 2 }} />
                     <Divider light sx={{ mt: 2 }} />
                     <ScatterMap
                         hazardMenu={hazardMenu}
