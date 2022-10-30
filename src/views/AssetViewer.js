@@ -1,7 +1,6 @@
 import { useContext, useEffect, useReducer, React } from "react"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
-import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
@@ -88,8 +87,7 @@ export default function AssetViewer(props) {
                         p: 2,
                         display: "flex",
                         flexDirection: "column",
-                        m: 0,
-                        m: 0,
+                        m: 0
                     }}
                 >
                     <Stack spacing={2} direction="row">
@@ -118,16 +116,6 @@ export default function AssetViewer(props) {
                             Calculate impacts
                         </LoadingButton>
                     </Stack>
-                    <Divider light sx={{ mt: 2 }} />
-                    <ScatterMap
-                        hazardMenu={hazardMenu}
-                        hazardMenuDispatch={hazardMenuDispatch}
-                        onClick={handleClick}
-                        assetData={portfolio.portfolioJson}
-                        visible={visible}
-                        assetSummary={(index) => (<AssetImpactSummary assetIndex={index} assetImpact={portfolio?.calculationResult?.asset_impacts[index]}/>)} 
-                    />
-                    <Box sx={{ mt: 2 }} />
                     <Divider light sx={{ mt: 2 }} />
                     <ScatterMap
                         hazardMenu={hazardMenu}
