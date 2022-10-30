@@ -61,6 +61,14 @@ export const themeOptions = {
             main: "#409043",
         },
     },
+    typography: {
+        body: {
+            fontSize: 14
+        },
+        body2: {
+            fontSize: 14
+        }
+    },
 }
 
 const appTheme = createTheme(themeOptions)
@@ -83,7 +91,7 @@ function ViewHeader() {
         return route === undefined ? "Unknown" : route.name
     }
     const currentPath = getCurrentPath()
-    return <Box sx={{ p: 0 }}>{currentPath}</Box>
+    return <Box sx={{ p: 1 }}>{currentPath}</Box>
 }
 
 function ViewPanel(props) {

@@ -11,7 +11,7 @@ function ChronicHazard(props) {
                 color="text.secondary"
                 sx={{ flex: 1, overflow: "auto" }}
             >
-                {data[0].y.toPrecision(6) + " " + units}
+                {data[0].y.toPrecision(5) + " " + units}
             </Typography>
         </React.Fragment>
     )

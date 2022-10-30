@@ -81,7 +81,6 @@ export default function AssetViewer(props) {
 
     return (
         <Grid container spacing={1}>
-            {/* Map */}
             <Grid item xs={12} md={12} lg={12}>
                 <Paper
                     sx={{
