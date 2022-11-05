@@ -127,7 +127,6 @@ function ScatterMapMenu(props) {
 export default function ScatterMap(props) {
     const { hazardMenu, hazardMenuDispatch, onClick, assetData, assetSummary, visible } = props
 
-    console.log(assetSummary)
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
     const [selectedAssetIndex, setSelectedAssetIndex] = React.useState(null);
 

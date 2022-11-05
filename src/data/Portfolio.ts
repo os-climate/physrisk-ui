@@ -59,13 +59,12 @@ export const portfolioReducer = (state: State, action: Action) => {
     }
 
 export const setExamplePortfolioNames = async (dispatch: any) => {
-    dispatch(({ type: "setExamplePortfolioNames", examplePortfolioNames: ["Mixed portfolio"] }))
+    dispatch(({ type: "setExamplePortfolioNames", examplePortfolioNames: Object.keys(examplePortfolios) }))
 }
 
 export const loadExamplePortfolio = async (dispatch: any, examplePortfolioName: string, globals: any) => {
     try {
-        console.log(globals.services.apiHost)
-
+        
         dispatch(({ type: "updateStatus", newState: PortfolioState.Loading}))
         // TODO: obtain examples via API, along the lines
 
@@ -95,7 +94,7 @@ export const runCalculation = async (portfolio: any, dispatch: any, globals: any
                 "include_asset_level": true,
                 "include_calc_details": true,
                 "year": 2050,
-                "scenario": "rcp8p5"
+                "scenario": "ssp585"
         }
 
         var response = await axios.post(
@@ -104,8 +103,7 @@ export const runCalculation = async (portfolio: any, dispatch: any, globals: any
         )
 
         return response.data
-        console.log(response)
-        return {}
+
     } catch (error) {
         console.log(error)
     }
@@ -114,7 +112,7 @@ export const runCalculation = async (portfolio: any, dispatch: any, globals: any
 const testLongitudes = [69.4787, 68.71, 20.1047, 19.8936, 19.6359]
 const testLatitudes = [34.556, 35.9416, 39.9116, 41.6796, 42.0137]
 
-const assets = {
+const mixed = {
     "items": [
         {
             "asset_class": "RealEstateAsset",
@@ -133,15 +131,231 @@ const assets = {
     ],
 }
 
-const examplePortfolios: { [id: string] : any; } = {
-    "Mixed portfolio": assets
+const industrialActivity =
+{
+    "items": [
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "Asia",
+            "latitude": 32.322,
+            "longitude": 65.119
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "South America",
+            "latitude": -39.1009,
+            "longitude": -68.5982
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "South America",
+            "latitude": -35.055,
+            "longitude": -64.2406
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "South America",
+            "latitude": -38.7833,
+            "longitude": -61.8984
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "Oceania",
+            "latitude": -32.0739,
+            "longitude": 115.8914
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "Oceania",
+            "latitude": -20.485,
+            "longitude": 147.75
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "nan",
+            "latitude": -38.3916,
+            "longitude": 144.8553
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "Oceania",
+            "latitude": -33.85,
+            "longitude": 150.9495
+        },
+        {
+            "asset_class": "IndustrialActivity",
+            "type": "Construction",
+            "location": "Oceania",
+            "latitude": -34.8348,
+            "longitude": 138.5572
+        }
+    ]
+}
+    
+const powerGenerating =
+{
+    "items": [
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "Asia",
+            "latitude": 34.556,
+            "longitude": 69.4787
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "Asia",
+            "latitude": 35.9416,
+            "longitude": 68.71
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "Europe",
+            "latitude": 39.9116,
+            "longitude": 20.1047
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Gas",
+            "location": "Africa",
+            "latitude": 36.8789,
+            "longitude": 6.9366
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Gas",
+            "location": "Africa",
+            "latitude": 36.88,
+            "longitude": 6.935
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Oil",
+            "location": "Africa",
+            "latitude": -12.4706,
+            "longitude": 13.7319
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "Africa",
+            "latitude": -12.4706,
+            "longitude": 13.7319
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "Africa",
+            "latitude": -9.7523,
+            "longitude": 14.4809
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Oil",
+            "location": "South America",
+            "latitude": -39.2145,
+            "longitude": -70.9157
+        },
+        {
+            "asset_class": "PowerGeneratingAsset",
+            "type": "Hydro",
+            "location": "South America",
+            "latitude": -31.5192,
+            "longitude": -68.9814
+        }
+    ]
 }
 
-const exampleRequest = {
-    "assets": assets,
-        "include_asset_level": true,
-        "include_calc_details": true,
-        "year": 2050,
-        "scenario": "rcp8p5"
+const reaslEstate =
+{
+    "items": [
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 24.0426,
+            "longitude": 91.0158
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 22.6588,
+            "longitude": 90.3373
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.6473,
+            "longitude": 90.3473
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.9186,
+            "longitude": 90.6926
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.6839,
+            "longitude": 90.5314
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 22.2972,
+            "longitude": 91.8062
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.6783,
+            "longitude": 90.4295
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.5699,
+            "longitude": 90.4804
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 22.8646,
+            "longitude": 89.5357
+        },
+        {
+            "asset_class": "RealEstateAsset",
+            "type": "Buildings/Industrial",
+            "location": "Asia",
+            "latitude": 23.9904,
+            "longitude": 90.3429
+        }
+    ]
+}
+
+const examplePortfolios: { [id: string] : any; } = {
+    "Mixed portfolio (sample)": mixed,
+    "Industrial activity (sample)": industrialActivity,
+    "Power generating assets (sample)": powerGenerating,
+    "Real estate (sample)": reaslEstate
 }
 

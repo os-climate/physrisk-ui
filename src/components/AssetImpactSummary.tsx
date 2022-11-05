@@ -13,31 +13,43 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { Divider, FormControl, InputLabel, MenuItem, Paper } from "@mui/material";
 import LineGraph from "./LineGraph";
 
-const data = [
+interface DataItem {
+    displayName: string;
+    key: string;
+    mean: number;
+    return100: number; 
+}
+
+const data: DataItem[] = [
     {
-        "hazardType": "Riverine" + "\n" + "flood",
+        "displayName": "Riverine" + "\n" + "flood",
+        "key": "RiverineInundation",
         "mean": 0.01,
-        "100Year": 0.03,
+        "return100": 0.03,
     },
     {
-        "hazardType": "Coastal flood",
+        "displayName": "Coastal flood",
+        "key": "CoastalInundation",
         "mean": 0.0,
-        "100Year": 0.0,
+        "return100": 0.0,
     },
     {
-        "hazardType": "Chronic heat",
+        "displayName": "Chronic heat",
+        "key": "ChronicHeat",
         "mean": 0.02,
-        "100Year": 0.05,
+        "return100": 0.05,
     },
     {
-        "hazardType": "Acute heat",
+        "displayName": "Acute heat",
+        "key": "AcuteHeat",
         "mean": 0.001,
-        "100Year": 0.003,
+        "return100": 0.003,
     },
     {
-        "hazardType": "Water \n stress",
+        "displayName": "Water \n stress",
+        "key": "WaterStress",
         "mean": 0.004,
-        "100Year": 0.004,
+        "return100": 0.004,
     }
 ]
 
@@ -52,23 +64,30 @@ const hazardNames: { [id: string]: string; } = {
 export default function AssetImpactSummary(props: { assetIndex: any, assetImpact: any }) {
     const { assetIndex, assetImpact } = props
     const theme = useTheme()
-    console.log(assetIndex)
-    if (assetIndex == null) {
+
+    if (assetIndex == null || !assetImpact) {
         return (
             <React.Fragment>
-                <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom>
+                <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom
+                    width={200} height={50}>
                     Impact summary
+                </Typography>
+                <Typography align="center" style={theme.typography.body2}>
+                    [Not calculated]
                 </Typography>
             </React.Fragment>)
     }
+    const impacts: any[] = assetImpact.impacts
+    const dataItems: DataItem[] = data.map(d => getRadarData(impacts, d))
+
     return (
         <React.Fragment>
             <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom>
                 Impact summary
             </Typography>
-            <RadarChart margin={{ top: 0, left: 0, right: 0, bottom: 0 }} startAngle={90} endAngle={-270} innerRadius={20} outerRadius={80} width={400} height={200} data={data} style={{ margin: "20 auto" }}>
+            <RadarChart margin={{ top: 0, left: 0, right: 0, bottom: 0 }} startAngle={90} endAngle={-270} innerRadius={20} outerRadius={80} width={400} height={200} data={dataItems} style={{ margin: "20 auto" }}>
                 <PolarGrid />
-                <PolarAngleAxis dataKey="hazardType" 
+                <PolarAngleAxis dataKey="displayName" 
                     style={theme.typography.body2}
                     dy={3}
                 />
@@ -79,11 +98,24 @@ export default function AssetImpactSummary(props: { assetIndex: any, assetImpact
                     tickFormatter={tick => (tick * 100).toPrecision(2)+ "%"} //eslint-disable-line no-unused-vars
                     dx={1} />
                 <Radar name="Mean" dataKey="mean" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                <Radar name="100 year return" dataKey="100Year" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+                <Radar name="100 year return" dataKey="return100" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
             </RadarChart>
             <AssetImpactGraphs assetIndex={0} assetImpact={assetImpact} />
         </React.Fragment>
     )
+}
+
+function getRadarData(impacts: any[], item: DataItem): DataItem
+{
+    const singleHazardImpact = impacts.filter(i => i.hazard_type == item.key)[0]
+    if (singleHazardImpact)
+    {
+        const probs: number[] = singleHazardImpact.impact_exceedance.exceed_probabilities
+        const values: number[] = singleHazardImpact.impact_exceedance.values
+        const index = probs.findIndex(p => p < 0.01)
+    }
+    return { displayName: item.displayName, key: item.key, mean: singleHazardImpact ? singleHazardImpact.impact_mean : 0, return100: singleHazardImpact ? singleHazardImpact.impact_mean : 0
+    }
 }
 
 function AssetImpactGraphs(props: { assetIndex: any, assetImpact: any }) {
@@ -102,8 +134,6 @@ function AssetImpactGraphs(props: { assetIndex: any, assetImpact: any }) {
     
     const singleHazardImpact = impacts.filter(i => i.hazard_type == value)[0]
 
-    console.log(hazardNames)
-
     return (
         <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" >
             <FormControl sx={{ m: 1, minWidth: 80 }} size="small">
@@ -116,7 +146,7 @@ function AssetImpactGraphs(props: { assetIndex: any, assetImpact: any }) {
                     onChange={handleChange}
                 >
                     {Object.keys(hazardNames).map((key, index) => 
-                        <MenuItem value={key}>{hazardNames[key]}</MenuItem>)}
+                        <MenuItem value={key} key={key}>{hazardNames[key]}</MenuItem>)}
                 </Select>
             </FormControl>
             <Divider />
@@ -138,11 +168,9 @@ function SingleHazardTypeGraph(props: { singleHazardImpact: any }) {
     //const hazard_intensities = singleHazardImpact.calc_details.hazard_exceedance.intensities
 
     return (
+        singleHazardImpact ?
         <Box
             sx={{
-                //p: 2,
-                //display: "flex",
-                //flexDirection: "column",
                 width: "100%",
                 height: 250,
             }}>
@@ -152,7 +180,7 @@ function SingleHazardTypeGraph(props: { singleHazardImpact: any }) {
                         xQuantity="Exceedance probability" 
                         yQuantity="% impact"
                         />
-        </Box>)
+        </Box> : <Box></Box>)
 }
 
  
