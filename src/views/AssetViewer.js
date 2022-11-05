@@ -74,7 +74,6 @@ export default function AssetViewer(props) {
             const result = await runCalculation(portfolio, portfolioDispatch, globals)
             portfolioDispatch({ type: "updateCalculationResult", calculationResult: result })
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
-            console.log(result)
         }
         run()
     }

@@ -37,9 +37,9 @@ export default function AssetTable(props) {
         },
     ]
 
-    const rows = data.items.map((row, i) => {
+    const rows = (data && data.items) ? data.items.map((row, i) => {
         return { ...row, id: i }
-    })
+    }) : []
 
     return (
         <Fragment>
