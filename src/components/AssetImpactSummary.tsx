@@ -10,7 +10,7 @@ import {
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { Divider, FormControl, InputLabel, MenuItem, Paper } from "@mui/material";
+import { Divider, FormControl, InputLabel, MenuItem, Paper, Tooltip } from "@mui/material";
 import LineGraph from "./LineGraph";
 
 interface DataItem {
@@ -22,19 +22,19 @@ interface DataItem {
 
 const data: DataItem[] = [
     {
-        "displayName": "Riverine" + "\n" + "flood",
+        "displayName": "Riverine \n flood: fractional asset damage/disruption as a result of an inundation event occurring in specified year",
         "key": "RiverineInundation",
         "mean": 0.01,
         "return100": 0.03,
     },
     {
-        "displayName": "Coastal flood",
+        "displayName": "Coastal flood: fractional annual asset damage/disruption as a result of an inundation event occurring in specified year",
         "key": "CoastalInundation",
         "mean": 0.0,
         "return100": 0.0,
     },
     {
-        "displayName": "Chronic heat",
+        "displayName": "Chronic heat: fractional disruption (e.g. fractional labour loss) occurring in specified year",
         "key": "ChronicHeat",
         "mean": 0.02,
         "return100": 0.05,
@@ -80,6 +80,29 @@ export default function AssetImpactSummary(props: { assetIndex: any, assetImpact
     const impacts: any[] = assetImpact.impacts
     const dataItems: DataItem[] = data.map(d => getRadarData(impacts, d))
 
+    function customTick({ payload, x, y, textAnchor, stroke, radius }: any) {
+        return (
+          <g
+            className="recharts-layer recharts-polar-angle-axis-tick"
+          >
+            <Tooltip title={payload.value.split(':').length > 1 ? payload.value.split(':')[1].trim() : payload.value} arrow>
+                <text
+                    radius={radius}
+                    stroke={stroke}
+                    x={x}
+                    y={y}
+                    className="recharts-text recharts-polar-angle-axis-tick-value"
+                    text-anchor={textAnchor} 
+                >
+                <tspan x={x} dy="0em">
+                    {payload.value.split(':')[0]}
+                </tspan>
+                </text>
+            </Tooltip>
+          </g>
+        );
+      }
+
     return (
         <React.Fragment>
             <Typography component="h2" variant="h6" align="center" color={theme.palette.text.primary} gutterBottom>
@@ -90,6 +113,7 @@ export default function AssetImpactSummary(props: { assetIndex: any, assetImpact
                 <PolarAngleAxis dataKey="displayName" 
                     style={theme.typography.body2}
                     dy={3}
+                    tick={customTick}
                 />
                 <PolarRadiusAxis angle={90-360/10} 
                     domain={[0, 0.05]} 
