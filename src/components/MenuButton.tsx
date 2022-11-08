@@ -2,6 +2,7 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Box from '@mui/material/Box';
 
 export default function MenuButton(props: { buttonText: string,
     buttonIcon: any,
@@ -15,11 +16,14 @@ export default function MenuButton(props: { buttonText: string,
   };
   const handleClose = (portfolioName: string) => {
     setAnchorEl(null);
+  };
+  const handleSelected = (portfolioName: string) => {
+    setAnchorEl(null);
     props.onPortfolioSelected(portfolioName);
   };
 
   return (
-    <div>
+    <Box sx={{ overflow: "auto", flexShrink: 0 }}>
       <Button
         id="basic-button"
         aria-controls={open ? 'basic-menu' : undefined}
@@ -27,6 +31,8 @@ export default function MenuButton(props: { buttonText: string,
         aria-expanded={open ? 'true' : undefined}
         onClick={handleClick}
         endIcon={props.buttonIcon}
+        size="small"
+        sx={{ overflow: "auto", flexShrink: 0 }}
       >
         {props.buttonText}
       </Button>
@@ -40,10 +46,10 @@ export default function MenuButton(props: { buttonText: string,
         }}
       >
         {props.menuOptions.map((option) => 
-          <MenuItem onClick={() => handleClose(option)} key={option}>{option}</MenuItem>)
+          <MenuItem onClick={() => handleSelected(option)} key={option}>{option}</MenuItem>)
         }
       </Menu>
-    </div>
+    </Box>
   );
 }
 

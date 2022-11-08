@@ -76,7 +76,12 @@ export const loadExamplePortfolio = async (dispatch: any, examplePortfolioName: 
         //console.log(response)
         
         dispatch(({ type: "updatePortfolio", portfolioJson: examplePortfolios[examplePortfolioName] }))
+        
+        // in case calculation result is set:
+        dispatch(({ type: "updateCalculationResult", calculationResult: null}))
+        
         dispatch(({ type: "updateStatus", newState: PortfolioState.Loaded}))
+
         return {
             inventory: "AAA"
         }

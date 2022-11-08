@@ -5,8 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math'
 import rehypeMathjax from 'rehype-mathjax'
 import remarkGfm from 'remark-gfm'
-
-import 'katex/dist/katex.min.css' // `rehype-katex` does not import the CSS for you
 import { Box } from "@mui/material"
 
 export default function Summary(props) {

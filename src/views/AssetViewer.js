@@ -87,10 +87,19 @@ export default function AssetViewer(props) {
                         display: "flex",
                         flexDirection: "column",
                         m: 0
-                    }}
+                    }} 
                 >
-                    <Stack spacing={2} direction="row">
-                        <Button variant="text" component="label" endIcon={<Upload />}>
+                    <Stack spacing={2} direction="row" sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        textAlign: "center",
+                        whitespace: "nowrap",
+                        overflow: "auto",
+                        "&::-webkit-scrollbar": {
+                            display: "none",
+                        },
+                    }}>
+                        <Button variant="text" component="label" endIcon={<Upload />} size="small" sx={{ flexShrink: 0 }}>
                             Load portfolio
                             <input
                                 type="file"
@@ -100,7 +109,7 @@ export default function AssetViewer(props) {
                                 hidden
                             ></input>
                         </Button>
-                        <MenuButton buttonText="Example portfolios" buttonIcon={<List />} 
+                        <MenuButton buttonText="Example portfolios" buttonIcon={<List />}
                             menuOptions={portfolio.examplePortfolioNames}
                             onPortfolioSelected={portfolioName => loadExamplePortfolio(portfolioDispatch, portfolioName, globals)}
                         >
@@ -111,6 +120,8 @@ export default function AssetViewer(props) {
                             loading={portfolio.status == "running"}
                             loadingPosition="end"
                             variant="outlined"
+                            size="small"
+                            sx={{ flexShrink: 0 }}
                         >
                             Calculate impacts
                         </LoadingButton>
