@@ -45,6 +45,7 @@ export function ColourBar(props) {
                     type="monotone"
                     dataKey="value"
                     fillOpacity={1.0}
+                    isAnimationActive={false}
                     fill={"url(#colorUv)"}
                 />
                 <XAxis

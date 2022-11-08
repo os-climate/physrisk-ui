@@ -6,7 +6,6 @@ import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import Tooltip from "@mui/material/Tooltip"
 import Popover from "@mui/material/Popover"
-//import Typography from "@mui/material/Typography"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { ColourBar } from "./ColourBar.js"
 import CoordinatesInput from "./CoordinatesInput.js"
@@ -145,39 +144,33 @@ export default function ScatterMap(props) {
     const markerRef = useRef(null)
     const mapIdRef = useRef(null)
 
-    function addRasterLayer(map, mapBoxId, placeBeforeLayerId) {
-        map.addSource("hazard", {
-            type: "raster",
-            tiles: [
-                "https://api.mapbox.com/v4/" + mapBoxId + "/{z}/{x}/{y}.png",
-            ],
-            tileSize: 256,
-            maxzoom: 6,
-        })
+    
+    function updateAssets()
+    {
+        if (mapRef.current) {
+            const map = mapRef.current
 
-        map.addLayer(
-            {
-                id: "hazard",
-                type: "raster",
-                source: "hazard",
-                layout: {
-                    visibility: "visible",
-                },
-            },
-            placeBeforeLayerId
-        )
-    }
+            removeAssetsLayer(map)
+            addAssetsLayer(map, assetData)
 
-    function removeRasterLayer(map) {
-        const layerId = "hazard"
-        if (map.getLayer(layerId)) {
-            map.removeLayer(layerId)
+            map.on("click", "assets-circle", (e) => { 
+                const rect = mapContainerRef.current.getBoundingClientRect()
+                setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
+                setSelectedAssetIndex(e.features[0].id)
+            });
+        
+            map.on("mouseenter", "assets-circle", () => { // 
+                map.getCanvas().style.cursor = "pointer"
+            });
+                
+            map.on("mouseleave", "assets-circle", () => {
+                map.getCanvas().style.cursor = '';
+            });
+
+            map.resize()
+            map.triggerRepaint()
         }
-
-        if (map.getSource(layerId)) {
-            map.removeSource(layerId)
-        }
-    }
+    }  
 
     function updateRaster(mapBoxId) {
         if (mapRef.current) {
@@ -210,6 +203,10 @@ export default function ScatterMap(props) {
     }, [visible])
 
     useEffect(() => {
+        updateAssets()
+    }, [assetData])
+
+    useEffect(() => {
         const newMap = new mapboxgl.Map({
             container: mapContainerRef.current,
             style: "mapbox://styles/mapbox/streets-v11",
@@ -221,54 +218,12 @@ export default function ScatterMap(props) {
         newMap.on("load", () => {
             setTimeout(() => {
                 mapRef.current?.resize()
-            }, 1000)
-
-            if (assetData) {
-                newMap.addSource("assets", {
-                    type: "geojson",
-                    data: {
-                        type: "FeatureCollection",
-                        features: assetData.items.map((item, index) => ({
-                            type: "Feature",
-                            id: index,
-                            properties: { },
-                            geometry: {
-                                type: "Point",
-                                coordinates: [item.longitude, item.latitude],
-                            },
-                        })),
-                    },
-                })
-
-                newMap.addLayer({
-                    id: "assets-circle",
-                    type: "circle",
-                    source: "assets",
-                    paint: {
-                        "circle-color": "hsla(145,100%,30%,1)",
-                        "circle-radius": 7,
-                        "circle-stroke-width": 1.5,
-                        "circle-stroke-color": "white",
-                    },
-                })
-
-                newMap.on("click", "assets-circle", (e) => { 
-                    const rect = mapContainerRef.current.getBoundingClientRect()
-                    setPopoverAnchorPos({ left: e.point.x + rect.x, top: e.point.y + rect.y })
-                    setSelectedAssetIndex(e.features[0].id)
-                });
-
-                newMap.on("mouseenter", "assets-circle", () => { // 
-                    newMap.getCanvas().style.cursor = "pointer"
-                });
-                  
-                newMap.on("mouseleave", "assets-circle", () => {
-                    newMap.getCanvas().style.cursor = '';
-                });
-            }
+            }, 1000)    
 
             mapRef.current = newMap
             updateRaster(mapIdRef.current)
+            if (assetData) updateAssets()
+
             CoordinatesInput(mapRef, mapboxgl, markerRef, onClick)
         })
 
@@ -288,7 +243,7 @@ export default function ScatterMap(props) {
 
         // Clean up on unmount
         return () => newMap.remove()
-    }, [assetData])
+    }, [])
 
     const colorbarData = [
         { xValue: 0, value: 1 },
@@ -319,7 +274,7 @@ export default function ScatterMap(props) {
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.1)",
                     }}
                 >
-                <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />
+                    <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />
                 </Box>
                 <Popover
                     id="mouse-over-popover"
@@ -347,4 +302,80 @@ export default function ScatterMap(props) {
             </Box>
         </React.Fragment>
     )
+}
+
+function addAssetsLayer(map, assetData) {
+    map.addSource("assets", {
+        type: "geojson",
+        data: {
+            type: "FeatureCollection",
+            features: assetData.items.map((item, index) => ({
+                type: "Feature",
+                id: index,
+                properties: { },
+                geometry: {
+                    type: "Point",
+                    coordinates: [item.longitude, item.latitude],
+                },
+            })),
+        },
+    })
+
+    map.addLayer({
+        id: "assets-circle",
+        type: "circle",
+        source: "assets",
+        paint: {
+            "circle-color": "hsla(145,100%,30%,1)",
+            "circle-radius": 7,
+            "circle-stroke-width": 1.5,
+            "circle-stroke-color": "white",
+        },
+    })
+}
+
+function addRasterLayer(map, mapBoxId, placeBeforeLayerId) {
+    map.addSource("hazard", {
+        type: "raster",
+        tiles: [
+            "https://api.mapbox.com/v4/" + mapBoxId + "/{z}/{x}/{y}.png",
+        ],
+        tileSize: 256,
+        maxzoom: 6,
+    })
+
+    map.addLayer(
+        {
+            id: "hazard",
+            type: "raster",
+            source: "hazard",
+            layout: {
+                visibility: "visible",
+            },
+        },
+        placeBeforeLayerId
+    )
+}
+
+function removeAssetsLayer(map) {
+    const layerId = "assets-circle"
+    const sourceId = "assets"
+    if (map.getLayer(layerId)) {
+        map.removeLayer(layerId)
+    }
+
+    if (map.getSource(sourceId)) {
+        map.removeSource(sourceId)
+    }
+}
+
+function removeRasterLayer(map) {
+    const layerId = "hazard"
+    if (map.getLayer(layerId)) {
+        map.removeLayer(layerId)
+    }
+
+    if (map.getSource(layerId)) {
+        map.removeSource(layerId)
+    }
 }
