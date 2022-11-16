@@ -91,7 +91,7 @@ function ViewHeader() {
         return route === undefined ? "Unknown" : route.name
     }
     const currentPath = getCurrentPath()
-    return <Box sx={{ p: 2 }}>{currentPath}</Box>
+    return <Box sx={{ p: 0 }}>{currentPath}</Box>
 }
 
 function ViewPanel(props) {
@@ -145,7 +145,7 @@ function AppContent() {
                             border={0}
                             sx={{
                                 color: (theme) => theme.palette.grey[800],
-                                marginRight: 2,
+                                mr: 0,
                                 backgroundColor: (theme) =>
                                     theme.palette.mode === "light"
                                         ? theme.palette.grey[100]
@@ -163,7 +163,7 @@ function AppContent() {
                                     <ViewHeader />
                                 </Typography>
                                 <IconButton color="inherit">
-                                    <Badge badgeContent={4} color="secondary">
+                                    <Badge badgeContent={1} color="secondary">
                                         <NotificationsIcon />
                                     </Badge>
                                 </IconButton>
@@ -172,7 +172,7 @@ function AppContent() {
                                     aria-label="open drawer"
                                     edge="start"
                                     onClick={handleDrawerToggle}
-                                    sx={{ ml: "8px", display: { sm: "none" } }}
+                                    sx={{ ml: 0, display: { sm: "none" } }}
                                 >
                                     <MenuIcon />
                                 </IconButton>
@@ -235,8 +235,7 @@ function AppContent() {
                                 flexGrow: 1,
                                 m: 0,
                                 p: 0,
-                                height: "100vh",
-                                overflow: "auto",
+                                height: "100vh"
                             }}
                         >
                             <Toolbar />

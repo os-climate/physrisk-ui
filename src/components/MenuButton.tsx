@@ -46,7 +46,7 @@ export default function MenuButton(props: { buttonText: string,
         }}
       >
         {props.menuOptions.map((option) => 
-          <MenuItem onClick={() => handleSelected(option)} key={option}>{option}</MenuItem>)
+          <MenuItem sx={{ fontSize: 14 }} onClick={() => handleSelected(option)} key={option}>{option}</MenuItem>)
         }
       </Menu>
     </Box>
