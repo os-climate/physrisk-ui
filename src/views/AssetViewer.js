@@ -56,7 +56,7 @@ export default function AssetViewer(props) {
 
     useEffect(() => {
         async function fetchHazardMenuData() {
-            const hazardMenuData = await loadHazardMenuData()
+            const hazardMenuData = await loadHazardMenuData(globals)
             hazardMenuDispatch({ type: "initialise", payload: hazardMenuData })
         }
         fetchHazardMenuData()
