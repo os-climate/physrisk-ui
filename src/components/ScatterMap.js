@@ -1,14 +1,15 @@
-import React, { useRef, useEffect, useState } from "react"
+import React, { useRef, useContext, useEffect, useState } from "react"
 import mapboxgl from "!mapbox-gl"
 import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
-import Tooltip from "@mui/material/Tooltip"
 import Popover from "@mui/material/Popover"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import Tooltip from "@mui/material/Tooltip"
 import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
+import { GlobalDataContext } from "../data/GlobalData"
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -129,6 +130,8 @@ export default function ScatterMap(props) {
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
     const [selectedAssetIndex, setSelectedAssetIndex] = React.useState(null);
 
+    const globals = useContext(GlobalDataContext);
+
     const handlePopoverClose = () => {
         setPopoverAnchorPos(null);
       };
@@ -142,7 +145,7 @@ export default function ScatterMap(props) {
     const [lat] = useState(45)
     const [zoom] = useState(2)
     const markerRef = useRef(null)
-    const mapIdRef = useRef(null)
+    const mapInfoRef = useRef(null)
 
     
     function updateAssets()
@@ -172,7 +175,7 @@ export default function ScatterMap(props) {
         }
     }  
 
-    function updateRaster(mapBoxId) {
+    function updateRaster(mapInfo) {
         if (mapRef.current) {
             const map = mapRef.current
 
@@ -180,22 +183,23 @@ export default function ScatterMap(props) {
             // Find the index of the first symbol layer in the map style.
             let firstSymbolId
             for (const layer of layers) {
-                if (layer.type === "symbol") {
+                // if (layer.type === "symbol") {
+                if (layer["source-layer"] === "water") { 
                     firstSymbolId = layer.id
                     break
                 }
             }
             removeRasterLayer(map)
-            addRasterLayer(map, "osc-mapbox." + mapBoxId, firstSymbolId)
+            addRasterLayer(map, mapInfo, firstSymbolId, globals)
 
             map.resize()
             map.triggerRepaint()
         }
     }
 
-    if (mapIdRef.current != hazardMenu.mapId) {
-        mapIdRef.current = hazardMenu.mapId
-        updateRaster(hazardMenu.mapId)
+    if (mapInfoRef.current != hazardMenu.mapInfo) {
+        mapInfoRef.current = hazardMenu.mapInfo
+        updateRaster(hazardMenu.mapInfo)
     }
 
     useEffect(() => {
@@ -221,7 +225,7 @@ export default function ScatterMap(props) {
             }, 1000)    
 
             mapRef.current = newMap
-            updateRaster(mapIdRef.current)
+            updateRaster(mapInfoRef.current)
             if (assetData) updateAssets()
         })
 
@@ -372,16 +376,30 @@ function addAssetsLayer(map, assetData) {
     })
 }
 
-function addRasterLayer(map, mapBoxId, placeBeforeLayerId) {
-    map.addSource("hazard", {
-        type: "raster",
-        tiles: [
-            "https://api.mapbox.com/v4/" + mapBoxId + "/{z}/{x}/{y}.png",
-        ],
-        tileSize: 256,
-        maxzoom: 6,
-    })
-
+function addRasterLayer(map, source, placeBeforeLayerId, globals) {
+    
+    const apiHost = globals.services.apiHost;
+    
+    if (source.mapId)
+    {
+        map.addSource("hazard", {
+            type: "raster",
+            tiles: [
+                "https://api.mapbox.com/v4/" + source.mapId + "/{z}/{x}/{y}.png",
+            ],
+            tileSize: 256,
+            maxzoom: 6,
+        })
+    }
+    else if (source.path)
+    {
+        map.addSource("hazard", {
+            type: "image",
+            url: apiHost + "/api/images/" + source.path + ".png?minValue=" + source.minValue + "&maxValue=" + source.maxValue,
+            coordinates: [[-180, 85], [180, 85], [180, -85], [-180, -85]]
+        });
+    }
+    
     map.addLayer(
         {
             id: "hazard",

@@ -92,7 +92,7 @@ export const loadExamplePortfolio = async (dispatch: any, examplePortfolioName: 
 
 export const runCalculation = async (portfolio: any, dispatch: any, globals: any) => {
     try {
-        const apiHost = globals.services.apiHost; // "http://127.0.0.1:5000"
+        const apiHost = globals.services.apiHost;
         
         const request = {
             "assets": portfolio.portfolioJson,

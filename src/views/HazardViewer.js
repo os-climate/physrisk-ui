@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState, React } from "react"
+import { useContext, useEffect, useReducer, useState, React } from "react"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid"
 import LinearProgress from "@mui/material/LinearProgress"
@@ -15,6 +15,7 @@ import {
 } from "../data/HazardInventory.js"
 import { v4 as uuidv4 } from "uuid"
 import axios from "axios"
+import { GlobalDataContext } from "../data/GlobalData"
 
 export default function HazardViewer(props) {
     const { visible } = props
@@ -28,10 +29,8 @@ export default function HazardViewer(props) {
     )
 
     const [lngLat, setLngLat] = useState(null)
-    const apiHost =
-        "http://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org"
-
-    //const apiHost = 'http://127.0.0.1:5000';
+    const globals = useContext(GlobalDataContext)
+    const apiHost = globals.services.apiHost
     function graphDataPoint(x, y) {
         return { x, y }
     }
@@ -42,13 +41,11 @@ export default function HazardViewer(props) {
 
     useEffect(() => {
         async function fetchHazardMenuData() {
-            const hazardMenuData = await loadHazardMenuData()
+            const hazardMenuData = await loadHazardMenuData(globals)
             hazardMenuDispatch({ type: "initialise", payload: hazardMenuData })
         }
         fetchHazardMenuData()
     }, [])
-
-
 
     const hazardPointInitialState = {
         status: 'idle',
@@ -68,8 +65,6 @@ export default function HazardViewer(props) {
                 return state;
         }
     }, hazardPointInitialState);
-
-
 
     useEffect(() => {
         async function fetchGraphData() {
