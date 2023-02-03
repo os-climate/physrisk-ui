@@ -279,34 +279,8 @@ export default function ScatterMap(props) {
         }
     }
 
-    const onSelectHandler = (result) => {
-       console.log(result)
-       if (mapRef.current)
-       { 
-            let [lng, lat] = result.feature.center
-            if (markerRef.current) {
-                markerRef.current.remove(mapRef.current)
-            }
-            const marker = new mapboxgl.Marker()
-                .setLngLat([lng, lat])
-                .addTo(mapRef.current)
-
-            markerRef.current = marker
-            
-            mapRef.current.flyTo({
-                center: result.feature.center,
-                //essential: true, // this animation is considered essential with respect to prefers-reduced-motion
-                zoom: 12,
-                speed: 1
-            });
-
-            onClick({ lngLat: { lng, lat } })
-        }
-    }
-
     return (
         <React.Fragment>
-            <Box>
             <Box>
                 <ScatterMapMenu
                     hazardMenu={hazardMenu}
@@ -315,63 +289,12 @@ export default function ScatterMap(props) {
                 <Box sx={{ position: "relative" }}>
                     <Box sx={{
                         width: 240,
-                <Box sx={{ position: "relative" }}>
-                    <Box sx={{
-                        width: 240,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
-                        top: 10,
                         top: 10,
                         right: 10,
                         zIndex: 1,
                         borderRadius: "4px",
-                        boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
-                    }}>
-                        <Geocoder apiKey={mapboxgl.accessToken} onSelect={onSelectHandler} >
-                        </Geocoder>
-                    </Box>
-                    <Box ref={mapContainerRef} className="map-container" 
-                            />
-                    <Box
-                        sx={{
-                            height: 45,
-                            width: 175,
-                            backgroundColor: "rgba(255, 255, 255, 1.0)",
-                            position: "absolute",
-                            bottom: 10,
-                            right: 10,
-                            zIndex: 1,
-                            borderRadius: "4px",
-                            boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
-                        }}
-                    >
-                        <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />
-                    </Box>
-                    <Popover
-                        id="mouse-over-popover"
-                        sx={{
-                        //    pointerEvents: 'none',
-                            height: 400
-                        }}
-                        open={popoverOpen}
-                        anchorPosition={popoverAnchorPos}
-                        anchorReference="anchorPosition"
-                        anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'left',
-                        }}
-                        transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'left',
-                        }}
-                        onClose={handlePopoverClose}
-                        //disableRestoreFocus
-                    >
-                        {assetSummary ? assetSummary(selectedAssetIndex) : null}
-                        {/* <Typography sx={{ p: 1 }}>I use Popover.</Typography> */}
-                    </Popover>
-                </Box>
-            </Box>
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
                     }}>
                         <Geocoder apiKey={mapboxgl.accessToken} onSelect={onSelectHandler} >
