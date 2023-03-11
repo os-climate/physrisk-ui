@@ -85,10 +85,17 @@ export default function HazardViewer(props) {
                         ],
                     }
                     try {
+                        const config = {
+                            headers:{
+                                Authorization: 'Bearer ' + globals.token
+                            }
+                          };
                         var response = await axios.post(
                             apiHost + "/api/get_hazard_data",
-                            payload
+                            payload,
+                            config
                         )
+                        response.access_token && globals.setToken(response.access_token)
                         var curve_set =
                             response.data.items[0].intensity_curve_set[0]
                         var points =

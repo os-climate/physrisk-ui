@@ -103,7 +103,7 @@ export const loadHazardMenuData = async (globals) => {
     
         var response = await axios.post(
             apiHost + "/api/get_hazard_data_availability",
-            {}
+            { sources: globals.inventorySources }
         )
         var inventory = new HazardInventory(
             response.data.models,
@@ -159,14 +159,15 @@ export class HazardInventory {
         const model = this.modelsOfHazardType[hazardTypeId].filter(
             (m) => m.id == modelId
         )[0]
-        const period = model.scenarios
+        const scenario = model.scenarios
             .filter((s) => s.id == scenarioId)[0]
-            .periods.filter((p) => p.year == year)[0]
-
+        const period = scenario.periods ? scenario.periods.filter((p) => p.year == year)[0] : null
 
         const result = { 
             mapId: model.map.source == "mapbox" ? "osc-mapbox." + period.map_id : null,
-            path: path.join(model.path, model.map.array_name.replace("{scenario}", scenarioId).replace("{year}", period.year)),
+            resource: path.join(model.path, model.id), // model.map.array_name.replace("{scenario}", scenarioId).replace("{year}", year)),
+            scenarioId: scenario.id,
+            year: year,
             colorbar: getColorbar(this.colormaps, model.map.colormap),
             minValue: model.map.colormap.min_value,
             maxValue: model.map.colormap.max_value 
@@ -188,6 +189,10 @@ function prettifyScenarioId(id) {
             return "RCP 4.5"
         case "rcp8p5":
             return "RCP 8.5"
+        case "ssp126":
+            return "SSP126"
+        case "ssp585":
+            return "SSP585"
         case "historical":
             return "Historical"
         default:

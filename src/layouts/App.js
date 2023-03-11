@@ -14,9 +14,11 @@ import Container from "@mui/material/Container"
 import Link from "@mui/material/Link"
 import MenuIcon from "@mui/icons-material/Menu"
 import NotificationsIcon from "@mui/icons-material/Notifications"
+import PersonIcon from '@mui/icons-material/Person'
 import DrawerContents from "../components/DrawerContents"
-import { globals, GlobalDataContext } from "../data/GlobalData"
+import { GlobalDataContextProvider } from "../data/GlobalData"
 import routes from "../routes.js"
+import LoginDialog from "../components/LoginDialog"
 
 function Copyright(props) {
     return (
@@ -126,14 +128,23 @@ Router.propTypes = {
 
 function AppContent() {
     const [mobileOpen, setMobileOpen] = React.useState(false)
+    const [loginOpen, setLoginOpen] = React.useState(false)
     const [open] = React.useState(true)
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen)
     }
 
+    const handleLogin = () => {
+        setLoginOpen(!loginOpen)
+    }
+
+    const handleLoginClose = () => {
+        setLoginOpen(false);
+      };
+
     return (
-        <GlobalDataContext.Provider value={globals}>
+        <GlobalDataContextProvider>
             <ThemeProvider theme={appTheme}>
                 <Box sx={{ display: "flex" }}>
                     <Router>
@@ -162,7 +173,13 @@ function AppContent() {
                                 >
                                     <ViewHeader />
                                 </Typography>
-                                <IconButton color="inherit">
+                                <IconButton color="inherit"
+                                    onClick={handleLogin}>
+                                    <Badge color="secondary">
+                                        <PersonIcon />
+                                    </Badge>
+                                </IconButton>
+                                <IconButton color="inherit" sx={{ ml: 0 }}>
                                     <Badge badgeContent={1} color="secondary">
                                         <NotificationsIcon />
                                     </Badge>
@@ -239,6 +256,7 @@ function AppContent() {
                             }}
                         >
                             <Toolbar />
+                            <LoginDialog open={loginOpen} handleClose={handleLoginClose} fullScreen={false}></LoginDialog>
                             <Container maxWidth="xl" sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
@@ -256,7 +274,7 @@ function AppContent() {
                     </Router>
                 </Box>
             </ThemeProvider>
-        </GlobalDataContext.Provider>
+        </GlobalDataContextProvider>
     )
 }
 
