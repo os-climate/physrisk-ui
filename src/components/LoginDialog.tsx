@@ -44,12 +44,11 @@ const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
 
     useEffect(() => {
       async function fetchProfile() {
-        const profile: any = await axios.post("/api/profile", {}, config)
+        const profile: any = await axios.post("/api/profile", {}, (globals.token == "") ? {} : config)
         setLoggedInUser(profile.data.id)
       }
       if (open)
       {
-        setLoggedInUser("")
         fetchProfile()
       }
     }, [open])
@@ -59,7 +58,7 @@ const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
       if (loggedInUser)
       {
         axios.post(
-          "/api/logout", {}, config
+          "/api/logout", {}, (globals.token == "") ? {} : config
         )
         .then(() => {
           setLoggedInUser("")
