@@ -130,7 +130,8 @@ export default function ScatterMap(props) {
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
     const [selectedAssetIndex, setSelectedAssetIndex] = React.useState(null);
 
-    const globals = useContext(GlobalDataContext);
+    const globals = useRef({}).current;
+    globals.value = useContext(GlobalDataContext);;
 
     const handlePopoverClose = () => {
         setPopoverAnchorPos(null);
@@ -175,7 +176,7 @@ export default function ScatterMap(props) {
         }
     }  
 
-    function updateRaster(mapInfo) {
+    function updateRaster(model, mapInfo) {
         if (mapRef.current) {
             const map = mapRef.current
 
@@ -190,7 +191,7 @@ export default function ScatterMap(props) {
                 }
             }
             removeRasterLayer(map)
-            addRasterLayer(map, mapInfo, firstSymbolId, globals)
+            addRasterLayer(map, model, mapInfo, firstSymbolId, globals.value)
 
             map.resize()
             map.triggerRepaint()
@@ -199,7 +200,7 @@ export default function ScatterMap(props) {
 
     if (mapInfoRef.current != hazardMenu.mapInfo) {
         mapInfoRef.current = hazardMenu.mapInfo
-        updateRaster(hazardMenu.mapInfo)
+        updateRaster(hazardMenu.selectedModel, hazardMenu.mapInfo)
     }
 
     useEffect(() => {
@@ -217,6 +218,15 @@ export default function ScatterMap(props) {
             attributionControl: false,
             center: [lng, lat],
             zoom: zoom,
+            transformRequest: (url, resourceType) => {
+                if (resourceType == "Image" && globals.value.token)
+                {
+                    return { 
+                        url : url, 
+                        headers: (globals.value.token == "") ? null : { "Authorization": "Bearer " + globals.value.token }
+                    }
+                }
+            }
         })
 
         newMap.on("load", () => {
@@ -376,27 +386,29 @@ function addAssetsLayer(map, assetData) {
     })
 }
 
-function addRasterLayer(map, source, placeBeforeLayerId, globals) {
+function addRasterLayer(map, model, mapInfo, placeBeforeLayerId, globals) {
     
     const apiHost = globals.services.apiHost;
     
-    if (source.mapId)
+    if (!mapInfo) return;
+
+    if (mapInfo.mapId)
     {
         map.addSource("hazard", {
             type: "raster",
             tiles: [
-                "https://api.mapbox.com/v4/" + source.mapId + "/{z}/{x}/{y}.png",
+                "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png",
             ],
             tileSize: 256,
             maxzoom: 6,
         })
     }
-    else if (source.path)
+    else if (mapInfo.resource)
     {
         map.addSource("hazard", {
             type: "image",
-            url: apiHost + "/api/images/" + source.path + ".png?minValue=" + source.minValue + "&maxValue=" + source.maxValue,
-            coordinates: [[-180, 85], [180, 85], [180, -85], [-180, -85]]
+            url: apiHost + "/api/images/" + mapInfo.resource + ".png?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year, 
+            coordinates: [[-180.125, 85.125], [180.125, 85.125], [180.125, -85.125], [-180.125, -85.125]]
         });
     }
     
@@ -408,9 +420,14 @@ function addRasterLayer(map, source, placeBeforeLayerId, globals) {
             layout: {
                 visibility: "visible",
             },
+            //"paint": {
+            //"raster-resampling": "nearest"
+            //"raster-fade-duration": 0
+            //   }
         },
         placeBeforeLayerId
     )
+
 }
 
 function removeAssetsLayer(map) {
