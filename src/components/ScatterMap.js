@@ -223,7 +223,7 @@ export default function ScatterMap(props) {
                 {
                     return { 
                         url : url, 
-                        headers : { "Authorization": "Bearer " + globals.value.token }
+                        headers: (globals.value.token == "") ? null : { "Authorization": "Bearer " + globals.value.token }
                     }
                 }
             }
@@ -420,8 +420,9 @@ function addRasterLayer(map, model, mapInfo, placeBeforeLayerId, globals) {
             layout: {
                 visibility: "visible",
             },
-            //paint: {
-            //     "raster-resampling": "nearest"
+            //"paint": {
+            //"raster-resampling": "nearest"
+            //"raster-fade-duration": 0
             //   }
         },
         placeBeforeLayerId
