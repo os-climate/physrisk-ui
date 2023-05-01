@@ -67,14 +67,24 @@ export const hazardMenuReducer = (state, action) => {
     }
 }
 
+const emptyIfUndefined = (item) => { return item ? item : "" }
+
 /** Update options as necessary and get current selection, adjusting indices as needed. */
 export function updateMenuOptions(inventory, selectedIndices) {
     // menu order: hazard types, models, scenarios, years
     var newSelectedIndices = [...selectedIndices]
     var hazardTypeId = inventory.getHazardTypeIds()[selectedIndices[0]]
     var models = inventory.modelsOfHazardType[hazardTypeId]
-    newSelectedIndices[1] = Math.min(selectedIndices[1], models.length - 1)
-    var model = models[newSelectedIndices[1]]
+
+    // temporary: use groups specified in resource in future
+    var groups = [ "Mean degree days", "Mean work loss" ]
+    var sortedModels = models.map(m => 
+        { return { group: emptyIfUndefined(groups.filter(group => m.display_name.includes(group))[0]), value: m }})
+    sortedModels = sortedModels.sort((a, b) => (a.group > b.group) ? 1 : -1)
+    var sortedModelNames = sortedModels.map(m => { return { group: m.group, value: m.value.display_name }})
+
+    newSelectedIndices[1] = Math.min(selectedIndices[1], sortedModels.length - 1)
+    var model = sortedModels[newSelectedIndices[1]].value
     newSelectedIndices[2] = Math.min(
         selectedIndices[2],
         model.scenarios.length - 1
@@ -84,13 +94,14 @@ export function updateMenuOptions(inventory, selectedIndices) {
         selectedIndices[3],
         scenario.years.length - 1
     )
-    var year = scenario.years[newSelectedIndices[3]]
+    var year = scenario.years[newSelectedIndices[3]]    
+
     return [
         [
-            inventory.getHazardTypeIds().map((h) => prettifyPascalCase(h)),
-            models.map((m) => m.display_name),
-            model.scenarios.map((s) => prettifyScenarioId(s.id)),
-            scenario.years,
+            inventory.getHazardTypeIds().map(h => { return { group: "", value: prettifyPascalCase(h) }}),
+            sortedModelNames,
+            model.scenarios.map(s => { return { group: "", value: prettifyScenarioId(s.id) }}),
+            scenario.years.map(y => { return { group: "", value: y.toString() }}),
         ],
         newSelectedIndices,
         [hazardTypeId, model, scenario, year],
@@ -112,19 +123,19 @@ export const loadHazardMenuData = async (globals) => {
         const menus = [
             {
                 name: "Hazard type",
-                size: "medium",
+                width: 220
             },
             {
-                name: "Model",
-                size: "small",
+                name: "Hazard indicator",
+                width: 280
             },
             {
                 name: "Scenario",
-                size: "small",
+                width: 160
             },
             {
                 name: "Year",
-                size: "small",
+                width: 120
             },
         ]
         return {
@@ -164,6 +175,7 @@ export class HazardInventory {
         const period = scenario.periods ? scenario.periods.filter((p) => p.year == year)[0] : null
 
         const result = { 
+            bounds: model.map.bounds,
             mapId: model.map.source == "mapbox" ? "osc-mapbox." + period.map_id : null,
             resource: path.join(model.path, model.id), // model.map.array_name.replace("{scenario}", scenarioId).replace("{year}", year)),
             scenarioId: scenario.id,
@@ -191,6 +203,8 @@ function prettifyScenarioId(id) {
             return "RCP 8.5"
         case "ssp126":
             return "SSP126"
+        case "ssp245":
+            return "SSP245"
         case "ssp585":
             return "SSP585"
         case "historical":
@@ -250,3 +264,5 @@ export const exampleInventory = [
         scenarios: [{ id: "Historical", years: [1980] }],
     },
 ]
+
+

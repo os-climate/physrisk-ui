@@ -120,7 +120,7 @@ export default function HazardViewer(props) {
 
     var chart
     var title = hazardMenu.menuOptions
-        ? hazardMenu.menuOptions[1][hazardMenu.selectedIndices[1]] +
+        ? hazardMenu.selectedModel.display_name +
         (lngLat
             ? " @ (" +
                 lngLat.lng.toFixed(4) +

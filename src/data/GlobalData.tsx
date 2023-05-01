@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-axios.defaults.baseURL = "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org"
+//const baseUrl = "http://127.0.0.1:5000"
+const baseUrl = "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" 
+axios.defaults.baseURL = baseUrl
 
 interface Services {
   apiHost: string
@@ -51,7 +53,7 @@ export const GlobalDataContextProvider = (props: any) => {
       token: getStoredToken(),
       removeToken: removeToken,
       setToken: setToken,
-      services: { apiHost: "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" } // "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" or "http://127.0.0.1:5000"
+      services: { apiHost: baseUrl }
     }
   }
 
