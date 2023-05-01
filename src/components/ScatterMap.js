@@ -1,128 +1,16 @@
 import React, { useRef, useContext, useEffect, useState } from "react"
 import mapboxgl from "!mapbox-gl"
-import Button from "@mui/material/Button"
 import Box from "@mui/material/Box"
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import Menu from "@mui/material/Menu"
-import MenuItem from "@mui/material/MenuItem"
-import Popover from "@mui/material/Popover"
-import Tooltip from "@mui/material/Tooltip"
 import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
+import HazardMenus from "./HazardMenus.js"
+import Popover from "@mui/material/Popover"
 
 // note *public* access token
 // committing into code-base; public token is available on client
 mapboxgl.accessToken =
     "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbDExYnVhaXYwMDZ5M2lxcnRjYXlrb3NlIn0.O_r7LgQjNux4I8g9WBlUBQ"
-
-function ScatterMapMenu(props) {
-    const { hazardMenu, hazardMenuDispatch } = props
-    const [anchorEls, setAnchorEls] = React.useState([null, null, null, null])
-
-    if (!hazardMenu.menus) return null
-
-    function setSelectedIndex(menuIndex, selectedIndex) {
-        var newSelectedIndices = [...hazardMenu.selectedIndices]
-        newSelectedIndices[menuIndex] = selectedIndex
-        hazardMenuDispatch({
-            type: "update",
-            payload: { selectedIndices: newSelectedIndices },
-        })
-    }
-
-    function setAnchorEl(menuIndex, value) {
-        var newAnchorEls = [...anchorEls]
-        newAnchorEls[menuIndex] = value
-        setAnchorEls(newAnchorEls)
-    }
-
-    function isOpen(menuIndex) {
-        return Boolean(anchorEls[menuIndex])
-    }
-
-    const handleItemClicks = hazardMenu.menus.map((m, i) => (event, index) => {
-        setSelectedIndex(i, index)
-        setAnchorEl(i, null)
-    })
-
-    const handleMenuClicks = hazardMenu.menus.map((m, i) => (event) => {
-        setAnchorEl(i, event.currentTarget)
-    })
-
-    const handleMenuCloses = hazardMenu.menus.map((m, i) => () => {
-        setAnchorEl(i, null)
-    })
-
-    return (
-        <Box
-            component="div"
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                textAlign: "center",
-                whitespace: "nowrap",
-                overflow: "auto",
-                "&::-webkit-scrollbar": {
-                    display: "none",
-                },
-            }}
-        >
-            {hazardMenu.menus.map((item, mIndex) => {
-                return (
-                    <Tooltip title={item.name} key={mIndex} arrow>
-                        <Button
-                            sx={{ flexShrink: 0 }}
-                            onClick={handleMenuClicks[mIndex]}
-                            size={item.size}
-                            endIcon={<KeyboardArrowDownIcon />}
-                        >
-                            {
-                                hazardMenu.menuOptions[mIndex][
-                                    hazardMenu.selectedIndices[mIndex]
-                                ]
-                            }
-                        </Button>
-                    </Tooltip>
-                )
-            })}
-            {hazardMenu.menus.map((item, mIndex) => {
-                return (
-                    <Menu
-                        anchorEl={anchorEls[mIndex]}
-                        open={isOpen(mIndex)}
-                        onClose={handleMenuCloses[mIndex]}
-                        onClick={handleMenuCloses[mIndex]}
-                        transformOrigin={{
-                            horizontal: "right",
-                            vertical: "top",
-                        }}
-                        anchorOrigin={{
-                            horizontal: "right",
-                            vertical: "bottom",
-                        }}
-                        key={mIndex}
-                    >
-                        {hazardMenu.menuOptions[mIndex].map((option, index) => (
-                            <MenuItem
-                                sx={{ fontSize: 14 }}
-                                key={option}
-                                selected={
-                                    index === hazardMenu.selectedIndices[mIndex]
-                                }
-                                onClick={(event) =>
-                                    handleItemClicks[mIndex](event, index)
-                                }
-                            >
-                                {option}
-                            </MenuItem>
-                        ))}
-                    </Menu>
-                )
-            })}
-        </Box>
-    )
-}
 
 export default function ScatterMap(props) {
     const { hazardMenu, hazardMenuDispatch, onClick, assetData, assetSummary, visible } = props
@@ -292,7 +180,7 @@ export default function ScatterMap(props) {
     return (
         <React.Fragment>
             <Box>
-                <ScatterMapMenu
+                <HazardMenus
                     hazardMenu={hazardMenu}
                     hazardMenuDispatch={hazardMenuDispatch}
                 />
@@ -405,10 +293,11 @@ function addRasterLayer(map, model, mapInfo, placeBeforeLayerId, globals) {
     }
     else if (mapInfo.resource)
     {
+        const coords = mapInfo.bounds ? mapInfo.bounds : [[-180.125, 85.125], [180.125, 85.125], [180.125, -85.125], [-180.125, -85.125]]
         map.addSource("hazard", {
             type: "image",
             url: apiHost + "/api/images/" + mapInfo.resource + ".png?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year, 
-            coordinates: [[-180.125, 85.125], [180.125, 85.125], [180.125, -85.125], [-180.125, -85.125]]
+            coordinates: coords
         });
     }
     

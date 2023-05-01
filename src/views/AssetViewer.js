@@ -126,7 +126,7 @@ export default function AssetViewer(props) {
                             Calculate impacts
                         </LoadingButton>
                     </Stack>
-                    <Divider light sx={{ mt: 2 }} />
+                    <Divider light sx={{ mt: 2, mb: 1 }} />
                     <ScatterMap
                         hazardMenu={hazardMenu}
                         hazardMenuDispatch={hazardMenuDispatch}
