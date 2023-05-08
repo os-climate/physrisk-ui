@@ -151,7 +151,7 @@ export default function HazardViewer(props) {
 
         <Paper
             sx={{
-                p: 2,
+                p: 1,
                 display: "flex",
                 flexDirection: "column",
                 m: 0,
