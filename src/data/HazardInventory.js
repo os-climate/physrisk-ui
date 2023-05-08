@@ -127,7 +127,7 @@ export const loadHazardMenuData = async (globals) => {
             },
             {
                 name: "Hazard indicator",
-                width: 340
+                width: 260
             },
             {
                 name: "Scenario",
