@@ -90,7 +90,7 @@ function ViewHeader() {
 
     const getCurrentPath = () => {
         var route = routes.find((r) => r.path === location.pathname)
-        return route === undefined ? "Unknown" : route.name
+        return route === undefined ? "Unknown" : route.longName
     }
     const currentPath = getCurrentPath()
     return <Box sx={{ p: 0 }}>{currentPath}</Box>
@@ -252,12 +252,13 @@ function AppContent() {
                                 flexGrow: 1,
                                 m: 0,
                                 p: 0,
-                                height: "100vh"
+                                height: "100vh",
+                                width: `calc(100% - ${drawerWidth}px)`
                             }}
                         >
                             <Toolbar />
                             <LoginDialog open={loginOpen} handleClose={handleLoginClose} fullScreen={false}></LoginDialog>
-                            <Container maxWidth="xl" sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
+                            <Container sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
                                     return (

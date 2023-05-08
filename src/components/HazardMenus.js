@@ -45,9 +45,9 @@ function HazardMenu(props) {
     var optionValues = options.map(option => option.value)
     const groups = {}
     options.forEach(({ group, value }) =>
-        groups[value] = group )
+        groups[value] = group ) 
     return (
-        <Box sx={{ width: menu.width }}>
+        <Box sx={{ minWidth: menu.width, pt: 1 }}>
             <Autocomplete
                 size="small"
                 blurOnSelect
@@ -67,14 +67,10 @@ function HazardMenu(props) {
                         </li>
                     )}
                 
-                //sx={{ boxShadow: 'none', ".MuiOutlinedInput-notchedOutline": { border: 0 },
-                //    "&.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline": { border: 0 },
-                //    "&.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-                //}}
                 sx={{ boxShadow: 'none', "& .MuiOutlinedInput-root": { border: 0 },
-                "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { border: 0 },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-                "&.Mui-focused": { border: 0 },
+                    "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { border: 0 },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
+                    "&.Mui-focused": { border: 0 },
                 }}
                 fullWidth
             />
@@ -104,14 +100,15 @@ export default function HazardMenus(props) {
         <Box
             component="div"
             sx={{
-                 display: "flex",
-            //     alignItems: "center",
-            //     textAlign: "center",
-            //     whitespace: "nowrap",
-            //     overflow: "auto",
-            //     "&::-webkit-scrollbar": {
-            //         display: "none",
-            //     },
+                display: "flex",
+                maxWidth: "100%",
+                alignItems: "center",
+                textAlign: "center",
+                whiteSpace: "nowrap",
+                overflowX: "auto",
+                "&::-webkit-scrollbar": {
+                    display: "none",
+                },
             }}
         >
             {hazardMenu.menus.map((item, mIndex) => {

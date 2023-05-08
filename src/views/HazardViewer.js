@@ -1,6 +1,5 @@
 import { useContext, useEffect, useReducer, useState, React } from "react"
 import Box from "@mui/material/Box"
-import Grid from "@mui/material/Grid"
 import LinearProgress from "@mui/material/LinearProgress"
 import Chart from "../components/Chart"
 import ChronicHazard from "../components/ChronicHazard"
@@ -149,36 +148,34 @@ export default function HazardViewer(props) {
     } else chart = <div></div>
 
     return (
-        <Grid container spacing={1}>
-            <Grid item xs={12} md={12} lg={12}>
-                <Paper
-                    sx={{
-                        p: 2,
-                        display: "flex",
-                        flexDirection: "column",
-                        m: 0,
-                    }}
-                >
-                    <ScatterMap
-                        hazardMenu={hazardMenu}
-                        hazardMenuDispatch={hazardMenuDispatch}
-                        onClick={handleClick}
-                        visible={visible}
-                    />
-                    <Title>{title}</Title>
-                    <Box sx={{ width: '100%' }}>
-                        {hazardPointState.status === 'fetching' ? (
-                        <LinearProgress /> ) : (<div></div>)}
-                    </Box>
-                    {chart}
-                    <Summary
-                        modelDescription={
-                            hazardMenu?.selectedModel?.description
-                        }
-                    /> 
 
-                </Paper>
-            </Grid>
-        </Grid>
+        <Paper
+            sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                m: 0,
+            }}
+        >
+            <ScatterMap
+                hazardMenu={hazardMenu}
+                hazardMenuDispatch={hazardMenuDispatch}
+                onClick={handleClick}
+                visible={visible}
+            />
+            <Title>{title}</Title>
+            <Box sx={{ width: '100%' }}>
+                {hazardPointState.status === 'fetching' ? (
+                <LinearProgress /> ) : (<div></div>)}
+            </Box>
+            {chart}
+            <Summary
+                modelDescription={
+                    hazardMenu?.selectedModel?.description
+                }
+            /> 
+
+        </Paper>
+
     )
 }
