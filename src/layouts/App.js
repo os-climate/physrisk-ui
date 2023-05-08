@@ -180,7 +180,7 @@ function AppContent() {
                                     </Badge>
                                 </IconButton>
                                 <IconButton color="inherit" sx={{ ml: 0 }}>
-                                    <Badge badgeContent={1} color="secondary">
+                                    <Badge badgeContent={0} color="secondary">
                                         <NotificationsIcon />
                                     </Badge>
                                 </IconButton>

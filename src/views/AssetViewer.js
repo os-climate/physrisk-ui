@@ -83,7 +83,7 @@ export default function AssetViewer(props) {
             <Grid item xs={12} md={12} lg={12}>
                 <Paper
                     sx={{
-                        p: 2,
+                        p: 1,
                         display: "flex",
                         flexDirection: "column",
                         m: 0
