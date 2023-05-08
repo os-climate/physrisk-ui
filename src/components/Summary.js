@@ -10,7 +10,6 @@ import { Box } from "@mui/material"
 export default function Summary(props) {
     const { modelDescription } = props
     const theme = useTheme()
-
     return (
         <Box style={theme.typography.body2}>
             <ReactMarkdown  

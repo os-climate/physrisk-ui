@@ -18,7 +18,8 @@ import RiskViewer from "./views/RiskViewer.js"
 export const routes = [
     {
         path: "/hazards",
-        name: "Hazards",
+        name: "Hazard",
+        longName: "Hazard indicators",
         icon: LocalFireDepartment,
         component: (visible) => <HazardViewer visible={visible} />,
         layout: "/standard",
@@ -27,6 +28,7 @@ export const routes = [
     {
         path: "/assets",
         name: "Assets",
+        longName: "Assets",
         icon: PrecisionManufacturing,
         component: (visible) => <AssetViewer visible={visible} />,
         layout: "/standard",
@@ -35,6 +37,7 @@ export const routes = [
     {
         path: "/risk",
         name: "Risk",
+        longName: "Risk",
         icon: BarChartIcon,
         component: () => <RiskViewer />,
         layout: "/standard",
@@ -43,6 +46,7 @@ export const routes = [
     {
         path: "/about",
         name: "About",
+        longName: "Risk",
         icon: DashboardIcon,
         component: () => <AboutPage />,
         layout: "/standard",

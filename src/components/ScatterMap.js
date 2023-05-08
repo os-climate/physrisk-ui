@@ -236,7 +236,6 @@ export default function ScatterMap(props) {
                         //disableRestoreFocus
                     >
                         {assetSummary ? assetSummary(selectedAssetIndex) : null}
-                        {/* <Typography sx={{ p: 1 }}>I use Popover.</Typography> */}
                     </Popover>
                 </Box>
             </Box>
