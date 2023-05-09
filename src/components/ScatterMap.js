@@ -64,7 +64,7 @@ export default function ScatterMap(props) {
         }
     }  
 
-    function updateRaster(model, mapInfo) {
+    function updateRaster(mapInfo) {
         if (mapRef.current) {
             const map = mapRef.current
 
@@ -79,7 +79,7 @@ export default function ScatterMap(props) {
                 }
             }
             removeRasterLayer(map)
-            addRasterLayer(map, model, mapInfo, firstSymbolId, globals.value)
+            addRasterLayer(map, mapInfo, firstSymbolId, globals.value)
 
             map.resize()
             map.triggerRepaint()
@@ -88,7 +88,8 @@ export default function ScatterMap(props) {
 
     if (mapInfoRef.current != hazardMenu.mapInfo) {
         mapInfoRef.current = hazardMenu.mapInfo
-        updateRaster(hazardMenu.selectedModel, hazardMenu.mapInfo)
+        // will only update if map is loaded, otherwise loading of map will update
+        updateRaster(hazardMenu.mapInfo)
     }
 
     useEffect(() => {
@@ -120,10 +121,10 @@ export default function ScatterMap(props) {
         newMap.on("load", () => {
             setTimeout(() => {
                 mapRef.current?.resize()
-            }, 1000)    
+            }, 5000)    
 
             mapRef.current = newMap
-            updateRaster(mapInfoRef.current)
+            if (mapInfoRef.current) updateRaster(mapInfoRef.current)
             if (assetData) updateAssets()
         })
 
@@ -273,7 +274,7 @@ function addAssetsLayer(map, assetData) {
     })
 }
 
-function addRasterLayer(map, model, mapInfo, placeBeforeLayerId, globals) {
+function addRasterLayer(map, mapInfo, placeBeforeLayerId, globals) {
     
     const apiHost = globals.services.apiHost;
     
