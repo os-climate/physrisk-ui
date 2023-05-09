@@ -258,7 +258,7 @@ function AppContent() {
                         >
                             <Toolbar />
                             <LoginDialog open={loginOpen} handleClose={handleLoginClose} fullScreen={false}></LoginDialog>
-                            <Container sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
+                            <Container maxWidth={false} sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
                                     return (
