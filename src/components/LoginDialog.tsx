@@ -44,8 +44,13 @@ const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
 
     useEffect(() => {
       async function fetchProfile() {
-        const profile: any = await axios.post("/api/profile", {}, (globals.token == "") ? {} : config)
-        setLoggedInUser(profile.data.id)
+        try {
+          const profile: any = await axios.post("/api/profile", {}, (globals.token == "") ? {} : config)
+          setLoggedInUser(profile.data.id)
+        }
+        catch (error) {
+          console.log(error)
+        }
       }
       if (open)
       {
