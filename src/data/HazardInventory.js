@@ -1,5 +1,5 @@
 import axios from "axios"
-import path from "path-browserify"
+//import path from "path-browserify"
 
 export const hazardMenuInitialiser = () => {
     return {
@@ -22,7 +22,7 @@ export const hazardMenuReducer = (state, action) => {
             var [hazardTypeId, model, scenario, year] = selection
             var mapInfo = action.payload.inventory.getMapInfo(
                 hazardTypeId,
-                model.id,
+                model.path,
                 scenario.id,
                 year
             )
@@ -47,7 +47,7 @@ export const hazardMenuReducer = (state, action) => {
             var [hazardTypeId, model, scenario, year] = selection // eslint-disable-line no-redeclare
             var mapInfo = state.inventory.getMapInfo( // eslint-disable-line no-redeclare
                 hazardTypeId,
-                model.id,
+                model.path,
                 scenario.id,
                 year
             )
@@ -77,7 +77,7 @@ export function updateMenuOptions(inventory, selectedIndices) {
     var models = inventory.modelsOfHazardType[hazardTypeId]
 
     // temporary: use groups specified in resource in future
-    var groups = [ "Mean degree days", "Mean work loss" ]
+    var groups = [ "Mean degree days", "Mean work loss", "Days with average temperature above" ]
     var sortedModels = models.map(m => 
         { return { group: emptyIfUndefined(groups.filter(group => m.display_name.includes(group))[0]), value: m }})
     sortedModels = sortedModels.sort((a, b) => (a.group > b.group) ? 1 : -1)
@@ -154,7 +154,7 @@ export class HazardInventory {
         this.modelsOfHazardType = {}
 
         models.forEach((model) => {
-            addItemToDict(this.modelsOfHazardType, model.type, model)
+            addItemToDict(this.modelsOfHazardType, model.hazard_type, model)
         })
 
         this.colormaps = colormaps
@@ -168,7 +168,7 @@ export class HazardInventory {
     getMapInfo(hazardTypeId, modelId, scenarioId, year) {
         // need some static typing here I feel (move this code to TypeScript?)
         const model = this.modelsOfHazardType[hazardTypeId].filter(
-            (m) => m.id == modelId
+            (m) => m.path == modelId // path acts as the unique id
         )[0]
         const scenario = model.scenarios
             .filter((s) => s.id == scenarioId)[0]
@@ -176,8 +176,9 @@ export class HazardInventory {
 
         const result = { 
             bounds: model.map.bounds,
+            source: model.map.source,
             mapId: model.map.source == "mapbox" ? "osc-mapbox." + period.map_id : null,
-            resource: path.join(model.path, model.id), // model.map.array_name.replace("{scenario}", scenarioId).replace("{year}", year)),
+            resource: model.path,
             scenarioId: scenario.id,
             year: year,
             colorbar: getColorbar(this.colormaps, model.map.colormap),

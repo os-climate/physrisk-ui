@@ -79,7 +79,8 @@ export default function HazardViewer(props) {
                                 latitudes: [lngLat.lat],
                                 year: hazardMenu.selectedYear,
                                 scenario: hazardMenu.selectedScenario.id,
-                                model: hazardMenu.selectedModel.id,
+                                indicator_id: hazardMenu.selectedModel.indicator_id,
+                                path: hazardMenu.selectedModel.path,
                             },
                         ],
                     }
