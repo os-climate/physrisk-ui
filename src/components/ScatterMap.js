@@ -103,6 +103,7 @@ export default function ScatterMap(props) {
     useEffect(() => {
         const newMap = new mapboxgl.Map({
             container: mapContainerRef.current,
+            projection: 'globe',
             style: "mapbox://styles/mapbox/streets-v11",
             attributionControl: false,
             center: [lng, lat],
@@ -280,18 +281,18 @@ function addRasterLayer(map, mapInfo, placeBeforeLayerId, globals) {
     
     if (!mapInfo) return;
 
-    if (mapInfo.mapId)
+    if (mapInfo.source == "mapbox" || mapInfo.source == "map_array_pyramid")
     {
+        var url = (mapInfo.source == "mapbox") ? "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png" :
+            apiHost + "/api/tiles/" + mapInfo.resource + "/{z}/{x}/{y}.png" + "?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year
         map.addSource("hazard", {
             type: "raster",
-            tiles: [
-                "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png",
-            ],
+            tiles: [url],
             tileSize: 256,
-            maxzoom: 6,
+            maxzoom: 7,
         })
     }
-    else if (mapInfo.resource)
+    else if (mapInfo.source == "map_array")
     {
         const coords = mapInfo.bounds ? mapInfo.bounds : [[-180.125, 85.125], [180.125, 85.125], [180.125, -85.125], [-180.125, -85.125]]
         map.addSource("hazard", {
@@ -309,10 +310,10 @@ function addRasterLayer(map, mapInfo, placeBeforeLayerId, globals) {
             layout: {
                 visibility: "visible",
             },
-            //"paint": {
-            //"raster-resampling": "nearest"
-            //"raster-fade-duration": 0
-            //   }
+            paint: {
+                "raster-resampling": "nearest",
+                //"raster-fade-duration": "0"
+            }
         },
         placeBeforeLayerId
     )
