@@ -22,7 +22,7 @@ function Group(props) {
         (!header || children.length == 1) ?
             <React.Fragment>
                 {children.map(c => 
-                    <ListItemText key={c} primaryTypographyProps={{fontSize: '12px'}} primary={c} />
+                    <ListItemText key={c.key} primaryTypographyProps={{fontSize: '12px'}} primary={c} />
                 )}
             </React.Fragment>
         :
@@ -33,7 +33,7 @@ function Group(props) {
                 </ListItemButton>
                 <Collapse in={open}>
                     {children.map(c => 
-                        <ListItemText sx={{ pl:1 }} key={c} primaryTypographyProps={{fontSize: '12px'}} primary={c} />
+                        <ListItemText sx={{ pl:1 }} key={c.key} primaryTypographyProps={{fontSize: '12px'}} primary={c} />
                     )}
                 </Collapse>
             </React.Fragment>

@@ -2,7 +2,6 @@ import { useContext, useEffect, useReducer, useState, React } from "react"
 import Box from "@mui/material/Box"
 import LinearProgress from "@mui/material/LinearProgress"
 import Chart from "../components/Chart"
-import ChronicHazard from "../components/ChronicHazard"
 import Paper from "@mui/material/Paper"
 import ScatterMap from "../components/ScatterMap"
 import Summary from "../components/Summary"
@@ -15,6 +14,7 @@ import {
 import { v4 as uuidv4 } from "uuid"
 import axios from "axios"
 import { GlobalDataContext } from "../data/GlobalData"
+import { Typography } from "@mui/material"
 
 export default function HazardViewer(props) {
     const { visible } = props
@@ -120,30 +120,32 @@ export default function HazardViewer(props) {
 
     var chart
     var title = hazardMenu.menuOptions
-        ? hazardMenu.selectedModel.display_name +
-        (lngLat
-            ? " @ (" +
-                lngLat.lng.toFixed(4) +
-                "\u00b0, " +
-                lngLat.lat.toFixed(4) +
-                "\u00b0)"
-            : "")
+        ? hazardMenu.selectedModel.display_name
         : ""
     if (hazardPointState.data && hazardPointState.data.length > 0) {
         if (hazardPointState.data.length > 1) {
             chart = (
-                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
-                    <Box sx={{ pb: 1, width: '60%', height: 200 }} >
-                        <Chart data={hazardPointState.data} />
+                <div>
+                    <Typography>
+                        {lngLat ? "Exceedance curve for pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
+                        lngLat.lng.toFixed(4) + "\u00b0:" : ""}
+                    </Typography>
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
+                        <Box sx={{ pb: 1, width: '60%', height: 200 }} >
+                            <Chart data={hazardPointState.data} />
+                        </Box>
                     </Box>
-                </Box>
+                </div>
             )
         } else {
             chart = (
-                <ChronicHazard
-                    data={hazardPointState.data}
-                    units={hazardMenu.selectedModel.units}
-                />
+                <Typography>
+                    {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
+                        lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
+                        "value is " + hazardPointState.data[0].y.toPrecision(5) + 
+                        (hazardMenu.selectedModel.units && hazardMenu.selectedModel.units != "none" ? 
+                            " " + hazardMenu.selectedModel.units + "." : ".")}
+                </Typography>
             )
         }
     } else chart = <div></div>

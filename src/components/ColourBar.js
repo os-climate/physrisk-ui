@@ -59,10 +59,8 @@ export function ColourBar(props) {
                     //fontFamily="Arial"
                     stroke="rgb(117,117,117"
                     label={{
-                        value:
-                            "Intensity (" +
-                            units +
-                            ")",
+                        value: "Intensity" + ((units && units != "" && units.toLowerCase() != "none") ?
+                                " (" + units + ")" : ""),
                         position: "insideBottom",
                         dy: 3,
                         fontSize: 11,
