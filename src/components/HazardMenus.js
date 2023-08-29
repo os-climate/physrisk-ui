@@ -1,5 +1,8 @@
-import React from "react"
+import React, { useRef } from "react"
 import Collapse from '@mui/material/Collapse';
+import { Popover, styled } from "@mui/material";
+import Breadcrumbs from '@mui/material/Breadcrumbs';
+import Chip from '@mui/material/Chip';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ExpandLess from '@mui/icons-material/ExpandLess';
@@ -8,7 +11,6 @@ import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import { Autocomplete } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
-
 
 function Group(props) {
     const { header, children } = props
@@ -35,46 +37,6 @@ function Group(props) {
                     )}
                 </Collapse>
             </React.Fragment>
-    )
-}
-
-function HazardMenu(props) {
-    const { menu, options, currentValue, onValueChange } = props
-    // each option in options has a group and value
-    const theme = useTheme()
-    var optionValues = options.map(option => option.value)
-    const groups = {}
-    options.forEach(({ group, value }) =>
-        groups[value] = group ) 
-    return (
-        <Box sx={{ minWidth: menu.width, pt: 1 }}>
-            <Autocomplete
-                size="small"
-                blurOnSelect
-                disableClearable
-                groupBy={(option) => option in groups ? groups[option] : option}
-                options={optionValues}
-                renderInput={(params) => <TextField {...params} sx={{ input: { color: theme.palette.primary.main, fontSize: 14 } }}  label={menu.name} />}
-                onChange={(event, newValue) => {
-                    onValueChange(newValue)
-                }}
-                value={currentValue.value}
-                renderGroup={(params) => (
-                        <li key={params.key}>
-                            <Group header={params.group}>
-                                {params.children} 
-                            </Group>
-                        </li>
-                    )}
-                
-                sx={{ boxShadow: 'none', "& .MuiOutlinedInput-root": { border: 0 },
-                    "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { border: 0 },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
-                    "&.Mui-focused": { border: 0 },
-                }}
-                fullWidth
-            />
-        </Box>   
     )
 }
 
@@ -111,13 +73,105 @@ export default function HazardMenus(props) {
                 },
             }}
         >
-            {hazardMenu.menus.map((item, mIndex) => {
-                return (   
-                    <HazardMenu key={mIndex} menu={item} options={hazardMenu.menuOptions[mIndex]} 
-                        currentValue={hazardMenu.menuOptions[mIndex][hazardMenu.selectedIndices[mIndex]]}
-                        onValueChange={(newValue) => onValueChange(mIndex, newValue)} />                
-                )
-            })}
+            {/* <ExpandMore /> */}
+            <Breadcrumbs aria-label="breadcrumb">
+                {hazardMenu.menus.map((item, mIndex) => {
+                    return ( 
+                        <HazardMenuCrumbs key={mIndex} menu={item} options={hazardMenu.menuOptions[mIndex]} 
+                            currentValue={hazardMenu.menuOptions[mIndex][hazardMenu.selectedIndices[mIndex]]}
+                            onValueChange={(newValue) => onValueChange(mIndex, newValue)} />
+                        
+                    )
+                })}
+            </Breadcrumbs>     
         </Box>
     )
 }
+
+const StyledChip = styled(Chip)(({ chipTitle }) => ({
+    "&::before": {
+      content: `"${chipTitle}"`,
+      position: "absolute",
+      top: "-14px",
+      left: "16px",
+      fontSize: "11px",
+      padding: "0 8px"
+    }
+  }));
+
+function HazardMenuCrumbs(props) {
+    const { menu, options, currentValue, onValueChange } = props
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const theme = useTheme()
+    var optionValues = options.map(option => option.value)
+    const groups = {}
+    options.forEach(({ group, value }) =>
+        groups[value] = group ) 
+    const open = Boolean(anchorEl);
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+    const handleClickDel = (event) => {
+        setAnchorEl(event.currentTarget.parentElement);
+      };
+    const autocompleteTextFieldRef = useRef(null);
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+    return (
+        <Box sx={{ pt: 1.5, pb: 1 }}>
+            <StyledChip
+                sx = {{ minWidth: menu.minWidth }}
+                label={currentValue.value}
+                onClick={handleClick}
+                chipTitle={menu.name}
+                deleteIcon={<ExpandMore />}
+                onDelete={handleClickDel}
+            />
+            <Popover
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                TransitionProps={{
+                    onEntered: () => autocompleteTextFieldRef.current.focus()
+                  }}
+            >
+                <Autocomplete
+                    size="small"
+                    blurOnSelect
+                    disableClearable
+                    groupBy={(option) => option in groups ? groups[option] : option}
+                    options={optionValues}
+                    renderInput={(params) => <TextField {...params} sx={{ input: { color: theme.palette.primary.main, fontSize: 14 }}} inputRef={autocompleteTextFieldRef} />}
+                    onChange={(event, newValue) => {
+                        handleClose()
+                        onValueChange(newValue)
+                    }}
+                    openOnFocus
+                    value={currentValue.value}
+                    renderGroup={(params) => (
+                            <li key={params.key}>
+                                <Group header={params.group}>
+                                    {params.children} 
+                                </Group>
+                            </li>
+                        )}
+                    
+                    sx={{ width: "300px", boxShadow: 'none', "& .MuiOutlinedInput-root": { border: 0 },
+                        "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { border: 0 },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
+                        "&.Mui-focused": { border: 0 },
+                    }}
+                    fullWidth
+                />
+            </Popover>
+        </Box>
+    );
+}
+
+
+

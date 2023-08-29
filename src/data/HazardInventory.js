@@ -123,19 +123,19 @@ export const loadHazardMenuData = async (globals) => {
         const menus = [
             {
                 name: "Hazard type",
-                width: 180
+                minWidth: 100
             },
             {
                 name: "Hazard indicator",
-                width: 260
+                minWidth: 100
             },
             {
                 name: "Scenario",
-                width: 160
+                minWidth: 100
             },
             {
                 name: "Year",
-                width: 120
+                minWidth: 100
             },
         ]
         return {
