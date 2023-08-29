@@ -12,9 +12,12 @@ code {
         monospace;
 }
 
-.map-container {
-    height: 480px;
-}
+.mapboxgl-ctrl-scale {
+    border-style: none solid solid;
+    border-color: #757575 !important;
+    border-width: 1px;
+    line-height: 16px;
+  }
 
 /* .geocoder {
     position: absolute !important;
