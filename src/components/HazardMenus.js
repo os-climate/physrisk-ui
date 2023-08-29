@@ -93,7 +93,7 @@ const StyledChip = styled(Chip)(({ chiptitle }) => ({
       content: `"${chiptitle}"`,
       position: "absolute",
       top: "-14px",
-      left: "16px",
+      left: "10px",
       fontSize: "11px",
       padding: "0 8px"
     }
