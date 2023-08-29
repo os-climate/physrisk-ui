@@ -112,17 +112,22 @@ export default function ScatterMap(props) {
     function getFirstSymbolId()
     {       
         if (!mapRef.current) return ""
-        const layers = mapRef.current.getStyle().layers
-        // Find the index of the first symbol layer in the map style.
-        let firstSymbolId
-        for (const layer of layers) {
-            // if (layer.type === "symbol") {
-            if (layer["source-layer"] === "water") { 
-                firstSymbolId = layer.id
-                break
+        try {
+            const layers = mapRef.current.getStyle().layers
+            // Find the index of the first symbol layer in the map style.
+            let firstSymbolId
+            for (const layer of layers) {
+                // if (layer.type === "symbol") {
+                if (layer["source-layer"] === "water") { 
+                    firstSymbolId = layer.id
+                    break
+                }
             }
+            return firstSymbolId
         }
-        return firstSymbolId
+        catch {
+            return "water-shadow"
+        }
     }
     
     const firstSymbolId = getFirstSymbolId()

@@ -88,9 +88,9 @@ export default function HazardMenus(props) {
     )
 }
 
-const StyledChip = styled(Chip)(({ chipTitle }) => ({
+const StyledChip = styled(Chip)(({ chiptitle }) => ({
     "&::before": {
-      content: `"${chipTitle}"`,
+      content: `"${chiptitle}"`,
       position: "absolute",
       top: "-14px",
       left: "16px",
@@ -124,7 +124,7 @@ function HazardMenuCrumbs(props) {
                 sx = {{ minWidth: menu.minWidth }}
                 label={currentValue.value}
                 onClick={handleClick}
-                chipTitle={menu.name}
+                chiptitle={menu.name}
                 deleteIcon={<ExpandMore />}
                 onDelete={handleClickDel}
             />
@@ -161,7 +161,7 @@ function HazardMenuCrumbs(props) {
                             </li>
                         )}
                     
-                    sx={{ width: "300px", boxShadow: 'none', "& .MuiOutlinedInput-root": { border: 0 },
+                    sx={{ width: "320px", boxShadow: 'none', "& .MuiOutlinedInput-root": { border: 0 },
                         "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": { border: 0 },
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: 0 },
                         "&.Mui-focused": { border: 0 },
