@@ -123,6 +123,7 @@ export default function ScatterMap(props) {
                     break
                 }
             }
+            //firstSymbolId = layers[layers.length - 1].id
             return firstSymbolId
         }
         catch {

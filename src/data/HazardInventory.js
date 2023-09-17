@@ -202,6 +202,8 @@ function prettifyScenarioId(id) {
             return "RCP 4.5"
         case "rcp8p5":
             return "RCP 8.5"
+        case "ssp119":
+            return "SSP119"
         case "ssp126":
             return "SSP126"
         case "ssp245":
