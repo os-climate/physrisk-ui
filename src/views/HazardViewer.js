@@ -1,7 +1,8 @@
 import { useContext, useEffect, useReducer, useState, React } from "react"
 import Box from "@mui/material/Box"
 import LinearProgress from "@mui/material/LinearProgress"
-import Chart from "../components/Chart"
+import ExceedancePlot from "../components/Chart"
+import Link from "@mui/material/Link"
 import Paper from "@mui/material/Paper"
 import ScatterMap from "../components/ScatterMap"
 import Summary from "../components/Summary"
@@ -27,6 +28,7 @@ export default function HazardViewer(props) {
         hazardMenuInitialState
     )
 
+    const [graphType, setGraphType] = useState("returnPeriod")
     const [lngLat, setLngLat] = useState(null)
     const globals = useContext(GlobalDataContext)
     const apiHost = globals.services.apiHost
@@ -103,10 +105,10 @@ export default function HazardViewer(props) {
                                 ? [graphDataPoint(0, curve_set.intensities[0])]
                                 : curve_set.return_periods.map((item, i) =>
                                     graphDataPoint(
-                                        1.0 / item,
+                                        item,
                                         curve_set.intensities[i]
                                     )
-                                )
+                                ).reverse()
                                 hazardPointDispatch({ type: 'FETCHED', payload: points });
                         // setGraphData(points)
                     } catch (error) {
@@ -126,13 +128,29 @@ export default function HazardViewer(props) {
         if (hazardPointState.data.length > 1) {
             chart = (
                 <div>
+                    <div>
+                        {lngLat ? 
+                            <div>
+                                <Typography>
+                                    <Link onClick={() => {
+                                        setGraphType(graphType == "returnPeriod" ? "exceedance" : "returnPeriod");
+                                    }}>
+                                        {graphType == "returnPeriod" ? "Return period curve" : "Exceedance curve"} 
+                                    </Link>
+                                    {" for pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
+                                    lngLat.lng.toFixed(4) + "\u00b0:"} 
+                                </Typography>
+                            </div>
+                            : <div></div>
+                        }
+                    </div>
                     <Typography>
-                        {lngLat ? "Exceedance curve for pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
-                        lngLat.lng.toFixed(4) + "\u00b0:" : ""}
                     </Typography>
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
-                        <Box sx={{ pb: 1, width: '60%', height: 200 }} >
-                            <Chart data={hazardPointState.data} />
+                        <Box sx={{ pb: 1, width: '70%', height: 240 }} >
+                            <ExceedancePlot data={hazardPointState.data} 
+                                quantity={hazardMenu.selectedModel.indicator_id} units={hazardMenu.selectedModel.units}
+                                graphType={graphType} />
                         </Box>
                     </Box>
                 </div>
