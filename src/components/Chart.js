@@ -24,7 +24,7 @@ export default function ExceedancePlot(props) {
     
     const theme = useTheme()
 
-    var dataPoints, ticks, tickFormat, domain, scale
+    var dataPoints, ticks, labelTicks, tickFormat, domain, scale, tickFormatAll
     if (graphType == "exceedance")
     {
         dataPoints = data.map((item) =>
@@ -35,8 +35,10 @@ export default function ExceedancePlot(props) {
         
         domain = dataPoints.map(d => d.x)
         scale = d3ScaleLog().domain(domain).range([0, 1]);
-        ticks = scale.ticks(5)
-        tickFormat = scale.tickFormat(3, "f")
+        ticks = scale.ticks(10)
+        labelTicks = scale.ticks(2)
+        tickFormatAll = scale.tickFormat(10, "f")
+        tickFormat = (t) => (labelTicks.includes(t) ? tickFormatAll(t) : '')
     }
     else
     {
@@ -44,7 +46,9 @@ export default function ExceedancePlot(props) {
         domain = dataPoints.map(d => d.x)
         scale = d3ScaleLinear().domain(domain).range([0, 1]);
         ticks = scale.ticks(10)
-        tickFormat = scale.tickFormat()
+        labelTicks = scale.ticks(5)
+        tickFormatAll = scale.tickFormat(10, "f")
+        tickFormat = (t) => (labelTicks.includes(t) ? tickFormatAll(t) : '')
     }
     
     const xAxisLabel = graphType == "returnPeriod" ? "Return period (years)" : "Exceedance probability"
@@ -83,7 +87,7 @@ export default function ExceedancePlot(props) {
                     data={dataPoints}
                     margin={{
                         top: 16,
-                        right: 16,
+                        right: 18,
                         bottom: 34,
                         left: 24,
                     }}
@@ -95,7 +99,8 @@ export default function ExceedancePlot(props) {
                         stroke={theme.palette.text.secondary}
                         style={theme.typography.body2}
                         reversed={graphType == "exceedance"}
-                        domain={['auto', 'auto']}
+                        domain={['dataMin', 'dataMax']}
+                        //domain={['auto', 'auto']}
                         interval={0}
                         tickFormatter = {tickFormat}
                         scale={(graphType == "returnPeriod") ? "linear" : "log"}

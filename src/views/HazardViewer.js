@@ -147,7 +147,7 @@ export default function HazardViewer(props) {
                     <Typography>
                     </Typography>
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
-                        <Box sx={{ pb: 1, width: '70%', height: 240 }} >
+                        <Box sx={{ pb: 1, width: '90%', height: 240 }} >
                             <ExceedancePlot data={hazardPointState.data} 
                                 quantity={hazardMenu.selectedModel.indicator_id} units={hazardMenu.selectedModel.units}
                                 graphType={graphType} />
