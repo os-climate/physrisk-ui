@@ -36,9 +36,8 @@ export default function ExceedancePlot(props) {
         domain = dataPoints.map(d => d.x)
         scale = d3ScaleLog().domain(domain).range([0, 1]);
         ticks = scale.ticks(10)
-        labelTicks = scale.ticks(2)
         tickFormatAll = scale.tickFormat(10, "f")
-        tickFormat = (t) => (labelTicks.includes(t) ? tickFormatAll(t) : '')
+        tickFormat = (t) => (Math.log10(t) % 1 == 0 ? tickFormatAll(t) : '')
     }
     else
     {
