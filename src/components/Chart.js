@@ -1,5 +1,8 @@
 import * as React from "react"
 import { useTheme } from "@mui/material/styles"
+import Box from "@mui/material/Box"
+import { ContentCopy } from "@mui/icons-material";
+import IconButton from "@mui/material/IconButton"
 import { Paper, styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import { scaleLinear as d3ScaleLinear, scaleLog as d3ScaleLog } from 'd3-scale';
@@ -54,6 +57,13 @@ export default function ExceedancePlot(props) {
     const xAxisLabelShort = graphType == "returnPeriod" ? "Return period" : "Exceedance prob"
     const xAxisLabelUnits = graphType == "returnPeriod" ? " years" : ""
 
+    function copyData()
+    {
+        const returns = "returns = array(" + dataPoints.reverse().map(d => d.x.toPrecision(8)).join(',') + ")"
+        const intensity = "intensity = array(" + dataPoints.reverse().map(d => d.y.toPrecision(8)).join(',') + ")"
+        window.navigator.clipboard.writeText(returns + "\n" + intensity)
+    }
+
     const Item = styled(Paper)(({ theme }) => ({
         ...theme.typography.body2,
         textAlign: 'center',
@@ -80,7 +90,22 @@ export default function ExceedancePlot(props) {
 
     return (
         <React.Fragment>
+            <Box sx={{ width: '100%', height: '100%', position: "relative" }} 
+                // sx={{
+                //     position: "relative"
+                // }}
+            >
             <Title>{title}</Title>
+            <IconButton sx={{
+                position: "absolute",
+                //top: 40,
+                right: 0,
+                bottom: 14,
+                //top: 0,
+                zIndex: 1,
+                    }} aria-label="info" size="small" onClick={copyData}>
+                <ContentCopy fontSize="inherit" color="primary" />
+            </IconButton>
             <ResponsiveContainer>
                 <ScatterChart
                     data={dataPoints}
@@ -88,7 +113,7 @@ export default function ExceedancePlot(props) {
                         top: 16,
                         right: 18,
                         bottom: 34,
-                        left: 24,
+                        left: 42,
                     }}
                 >
                     <CartesianGrid />
@@ -125,6 +150,7 @@ export default function ExceedancePlot(props) {
                     >
                         <Label
                             angle={270}
+                            offset={32}
                             position="left"
                             style={{
                                 textAnchor: "middle",
@@ -135,7 +161,7 @@ export default function ExceedancePlot(props) {
                         </Label>
                         <Label
                             angle={270}
-                            offset={-12}
+                            offset={16}
                             position="left"
                             style={{
                                 textAnchor: "middle",
@@ -156,6 +182,7 @@ export default function ExceedancePlot(props) {
                     /> */}
                 </ScatterChart>
             </ResponsiveContainer>
+            </Box>
         </React.Fragment>
     )
 }

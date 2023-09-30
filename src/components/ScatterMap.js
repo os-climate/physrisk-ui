@@ -5,7 +5,10 @@ import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
 import HazardMenus from "./HazardMenus.js"
+import IconButton from "@mui/material/IconButton"
+import { InfoOutlined } from "@mui/icons-material";
 import Popover from "@mui/material/Popover"
+import Tooltip from "@mui/material/Tooltip"
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -89,7 +92,7 @@ export default function ScatterMap(props) {
     const mapRef = useRef(null)
     const [lng] = useState(0) 
     const [lat] = useState(45)
-    const [zoom] = useState(2)
+    const [zoom] = useState(3)
 
     // markers
     const [markers, setMarkers] = useState([])
@@ -147,7 +150,7 @@ export default function ScatterMap(props) {
                 type: "raster",
                 key: url,
                 tiles: [url],
-                tileSize: 256,
+                tileSize: 512,
                 maxzoom: 7,
             }
         }
@@ -274,6 +277,20 @@ export default function ScatterMap(props) {
                         </Map>
                     </MapProvider>
                 </Box>
+                <Tooltip title="For acute hazards, the map overlay corresponds to the maximum return period.
+                Click a point on the map to view all hazard indicator values.
+                Note that indicator values are calculated using the original coordinate reference system of the data, 
+                whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
+                    <IconButton sx={{
+                            p: 0.5,
+                            position: "absolute",
+                            bottom: 55,
+                            right: 5,
+                            zIndex: 1
+                        }}aria-label="info" size="small">
+                        <InfoOutlined fontSize="inherit" color="primary" />
+                    </IconButton>
+                </Tooltip>
                 <Box
                     sx={{
                         height: 45,
