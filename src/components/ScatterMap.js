@@ -4,7 +4,7 @@ import Box from "@mui/material/Box"
 import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
-import HazardMenus from "./HazardMenus.js"
+import HazardMenusCompare from "./HazardMenusCompare.js"
 import IconButton from "@mui/material/IconButton"
 import { InfoOutlined } from "@mui/icons-material";
 import Popover from "@mui/material/Popover"
@@ -141,6 +141,10 @@ export default function ScatterMap(props) {
         const apiHost = globals.value.services.apiHost;
         if (!mapInfo) return ""
 
+        // TODO we need maxzoom to prevent bug when changing source while over-zoomed
+        // add to mapinfo - but as temporary measure:
+        var maxzoom = mapInfo.resource.includes("iris") ? 3 : 6
+
         if (mapInfo.source == "mapbox" || mapInfo.source == "map_array_pyramid")
         {
             var url = (mapInfo.source == "mapbox") ? "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png" :
@@ -151,7 +155,7 @@ export default function ScatterMap(props) {
                 key: url,
                 tiles: [url],
                 tileSize: 512,
-                maxzoom: 7,
+                maxzoom: maxzoom,
             }
         }
         else if (mapInfo.source == "map_array")
@@ -224,9 +228,9 @@ export default function ScatterMap(props) {
     return (
         <React.Fragment>
             <Box>
-                <HazardMenus
-                    hazardMenu={hazardMenu}
-                    hazardMenuDispatch={hazardMenuDispatch}
+                <HazardMenusCompare
+                    hazardMenu1={hazardMenu}
+                    hazardMenuDispatch1={hazardMenuDispatch}
                 />
             </Box>
             <Box sx={{ position: "relative" }}>
