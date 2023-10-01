@@ -5,7 +5,7 @@ import { ContentCopy } from "@mui/icons-material";
 import IconButton from "@mui/material/IconButton"
 import { Paper, styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
-import { scaleLinear as d3ScaleLinear, scaleLog as d3ScaleLog } from 'd3-scale';
+import { scaleLog as d3ScaleLog } from 'd3-scale'; // scaleLinear as d3ScaleLinear, 
 import {
     CartesianGrid,
     Scatter,
@@ -27,7 +27,7 @@ export default function ExceedancePlot(props) {
     
     const theme = useTheme()
 
-    var dataPoints, ticks, labelTicks, tickFormat, domain, scale, tickFormatAll
+    var dataPoints, ticks, tickFormat, domain, scale, tickFormatAll
     if (graphType == "exceedance")
     {
         dataPoints = data.map((item) =>
@@ -35,32 +35,28 @@ export default function ExceedancePlot(props) {
                 1.0 / item.x,
                 item.y)
         )
-        
-        domain = dataPoints.map(d => d.x)
-        scale = d3ScaleLog().domain(domain).range([0, 1]);
-        ticks = scale.ticks(10)
-        tickFormatAll = scale.tickFormat(10, "f")
-        tickFormat = (t) => (Math.log10(t) % 1 == 0 ? tickFormatAll(t) : '')
     }
-    else
+    else 
     {
         dataPoints = data
-        domain = dataPoints.map(d => d.x)
-        scale = d3ScaleLinear().domain(domain).range([0, 1]);
-        ticks = scale.ticks(10)
-        labelTicks = scale.ticks(5)
-        tickFormatAll = scale.tickFormat(10, "f")
-        tickFormat = (t) => (labelTicks.includes(t) ? tickFormatAll(t) : '')
     }
+        
+    domain = dataPoints.map(d => d.x)
+    scale = d3ScaleLog().domain(domain).range([0, 1]);
+    ticks = scale.ticks(10)
+    // labelTicks = scale.ticks(5)
+    tickFormatAll = scale.tickFormat(10, "f")
+    tickFormat = (t) => (Math.log10(t) % 1 == 0 ? tickFormatAll(t) : '')
+    // tickFormat = (t) => (labelTicks.includes(t) ? tickFormatAll(t) : '')
     
-    const xAxisLabel = graphType == "returnPeriod" ? "Return period (years)" : "Exceedance probability"
+    const xAxisLabel = graphType == "returnPeriod" ? "Return period (years)" : "Annual exceedance probability"
     const xAxisLabelShort = graphType == "returnPeriod" ? "Return period" : "Exceedance prob"
     const xAxisLabelUnits = graphType == "returnPeriod" ? " years" : ""
 
     function copyData()
     {
-        const returns = "returns = array(" + dataPoints.reverse().map(d => d.x.toPrecision(8)).join(',') + ")"
-        const intensity = "intensity = array(" + dataPoints.reverse().map(d => d.y.toPrecision(8)).join(',') + ")"
+        const returns = "returns = array(" + dataPoints.toReversed().map(d => d.x.toPrecision(8)).join(',') + ")"
+        const intensity = "intensity = array(" + dataPoints.toReversed().map(d => d.y.toPrecision(8)).join(',') + ")"
         window.navigator.clipboard.writeText(returns + "\n" + intensity)
     }
 
@@ -127,7 +123,8 @@ export default function ExceedancePlot(props) {
                         //domain={['auto', 'auto']}
                         interval={0}
                         tickFormatter = {tickFormat}
-                        scale={(graphType == "returnPeriod") ? "linear" : "log"}
+                        scale="log"
+                        //scale={(graphType == "returnPeriod") ? "linear" : "log"}
                         ticks={ticks}
                     >
                         <Label

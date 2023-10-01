@@ -23,10 +23,15 @@ export default function HazardViewer(props) {
     const hazardMenuInitialState = hazardMenuInitialiser()
 
     // holds both the inventory of available hazard data and the menu state
-    const [hazardMenu, hazardMenuDispatch] = useReducer(
+    const [hazardMenu1, hazardMenuDispatch1] = useReducer(
         hazardMenuReducer,
         hazardMenuInitialState
     )
+    
+    //const [hazardMenu2, hazardMenuDispatch2] = useReducer(
+    //    hazardMenuReducer,
+    //    hazardMenuInitialState
+    //)
 
     const [graphType, setGraphType] = useState("returnPeriod")
     const [lngLat, setLngLat] = useState(null)
@@ -43,7 +48,7 @@ export default function HazardViewer(props) {
     useEffect(() => {
         async function fetchHazardMenuData() {
             const hazardMenuData = await loadHazardMenuData(globals)
-            hazardMenuDispatch({ type: "initialise", payload: hazardMenuData })
+            hazardMenuDispatch1({ type: "initialise", payload: hazardMenuData })
         }
         fetchHazardMenuData()
     }, [])
@@ -69,20 +74,20 @@ export default function HazardViewer(props) {
 
     useEffect(() => {
         async function fetchGraphData() {
-            if (hazardMenu.inventory) {
+            if (hazardMenu1.inventory) {
                 if (lngLat) {
                     hazardPointDispatch({ type: 'FETCHING' });
                     var payload = {
                         items: [
                             {
                                 request_item_id: uuidv4(),
-                                event_type: hazardMenu.selectedHazardTypeId,
+                                event_type: hazardMenu1.selectedHazardTypeId,
                                 longitudes: [lngLat.lng],
                                 latitudes: [lngLat.lat],
-                                year: hazardMenu.selectedYear,
-                                scenario: hazardMenu.selectedScenario.id,
-                                indicator_id: hazardMenu.selectedModel.indicator_id,
-                                path: hazardMenu.selectedModel.path,
+                                year: hazardMenu1.selectedYear,
+                                scenario: hazardMenu1.selectedScenario.id,
+                                indicator_id: hazardMenu1.selectedModel.indicator_id,
+                                path: hazardMenu1.selectedModel.path,
                             },
                         ],
                     }
@@ -118,11 +123,11 @@ export default function HazardViewer(props) {
             }
         }
         fetchGraphData()
-    }, [hazardMenu, lngLat])
+    }, [hazardMenu1, lngLat])
 
     var chart
-    var title = hazardMenu.menuOptions
-        ? hazardMenu.selectedModel.display_name
+    var title = hazardMenu1.menuOptions
+        ? hazardMenu1.selectedModel.display_name
         : ""
     if (hazardPointState.data && hazardPointState.data.length > 0) {
         if (hazardPointState.data.length > 1) {
@@ -149,7 +154,7 @@ export default function HazardViewer(props) {
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
                         <Box sx={{ pb: 1, width: '90%', height: 240 }} >
                             <ExceedancePlot data={hazardPointState.data} 
-                                quantity={hazardMenu.selectedModel.indicator_id} units={hazardMenu.selectedModel.units}
+                                quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
                                 graphType={graphType} />
                         </Box>
                     </Box>
@@ -161,8 +166,8 @@ export default function HazardViewer(props) {
                     {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
                         lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
                         "value is " + hazardPointState.data[0].y.toPrecision(5) + 
-                        (hazardMenu.selectedModel.units && hazardMenu.selectedModel.units != "none" ? 
-                            " " + hazardMenu.selectedModel.units + "." : ".")}
+                        (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ? 
+                            " " + hazardMenu1.selectedModel.units + "." : ".")}
                 </Typography>
             )
         }
@@ -179,8 +184,8 @@ export default function HazardViewer(props) {
             }}
         >
             <ScatterMap
-                hazardMenu={hazardMenu}
-                hazardMenuDispatch={hazardMenuDispatch}
+                hazardMenu={hazardMenu1}
+                hazardMenuDispatch={hazardMenuDispatch1}
                 onClick={handleClick}
                 visible={visible}
             />
@@ -192,7 +197,7 @@ export default function HazardViewer(props) {
             {chart}
             <Summary
                 modelDescription={
-                    hazardMenu?.selectedModel?.description
+                    hazardMenu1?.selectedModel?.description
                 }
             /> 
 
