@@ -13,7 +13,7 @@ import Tooltip from "@mui/material/Tooltip"
 // note *public* access token
 // committing into code-base; public token is available on client
 const mapboxAccessToken =
-    "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbDExYnVhaXYwMDZ5M2lxcnRjYXlrb3NlIn0.O_r7LgQjNux4I8g9WBlUBQ"
+    "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbG5hc2hqNnowMjliMmtsZHdiY3RnbzlxIn0.gboGNn4x1erl7O9Q3NrQDQ"
 
 export default function ScatterMap(props) {
     const { hazardMenu, hazardMenuDispatch, onClick, assetData, assetSummary, visible } = props
