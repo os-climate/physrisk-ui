@@ -3,6 +3,8 @@ import axios from "axios";
 
 //const baseUrl = "http://127.0.0.1:5000"
 const baseUrl = "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" 
+//const baseUrl = "https://physrisk-api-uat-sandbox.apps.odh-cl1.apps.os-climate.org/" 
+                 
 axios.defaults.baseURL = baseUrl
 
 interface Services {
@@ -13,6 +15,7 @@ interface Globals {
   inventorySources: string[];
   removeToken(): void,
   services: Services,
+  setApiHost(apiHost: string): void,
   setToken(token: string): void,
   token: string
 }
@@ -21,6 +24,7 @@ export const globals: Globals = {
   inventorySources: [],
   removeToken: () => {},
   services: { apiHost: "" },
+  setApiHost: (apiHost: string) => {},
   setToken: (token: string) => {},
   token: ""
 };
@@ -31,6 +35,10 @@ export const GlobalDataContext = React.createContext(
 
 export const GlobalDataContextProvider = (props: any) => {
 
+  const setApiHost = (apiHost: string) => {
+    setState({...state, services: { apiHost: apiHost }})
+  }
+  
   const getStoredToken = () => {
     const userToken = localStorage.getItem("token");
     return userToken ? userToken : "" 
@@ -52,6 +60,7 @@ export const GlobalDataContextProvider = (props: any) => {
       inventorySources: [ "embedded", "hazard" ],
       token: getStoredToken(),
       removeToken: removeToken,
+      setApiHost: setApiHost,
       setToken: setToken,
       services: { apiHost: baseUrl }
     }

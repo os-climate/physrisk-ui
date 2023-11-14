@@ -51,7 +51,7 @@ export default function HazardViewer(props) {
             hazardMenuDispatch1({ type: "initialise", payload: hazardMenuData })
         }
         fetchHazardMenuData()
-    }, [])
+    }, [globals])
 
     const hazardPointInitialState = {
         status: 'idle',
