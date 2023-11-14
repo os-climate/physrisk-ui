@@ -1,15 +1,16 @@
 import { React } from "react"
-import AssignmentIcon from "@mui/icons-material/Assignment"
 import DashboardIcon from "@mui/icons-material/Dashboard"
 import BarChartIcon from "@mui/icons-material/BarChart"
 import {
     LocalFireDepartment,
     PrecisionManufacturing,
 } from "@mui/icons-material"
+import SettingsIcon from "@mui/icons-material/Settings"
 import AboutPage from "./views/AboutPage.js"
 import AssetViewer from "./views/AssetViewer.js"
 import HazardViewer from "./views/HazardViewer.js"
 import RiskViewer from "./views/RiskViewer.js"
+import Settings from "./views/Settings.js"
 
 /** Provides app routes. Note factory method for component passes 'visible' property,
  * Can be used for transitions from hidden to visible etc and needed for mapbox-gl components
@@ -53,10 +54,10 @@ export const routes = [
         category: "primary",
     },
     {
-        path: "/savedResults",
-        name: "Saved results",
-        icon: AssignmentIcon,
-        component: () => <AboutPage />, // change to its on page!
+        path: "/settings",
+        name: "Settings",
+        icon: SettingsIcon, //AssignmentIcon,
+        component: () => <Settings />, // change to its on page!
         layout: "/standard",
         category: "secondary",
     },
