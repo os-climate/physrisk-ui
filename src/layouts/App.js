@@ -38,7 +38,7 @@ function Copyright(props) {
     )
 }
 
-const drawerWidth = 180
+const drawerWidth = 175
 
 const AppBar = styled(MuiAppBar, {
     shouldForwardProp: (prop) => prop !== "open",
@@ -70,7 +70,7 @@ export const themeOptions = {
         body2: {
             fontSize: 14
         }
-    },
+    }
 }
 
 const appTheme = createTheme(themeOptions)
@@ -252,7 +252,7 @@ function AppContent() {
                                 flexGrow: 1,
                                 m: 0,
                                 p: 0,
-                                height: "100vh",
+                                minHeight: "100vh",
                                 width: `calc(100% - ${drawerWidth}px)`
                             }}
                         >

@@ -9,6 +9,7 @@ import IconButton from "@mui/material/IconButton"
 import { InfoOutlined } from "@mui/icons-material";
 import Popover from "@mui/material/Popover"
 import Tooltip from "@mui/material/Tooltip"
+import { trafficLightColour } from "../data/CalculationResult";
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -16,7 +17,9 @@ const mapboxAccessToken =
     "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbG5hc2hqNnowMjliMmtsZHdiY3RnbzlxIn0.gboGNn4x1erl7O9Q3NrQDQ"
 
 export default function ScatterMap(props) {
-    const { hazardMenu, hazardMenuDispatch, onClick, assetData, assetSummary, visible } = props
+    const { hazardMenu, hazardMenuDispatch, onClick, 
+        selectedAssetIndex, setSelectedAssetIndex, assetData, assetScores, assetSummary, 
+        visible } = props
 
     // popover
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
@@ -24,10 +27,7 @@ export default function ScatterMap(props) {
     const handlePopoverClose = () => {
         setPopoverAnchorPos(null);
     };
-
-    // assets
-    const [selectedAssetIndex, setSelectedAssetIndex] = React.useState(null);
-
+    
     // events
     const handleAssetsMouseEnter = (event) => { 
          const feature = event.features && event.features[0];
@@ -83,7 +83,7 @@ export default function ScatterMap(props) {
         { xValue: 0, value: 1 },
         { xValue: hazardMenu?.mapColorbar?.maxValue ?? 1, value: 1 },
     ]
-    const colorbarStops = hazardMenu.mapColorbar?.stops ?? []
+    const colorbarStops = hazardMenu?.mapColorbar?.stops ?? []
 
     // map
     const globals = useRef({}).current
@@ -171,9 +171,9 @@ export default function ScatterMap(props) {
         }
     }
 
-    const sourceStyle = getSourceStyle(hazardMenu.mapInfo)
+    const sourceStyle = hazardMenu ? getSourceStyle(hazardMenu.mapInfo) : null
 
-    const layerStyle =  {
+    const layerStyle = hazardMenu ? {
         id: "hazard",
         type: "raster",
         key: sourceStyle.key,
@@ -185,7 +185,7 @@ export default function ScatterMap(props) {
             "raster-resampling": "nearest",
             //"raster-fade-duration": "0"
         }
-    }
+    } : null
 
     var assetsSourceStyle = null
     var assetsLayerStyle = null
@@ -201,7 +201,7 @@ export default function ScatterMap(props) {
                 features: assetData.items.map((item, index) => ({
                     type: "Feature",
                     id: index,
-                    properties: { },
+                    properties: { risk: assetScores ? assetScores[index] : "No data", selected: (index===selectedAssetIndex).toString() }, // "Low"
                     geometry: {
                         type: "Point",
                         coordinates: [item.longitude, item.latitude],
@@ -216,10 +216,31 @@ export default function ScatterMap(props) {
             type: "circle",
             source: "assets",
             paint: {
-                "circle-color": "hsla(145,100%,30%,1)",
+                //"circle-color": "hsla(145,100%,30%,1)",
+                'circle-color': [
+                    'match',
+                    ['get', 'risk'],
+                    'Low',
+                    trafficLightColour('Low'),
+                    'Medium',
+                    trafficLightColour('Medium'),
+                    'High',
+                    trafficLightColour('High'),
+                    'Red flag',
+                    trafficLightColour('Red flag'),
+                    /* other */ trafficLightColour('No data'),
+                ],
                 "circle-radius": 7,
                 "circle-stroke-width": 1.5,
-                "circle-stroke-color": "white",
+                "circle-stroke-color": [
+                    'match',
+                    ['get', 'selected'],
+                    "true",
+                    "Black",
+                    "false",
+                    "White",
+                    "White"
+                ]
             },
             key: key
         }
@@ -228,10 +249,10 @@ export default function ScatterMap(props) {
     return (
         <React.Fragment>
             <Box>
-                <HazardMenusCompare
+                {hazardMenu ? <HazardMenusCompare
                     hazardMenu1={hazardMenu}
                     hazardMenuDispatch1={hazardMenuDispatch}
-                />
+                /> : <></>}
             </Box>
             <Box sx={{ position: "relative" }}>
                 <Box sx={{
@@ -281,7 +302,8 @@ export default function ScatterMap(props) {
                         </Map>
                     </MapProvider>
                 </Box>
-                <Tooltip title="For acute hazards, the map overlay corresponds to the maximum return period.
+                {hazardMenu ? <>
+               <Tooltip title="For acute hazards, the map overlay corresponds to the maximum return period.
                 Click a point on the map to view all hazard indicator values.
                 Note that indicator values are calculated using the original coordinate reference system of the data, 
                 whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
@@ -308,8 +330,9 @@ export default function ScatterMap(props) {
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
                     }}
                 >
-                    <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />
-                </Box>
+                    <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
+                </Box></> : <></>}
+                {assetSummary ?
                 <Popover
                     id="mouse-over-popover"
                     sx={{
@@ -330,8 +353,8 @@ export default function ScatterMap(props) {
                     onClose={handlePopoverClose}
                     //disableRestoreFocus
                 >
-                    {assetSummary ? assetSummary(selectedAssetIndex) : null}
-                </Popover>
+                    {assetSummary(selectedAssetIndex)}
+                </Popover> : <></>}
             </Box>
         </React.Fragment>
     )

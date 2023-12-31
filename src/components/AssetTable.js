@@ -1,14 +1,11 @@
+/* eslint-disable */
 import { Fragment, React } from "react"
 import Box from "@mui/material/Box"
-import Link from "@mui/material/Link"
 import { DataGrid, GridToolbar } from "@mui/x-data-grid"
 
-function preventDefault(event) {
-    event.preventDefault()
-}
 
 export default function AssetTable(props) {
-    const { data, classes } = props
+    const { data } = props
 
     const columns = [
         {
@@ -43,26 +40,21 @@ export default function AssetTable(props) {
 
     return (
         <Fragment>
-            <Box sx={{ height: 400, width: "100%" }} classes={classes}>
+            <Box sx={{
+                    width: "100%"
+                }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
-                    pageSize={100}
+                    pageSize={25}
                     density="compact"
-                    rowsPerPageOptions={[100]}
+                    rowsPerPageOptions={[25, 50, 100]}
                     checkboxSelection
                     disableSelectionOnClick
                     components={{ Toolbar: GridToolbar }}
+                    autoHeight
                 />
             </Box>
-            <Link
-                color="primary"
-                href="#"
-                onClick={preventDefault}
-                sx={{ mt: 3 }}
-            >
-                See more details
-            </Link>
         </Fragment>
     )
 }
