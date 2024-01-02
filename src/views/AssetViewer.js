@@ -18,7 +18,7 @@ import MenuButton from "../components/MenuButton"
 import { hazardMenuReducer, loadHazardMenuData } from "../data/HazardInventory.js"
 import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio.ts"
 import { GlobalDataContext } from "../data/GlobalData"
-import { createDataTable, overallScores } from "../data/CalculationResult"
+import { createDataTable, createSingleHazardImpact, overallScores } from "../data/CalculationResult"
 import SingleAssetTable from "../components/SingleAssetTable"
 
 
@@ -42,11 +42,14 @@ export default function AssetViewer(props) {
         portfolioInitialiser()
     )
 
-    const [dataTable, setDataTable] = useState(null)
-    const [selectedAssetIndex, setSelectedAssetIndex] = useState(null);
+    const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
     const [scenarioId, setScenarioId] = useState("ssp585")
     const [year, setYear] = useState(2050)
     const [assetScores, setAssetScores] = useState(null)
+    const [selectedHazard, setSelectedHazard] = useState("Coastal Flood")
+    // items for results display:
+    const [dataTable, setDataTable] = useState(null)
+    const [singleHazardImpact, setSingleHazardImpact] = useState(null)
 
     const globals = useContext(GlobalDataContext);
 
@@ -83,7 +86,22 @@ export default function AssetViewer(props) {
             setDataTable(createDataTable(portfolio.calculationResult, selectedAssetIndex, year))
             setAssetScores(overallScores(portfolio.calculationResult, scenarioId, year))
         }
-    }, [portfolio, year, scenarioId, selectedAssetIndex])
+        else {
+            setDataTable(null)
+            setAssetScores(null)
+        }
+    }, [portfolio, year, selectedAssetIndex])
+
+    useEffect(() => {
+        if (portfolio?.calculationResult)
+        {
+            setSingleHazardImpact(createSingleHazardImpact(portfolio.calculationResult, selectedAssetIndex, 
+                selectedHazard, scenarioId))
+        }
+        else {
+            setSingleHazardImpact(null)
+        }
+    }, [portfolio, selectedHazard, scenarioId, selectedAssetIndex])
 
     const handleClick = async () => {
         // This is currently a no-op.
@@ -96,6 +114,7 @@ export default function AssetViewer(props) {
             const result = await runCalculation(portfolio, portfolioDispatch, globals)
             portfolioDispatch({ type: "updateCalculationResult", calculationResult: result })
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
+            if (!selectedAssetIndex) setSelectedAssetIndex(0)
         }
         run()        
     }
@@ -201,7 +220,7 @@ export default function AssetViewer(props) {
                         assetScores={assetScores}
                         visible={visible}
                         // assetSummary={(index) => (<AssetImpactSummary 
-                        //     assetScores={assetScores} assetImpact={portfolio?.calculationResult?.result?.asset_impacts[index]}/>)} 
+                        //     assetIndex={index} assetImpact={portfolio?.calculationResult?.result?.asset_impacts[index]}/>)} 
                     />
                     <Box sx={{ mt: 2 }} />
                     <AssetTable data={portfolio.portfolioJson} />
@@ -218,13 +237,13 @@ export default function AssetViewer(props) {
                     <Stack spacing={2} direction="row" alignItems="center"
                         useFlexGap flexWrap="wrap"
                         sx={{justifyContent: 'space-evenly'}}>
-                        <Box sx={{ width: 140, ml: 2, mr: 2 }} alignSelf="center">
+                        <Box sx={{ width: 150, ml: 2, mr: 2 }} alignSelf="center">
                             <Typography align="center" style={theme.typography.body2}>
                                 Projected year
                             </Typography>
                             <Slider
                                 sx={{ 
-                                    '& .MuiSlider-markLabel': { fontSize: 12 },
+                                    '& .MuiSlider-markLabel': { fontSize: 14 },
                                     '& .MuiSlider-mark': { height: 6 }
                                 }}
                                 aria-label="Projected year"
@@ -233,20 +252,20 @@ export default function AssetViewer(props) {
                                 marks={yearMarks}
                                 min={2028}
                                 max={2052}
-                                size="small"
+                                size="normal"
                                 step={null}
                                 track={false}
                                 valueLabelDisplay="off"
                                 onChange={handleYearChange}
                             />
                         </Box>
-                        <Box sx={{ width: 140, ml: 2, mr: 2 }} alignSelf="center">
+                        <Box sx={{ width: 150, ml: 2, mr: 2 }} alignSelf="center">
                             <Typography align="center" style={theme.typography.body2}>
                                 Scenario
                             </Typography>
                             <Slider
                                 sx={{ 
-                                    '& .MuiSlider-markLabel': { fontSize: 12 },
+                                    '& .MuiSlider-markLabel': { fontSize: 14 },
                                     '& .MuiSlider-mark': { height: 6 }
                                 }}
                                 aria-label="Scenario"
@@ -255,7 +274,7 @@ export default function AssetViewer(props) {
                                 marks={scenarioMarks}
                                 min={0.8}
                                 max={3.2}
-                                size="small"
+                                size="normal"
                                 step={null}
                                 track={false}
                                 valueLabelDisplay="off"
@@ -263,7 +282,19 @@ export default function AssetViewer(props) {
                             />
                         </Box>
                     </Stack>
-                    <SingleAssetTable title={`Risk scores (${year}) `} rows={dataTable} hazardMenu={hazardMenu} />
+                    <SingleAssetTable title={`Risk scores (${year}) `} 
+                        rows={dataTable}
+                        hazardMenu={hazardMenu}
+                        selectedHazard={selectedHazard}
+                        setSelectedHazard={setSelectedHazard}
+                        scenarioId={scenarioId} 
+                        setScenarioId={setScenarioId} 
+                    />
+                    {selectedHazard ? 
+                    <AssetImpactSummary
+                        singleHazardImpact={singleHazardImpact}
+                    />
+                    : <></>}
                 </Paper>
             </Grid>
         </Grid>

@@ -46,7 +46,8 @@ export const portfolioReducer = (state: State, action: Action) => {
             return {
                 ...state,
                 status: PortfolioState.Loaded,
-                portfolioJson: action.portfolioJson
+                portfolioJson: action.portfolioJson,
+                calculationResult: null
             }
         case "updateCalculationResult":
             return {

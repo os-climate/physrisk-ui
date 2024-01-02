@@ -45,6 +45,34 @@ type RiskMeasures = {
   asset_ids: string[]
 }
 
+type AssetLevelImpact = {
+  assetId: string
+  impacts: AssetSingleImpact[]
+}
+
+type AssetSingleImpact = {
+  key: {
+    hazard_type: string
+    scenario_id: string
+    year: string
+  }
+  impact_type: string
+  impact_exceedance: {
+    values: number[]
+    exceed_probabilities: number[]
+  }
+  impact_mean: number
+  impact_std_deviation: number
+  calc_details: {
+    hazard_exceedance: {
+      values: number[]
+      exceed_probabilities: number[]
+    }
+    hazard_distribution: any
+    vulnerability_distribution: any
+  }
+}
+
 const defaultScenarios: string[] = [ "SSP126", "SSP245", "SSP585" ]
 
 const defaultYears: number[] = [ 2030, 2040, 2050 ]
@@ -71,12 +99,14 @@ function getKey(hazardType: string, scenarioId: string, year: string, measure_id
 }
 
 export class CalculationResult {
+  assetImpacts: AssetLevelImpact[]
   riskMeasuresHelper: RiskMeasuresHelper
   rawResult : any
 
   constructor(calculationResult: any) {
     this.rawResult = calculationResult
     this.riskMeasuresHelper = new RiskMeasuresHelper(calculationResult.risk_measures)
+    this.assetImpacts = calculationResult?.asset_impacts
   }
 }
 
@@ -179,6 +209,33 @@ export function createDataTable(result: CalculationResult, assetIndex: number, y
     });
   });
   return table
+}
+
+function graphDataPoint(x: number, y: number) {
+  return { x, y }
+}
+
+export function createSingleHazardImpact(result: CalculationResult, assetIndex: number,
+  hazardType: string, scenarioId: string) {
+  if (assetIndex === null) return
+  const assetImpacts = result.assetImpacts[assetIndex].impacts
+  const allYears = ["historical", ...(defaultYears.map(y => y.toString()))]
+  let curveSet: {[key: string]: any} = {}
+  allYears.forEach(y => {
+    let impacts = assetImpacts.find(i => hazardMap[i.key.hazard_type] === hazardType
+      && i.key.scenario_id === (y === "historical" ? "historical" : scenarioId)
+      && i.key.year === (y === "historical" ? "None" : y.toString()))
+    if (impacts)
+    {
+      let data = impacts.impact_exceedance.exceed_probabilities.map((item, i) =>
+        graphDataPoint(
+          1.0 / item, // expects return periods
+          impacts!.impact_exceedance.values[i] * 100 // convert to %
+      )).filter(p => isFinite(p.x)).reverse()
+      curveSet[y] = data
+    }
+  })
+  return { hazardType: hazardType, scenario: scenarioId.toUpperCase(), curveSet: curveSet }
 }
 
 export function overallScores(result: CalculationResult, scenarioId: string, year: number) {

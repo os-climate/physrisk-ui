@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import { Fragment, React } from "react";
+import { Fragment, useEffect, useState, React } from "react";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles"
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -15,15 +15,30 @@ import WaterIcon from "@mui/icons-material/Water";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import GrainIcon from "@mui/icons-material/Grain";
 import { trafficLightColour } from "../data/CalculationResult";
+import Typography from "@mui/material/Typography";
 //import { colorLevels } from "..utils/color";
 
 export default function SingleAssetTable(props) {
     const {
         title,
         rows,
-        hazardMenu
+        hazardMenu,
+        selectedHazard,
+        setSelectedHazard,
+        scenarioId,
+        setScenarioId
     } = props
     const theme = useTheme()
+    const [cellText, setCellText] = useState(null)
+    const [cellLabel, setCellLabel] = useState(null)
+    const [cellDescription, setCellDescription] = useState(null)
+
+    useEffect(() => {
+        setCellText(null)
+        setCellLabel(null)
+        setCellDescription(null)
+    }, [rows])
+
     if (!rows){
         return (
             <Fragment></Fragment>
@@ -60,6 +75,16 @@ export default function SingleAssetTable(props) {
         "ssp245",
         "ssp585"
     ]
+
+    const handleCellClicked = (params, event, details) =>
+    {
+        setSelectedHazard(params.id)
+        setCellText(params?.row.details[params.colDef.field]?.valueText)
+        setCellLabel(params?.row.details[params.colDef.field]?.label)
+        setCellDescription(params?.row.details[params.colDef.field]?.description)
+        setScenarioId(params.colDef.field)
+        //event.stopPropagation()
+    } 
 
     const columns = [
         {
@@ -98,8 +123,8 @@ export default function SingleAssetTable(props) {
             <Box
                 sx={{
                     width: "100%",
-                    marginBottom: "4rem",
-                    marginTop: "2rem"
+                    mt: 1,
+                    mb: 2
                 }}>
                 <Title>{title}</Title>
                 <DataGrid
@@ -111,7 +136,19 @@ export default function SingleAssetTable(props) {
                     disableSelectionOnClick
                     autoHeight
                     hideFooter
+                    onCellClick={handleCellClicked}
                 />
+                {cellText ?
+                <Fragment>
+                    <Typography sx={{ mt: 1 }} variant="body2">
+                        {`For hazard type '${selectedHazard}' and ${scenarioId.toUpperCase()} scenario the impact is '${cellText}'. `}
+                        {cellLabel}
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
+                        {cellDescription}
+                    </Typography>
+                </Fragment>
+                : <></>}
             </Box>
         </Fragment>
     )

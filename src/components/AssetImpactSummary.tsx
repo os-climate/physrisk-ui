@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { Divider, FormControl, InputLabel, MenuItem, Paper, Tooltip } from "@mui/material";
+import ExceedancePlot from "../components/Chart"
 import LineGraph from "./LineGraph";
 
 interface DataItem {
@@ -61,7 +62,33 @@ const hazardNames: { [id: string]: string; } = {
     "WaterStress": "Water stress",
  };
 
-export default function AssetImpactSummary(props: { assetIndex: any, assetImpact: any }) {
+export default function AssetImpactSummary(props: { singleHazardImpact: any }) {
+    const { singleHazardImpact } = props
+    const theme = useTheme()
+    if (!singleHazardImpact?.curveSet) {
+        return (<></>)
+    }
+    let dataSets = singleHazardImpact.curveSet
+    return (
+        (dataSets && Object.entries(dataSets).length > 0) ?
+        <Box>
+            <Typography>
+                {singleHazardImpact.hazardType + " impacts"}
+            </Typography>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
+                <Box sx={{ pb: 1, width: '90%', height: 280 }} >
+                    <ExceedancePlot 
+                            dataSets={dataSets}
+                            quantity="Impact" 
+                            units="%"
+                            graphType="exceedance"
+                            />
+                </Box>
+            </Box>
+        </Box> : <Box></Box>)
+}
+
+function AssetImpactSummaryOld(props: { assetIndex: any, assetImpact: any }) {
     const { assetIndex, assetImpact } = props
     const theme = useTheme()
 
@@ -178,6 +205,8 @@ function AssetImpactGraphs(props: { assetIndex: any, assetImpact: any }) {
         </Box>
       )
     }
+
+
 
 function SingleHazardTypeGraph(props: { singleHazardImpact: any }) {
     const { singleHazardImpact } = props

@@ -112,6 +112,18 @@ export default function ScatterMap(props) {
         mapRef.current?.resize()
     }, [visible])
 
+    useEffect(() => {
+        if (mapRef.current)
+        { 
+            let lngLat = [assetData.items[0].longitude, assetData.items[0].latitude] 
+            mapRef.current.flyTo({
+                center: lngLat,
+                zoom: 3,
+                speed: 1
+            });
+        }
+    }, [assetData])
+
     function getFirstSymbolId()
     {       
         if (!mapRef.current) return ""
