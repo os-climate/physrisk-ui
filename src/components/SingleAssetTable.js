@@ -1,12 +1,7 @@
-/* eslint-disable */
-
 import { Fragment, useEffect, useState, React } from "react";
 import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles"
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { DataGrid } from "@mui/x-data-grid";
 import Title from "./Title";
-import { Tooltip } from "@mui/material"; // Toolbar
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import DeviceThermostatIcon from "@mui/icons-material/DeviceThermostat";
 import AirIcon from "@mui/icons-material/Air";
@@ -16,19 +11,16 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import GrainIcon from "@mui/icons-material/Grain";
 import { trafficLightColour } from "../data/CalculationResult";
 import Typography from "@mui/material/Typography";
-//import { colorLevels } from "..utils/color";
 
 export default function SingleAssetTable(props) {
     const {
         title,
         rows,
-        hazardMenu,
         selectedHazard,
         setSelectedHazard,
         scenarioId,
         setScenarioId
     } = props
-    const theme = useTheme()
     const [cellText, setCellText] = useState(null)
     const [cellLabel, setCellLabel] = useState(null)
     const [cellDescription, setCellDescription] = useState(null)
@@ -76,7 +68,7 @@ export default function SingleAssetTable(props) {
         "ssp585"
     ]
 
-    const handleCellClicked = (params, event, details) =>
+    const handleCellClicked = (params) =>
     {
         setSelectedHazard(params.id)
         setCellText(params?.row.details[params.colDef.field]?.valueText)
@@ -94,16 +86,12 @@ export default function SingleAssetTable(props) {
             align: "center",
             headerAlign: "center",
             renderCell: (params) => {
-                const tooltipText = "..." // hazardMenu?.hazardDef[params.value]["tooltip"];
                 return (
                     <div style={{
                         display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center"
                     }}>
                         {getIcon(params.value)}
                         <div>{params.value}</div>
-                        {/* <Tooltip title={tooltipText}>
-                            <div><InfoOutlinedIcon /></div>
-                        </Tooltip> */}
                     </div>
                 )
             }

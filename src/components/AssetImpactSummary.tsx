@@ -10,9 +10,10 @@ import {
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { Divider, FormControl, InputLabel, MenuItem, Paper, Tooltip } from "@mui/material";
+import { Divider, FormControl, InputLabel, MenuItem, Tooltip } from "@mui/material";
 import ExceedancePlot from "../components/Chart"
 import LineGraph from "./LineGraph";
+import Title from "./Title";
 
 interface DataItem {
     displayName: string;
@@ -72,9 +73,10 @@ export default function AssetImpactSummary(props: { singleHazardImpact: any }) {
     return (
         (dataSets && Object.entries(dataSets).length > 0) ?
         <Box>
-            <Typography>
+            {/* <Typography style={theme.typography.h1}>
                 {singleHazardImpact.hazardType + " impacts"}
-            </Typography>
+            </Typography> */}
+            <Title>{singleHazardImpact.hazardType + " impacts"}</Title>
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
                 <Box sx={{ pb: 1, width: '90%', height: 280 }} >
                     <ExceedancePlot 
@@ -206,20 +208,9 @@ function AssetImpactGraphs(props: { assetIndex: any, assetImpact: any }) {
       )
     }
 
-
-
 function SingleHazardTypeGraph(props: { singleHazardImpact: any }) {
     const { singleHazardImpact } = props
     
-    //const impact_bins = singleHazardImpact.impact_bin_edges
-    //const impact_probs = singleHazardImpact.probabilities
-
-    //const hazard_bins = singleHazardImpact.calc_details.hazard_distribution.intensity_bin_edges
-    //const hazard_probs = singleHazardImpact.calc_details.hazard_distribution.probabilities
-
-    //const hazard_return_periods = singleHazardImpact.calc_details.hazard_exceedance.return_periods
-    //const hazard_intensities = singleHazardImpact.calc_details.hazard_exceedance.intensities
-
     return (
         singleHazardImpact ?
         <Box

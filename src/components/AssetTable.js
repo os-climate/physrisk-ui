@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Fragment, React } from "react"
 import Box from "@mui/material/Box"
 import { DataGrid, GridToolbar } from "@mui/x-data-grid"

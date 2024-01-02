@@ -185,7 +185,9 @@ export default function ExceedancePlot(props) {
                     }
                     {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend verticalAlign="top" />
+                    {dataSets ? 
+                        (<Legend verticalAlign="top" />) 
+                        : (<></>)}
                     {/* <Line
                         isAnimationActive={false}
                         type="monotone"

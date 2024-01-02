@@ -1,10 +1,9 @@
-/* eslint-disable */
 import { useContext, useEffect, useReducer, useState, React } from "react"
 import { useTheme } from "@mui/material/styles"
+import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
-import Box from "@mui/material/Box"
 import Paper from "@mui/material/Paper"
 import { Upload, List, PlayArrow} from "@mui/icons-material"
 import LoadingButton from "@mui/lab/LoadingButton"
@@ -15,11 +14,11 @@ import Typography from "@mui/material/Typography"
 import AssetTable from "../components/AssetTable"
 import AssetImpactSummary from "../components/AssetImpactSummary"
 import MenuButton from "../components/MenuButton"
+import SingleAssetTable from "../components/SingleAssetTable"
 import { hazardMenuReducer, loadHazardMenuData } from "../data/HazardInventory.js"
 import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio.ts"
 import { GlobalDataContext } from "../data/GlobalData"
 import { createDataTable, createSingleHazardImpact, overallScores } from "../data/CalculationResult"
-import SingleAssetTable from "../components/SingleAssetTable"
 
 
 export default function AssetViewer(props) {
