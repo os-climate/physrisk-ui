@@ -1,4 +1,5 @@
 import * as React from "react"
+import { blue, purple, lime, pink, teal } from '@mui/material/colors';
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import { ContentCopy } from "@mui/icons-material";
@@ -13,6 +14,7 @@ import {
     XAxis,
     YAxis,
     Label,
+    Legend,
     ResponsiveContainer,
     Tooltip
 } from "recharts"
@@ -22,25 +24,36 @@ function graphDataPoint(x, y) {
     return { x, y }
 }
 
+const colours = {
+    0 : purple[800],
+    1 : lime[900],
+    2 : pink[900],
+    3 : blue[900],
+    4 : teal[800]
+}
+
 export default function ExceedancePlot(props) {
-    const { title, data, quantity, units, graphType } = props
+    const { title, data, dataSets, quantity, units, graphType } = props
     
     const theme = useTheme()
 
-    var dataPoints, ticks, tickFormat, domain, scale, tickFormatAll
-    if (graphType == "exceedance")
-    {
-        dataPoints = data.map((item) =>
-            graphDataPoint(
-                1.0 / item.x,
-                item.y)
-        )
+    var ticks, tickFormat, domain, scale, tickFormatAll
+    const dataPointsSet = {}
+    for (const [key, value] of Object.entries(dataSets ? dataSets : { "data" : data })) {
+        if (graphType == "exceedance")
+        {
+            dataPointsSet[key] = value.map((item) =>
+                graphDataPoint(
+                    1.0 / item.x,
+                    item.y)
+            )
+        }
+        else 
+        {
+            dataPointsSet[key] = value
+        }
     }
-    else 
-    {
-        dataPoints = data
-    }
-        
+    var dataPoints = Object.entries(dataPointsSet).map(([, v]) => v)[0]
     domain = dataPoints.map(d => d.x)
     scale = d3ScaleLog().domain(domain).range([0, 1]);
     ticks = scale.ticks(10)
@@ -104,7 +117,6 @@ export default function ExceedancePlot(props) {
             </IconButton>
             <ResponsiveContainer>
                 <ScatterChart
-                    data={dataPoints}
                     margin={{
                         top: 16,
                         right: 18,
@@ -168,8 +180,14 @@ export default function ExceedancePlot(props) {
                             {"(" + units + ")"}
                         </Label>
                     </YAxis>
-                    <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" />
+                    {Object.entries(dataPointsSet).map(([k, v], i) => 
+                        <Scatter key={k} name={k} isAnimationActive={false} data={v} fill={colours[i]} line shape="dot" />)
+                    }
+                    {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
                     <Tooltip content={<CustomTooltip />} />
+                    {dataSets ? 
+                        (<Legend verticalAlign="top" />) 
+                        : (<></>)}
                     {/* <Line
                         isAnimationActive={false}
                         type="monotone"

@@ -1,4 +1,5 @@
 import axios from "axios"
+import { CalculationResult, RiskMeasuresHelper } from "./CalculationResult"
 
 export const portfolioInitialiser = () => {
     return {
@@ -12,7 +13,7 @@ type State =
    | { status: PortfolioState.Empty, examplePortfolioNames: string[] }
    | { status: PortfolioState.Loading, examplePortfolioNames: string[] }
    | { status: PortfolioState.Loaded, portfolioJson: string }
-   | { status: PortfolioState.RunComplete, calculationResult: string };
+   | { status: PortfolioState.RunComplete, calculationResult: CalculationResult };
 
 enum PortfolioState {
     Empty = "empty",
@@ -26,7 +27,7 @@ type Action =
     | { type: "updateStatus", newState: PortfolioState }
     | { type: "setExamplePortfolioNames", examplePortfolioNames: string[] }
     | { type: "updatePortfolio", newState: PortfolioState, portfolioJson: string }
-    | { type: "updateCalculationResult", newState: PortfolioState, calculationResult: any }
+    | { type: "updateCalculationResult", newState: PortfolioState, calculationResult: CalculationResult }
     | { type: "failure", error: string };
 
 export const portfolioReducer = (state: State, action: Action) => {
@@ -45,7 +46,8 @@ export const portfolioReducer = (state: State, action: Action) => {
             return {
                 ...state,
                 status: PortfolioState.Loaded,
-                portfolioJson: action.portfolioJson
+                portfolioJson: action.portfolioJson,
+                calculationResult: null
             }
         case "updateCalculationResult":
             return {
@@ -98,8 +100,9 @@ export const runCalculation = async (portfolio: any, dispatch: any, globals: any
             "assets": portfolio.portfolioJson,
                 "include_asset_level": true,
                 "include_calc_details": true,
-                "year": 2050,
-                "scenario": "ssp585"
+                "include_measures": true,
+                "years": [2030, 2040, 2050],
+                "scenarios": ["ssp126", "ssp245", "ssp585"]
         }
 
         var response = await axios.post(
@@ -107,7 +110,7 @@ export const runCalculation = async (portfolio: any, dispatch: any, globals: any
             request
         )
 
-        return response.data
+        return new CalculationResult(response.data)
 
     } catch (error) {
         console.log(error)
