@@ -69,20 +69,21 @@ export default function AssetImpactSummary(props: { singleHazardImpact: any }) {
     if (!singleHazardImpact?.curveSet) {
         return (<></>)
     }
-    let dataSets = singleHazardImpact.curveSet
+    let curveSet = singleHazardImpact.curveSet
     return (
-        (dataSets && Object.entries(dataSets).length > 0) ?
+        (curveSet && Object.entries(curveSet).length > 0) ?
         <Box>
             {/* <Typography style={theme.typography.h1}>
                 {singleHazardImpact.hazardType + " impacts"}
             </Typography> */}
-            <Title>{singleHazardImpact.hazardType + " impacts"}</Title>
+            {/* <Title>{singleHazardImpact.hazardType + " impacts"}</Title> */}
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
-                <Box sx={{ pb: 1, width: '90%', height: 280 }} >
-                    <ExceedancePlot 
-                            dataSets={dataSets}
+                <Box sx={{ width: '100%', height: 280 }} >
+                    <ExceedancePlot
+                            title={singleHazardImpact.hazardType + " impacts (" + singleHazardImpact.scenario + ")"} 
+                            dataSets={curveSet.curves}
                             quantity="Impact" 
-                            units="%"
+                            units={curveSet.units}
                             graphType="exceedance"
                             />
                 </Box>

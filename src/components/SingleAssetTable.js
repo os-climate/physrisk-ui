@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState, React } from "react";
+import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box";
 import { DataGrid } from "@mui/x-data-grid";
 import Title from "./Title";
@@ -9,27 +10,29 @@ import TsunamiIcon from "@mui/icons-material/Tsunami";
 import WaterIcon from "@mui/icons-material/Water";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import GrainIcon from "@mui/icons-material/Grain";
-import { trafficLightColour } from "../data/CalculationResult";
+import { scoreTextToNumber } from "../data/CalculationResult";
 import Typography from "@mui/material/Typography";
 
 export default function SingleAssetTable(props) {
     const {
         title,
         rows,
-        selectedHazard,
-        setSelectedHazard,
+        hazardType,
+        setHazardType,
         scenarioId,
         setScenarioId
     } = props
-    const [cellText, setCellText] = useState(null)
-    const [cellLabel, setCellLabel] = useState(null)
-    const [cellDescription, setCellDescription] = useState(null)
+    const [details, setDetails] = useState(null)
+    const theme = useTheme()
 
     useEffect(() => {
-        setCellText(null)
-        setCellLabel(null)
-        setCellDescription(null)
-    }, [rows])
+        if (!rows) {
+            setDetails(null)
+            return
+        }
+        let selectedRow = rows.find(r => r.hazard == hazardType)
+        setDetails(selectedRow.details[scenarioId])
+    }, [rows, hazardType, scenarioId])
 
     if (!rows){
         return (
@@ -55,7 +58,7 @@ export default function SingleAssetTable(props) {
     }
 
     const renderScoreCell = params => {
-        return <Box sx={{ color: trafficLightColour(params.value), 
+        return <Box sx={{ color: theme.scores[scoreTextToNumber(params.value)], 
             fontStyle: params.value === "No data" ? 'italic': 'normal',
             fontWeight: 'medium'
 
@@ -70,12 +73,8 @@ export default function SingleAssetTable(props) {
 
     const handleCellClicked = (params) =>
     {
-        setSelectedHazard(params.id)
-        setCellText(params?.row.details[params.colDef.field]?.valueText)
-        setCellLabel(params?.row.details[params.colDef.field]?.label)
-        setCellDescription(params?.row.details[params.colDef.field]?.description)
-        setScenarioId(params.colDef.field)
-        //event.stopPropagation()
+        setHazardType(params.id)
+        if (params.colDef.field != "hazard") setScenarioId(params.colDef.field)
     } 
 
     const columns = [
@@ -126,14 +125,14 @@ export default function SingleAssetTable(props) {
                     hideFooter
                     onCellClick={handleCellClicked}
                 />
-                {cellText ?
+                {details ?
                 <Fragment>
                     <Typography sx={{ mt: 1 }} variant="body2">
-                        {`For hazard type '${selectedHazard}' and ${scenarioId.toUpperCase()} scenario the impact is '${cellText}'. `}
-                        {cellLabel}
+                        {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${details?.valueText}'. `}
+                        {details?.label}
                     </Typography>
                     <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
-                        {cellDescription}
+                        {details?.description}
                     </Typography>
                 </Fragment>
                 : <></>}

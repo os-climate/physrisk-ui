@@ -63,10 +63,12 @@ type AssetSingleImpact = {
   }
   impact_mean: number
   impact_std_deviation: number
+  impact_units: string 
   calc_details: {
     hazard_exceedance: {
       values: number[]
       exceed_probabilities: number[]
+      units: string
     }
     hazard_distribution: any
     vulnerability_distribution: any
@@ -154,17 +156,36 @@ export class RiskMeasuresHelper {
   {
     let details = definition.values.find(v => v.value == score)
     if (!details) return { value: -1, valueText: "No data", label: "", description: "" } 
-    return {...details, valueText: this.scoreText(details ? details.value : -1)}
+    return {...details, valueText: scoreText(details ? details.value : -1)}
   }
+}
 
-  scoreText(score: number)
+export function scoreText(score: number)
+{
+  if (score == 0) return "No data"
+  else if (score == 1) return "Low"
+  else if (score == 2) return "Medium"
+  else if (score == 3) return "High"
+  else if (score == 4) return "Red flag"
+  else return "No data"
+}
+
+export function scoreTextToNumber(valueText: string) 
+{
+  switch (valueText)
   {
-    if (score == 0) return "No data"
-    else if (score == 1) return "Low"
-    else if (score == 2) return "Medium"
-    else if (score == 3) return "High"
-    else if (score == 4) return "Red flag"
-    else return "No data"
+    case "No data":
+      return 0
+    case "Low":
+      return 1
+    case "Medium":
+      return 2
+    case "High":
+      return 3
+    case "Red flag":
+      return 4
+    default:
+      return -1
   }
 }
 
@@ -211,31 +232,66 @@ export function createDataTable(result: CalculationResult, assetIndex: number, y
   return table
 }
 
+export function createBarChartData(result: CalculationResult, assetIndex: number,
+  hazardType: string, years: number[] = defaultYears)
+{
+  const helper = result.riskMeasuresHelper
+  const barChartData: {[key: string]: string|number}[] = []
+  let hazardTypeKey: any = Object.entries(hazardMap).find(item => item[1] === hazardType)?.[0]
+  years.forEach(year => {
+    let yearData: {[key: string]: string|number} = { "year": year }
+    helper.scenarios().forEach(scenario => {
+      if (scenario.years.includes(year))
+      {
+        const measure = helper.measure(hazardTypeKey, scenario.id, year)
+        //let measureDefn = measure.measureDefinitions[assetIndex]
+        if (measure)
+        {
+          let score = measure.assetScores[assetIndex]
+          yearData[scenario.id.toUpperCase()] = score
+        }
+      }
+    })
+    barChartData.push(yearData)
+  })
+  return barChartData
+}
+
 function graphDataPoint(x: number, y: number) {
   return { x, y }
 }
 
-export function createSingleHazardImpact(result: CalculationResult, assetIndex: number,
+export function createHazardImpact(result: CalculationResult, assetIndex: number,
   hazardType: string, scenarioId: string) {
   if (assetIndex === null) return
   const assetImpacts = result.assetImpacts[assetIndex].impacts
   const allYears = ["historical", ...(defaultYears.map(y => y.toString()))]
   let curveSet: {[key: string]: any} = {}
+  
+  var units = hazardType == "Heat" ? "kWh"  : "%" // get this from the service instead in future
   allYears.forEach(y => {
     let impacts = assetImpacts.find(i => hazardMap[i.key.hazard_type] === hazardType
       && i.key.scenario_id === (y === "historical" ? "historical" : scenarioId)
       && i.key.year === (y === "historical" ? "None" : y.toString()))
     if (impacts)
     {
-      let data = impacts.impact_exceedance.exceed_probabilities.map((item, i) =>
+      // for exceedance curves the curve might go to probability 0 which will not work
+      // on a log plot. We want to truncate to probability 0.001 (1-in-1000 year events)
+      let probs: number[] = impacts!.impact_exceedance.exceed_probabilities
+      let values: number[] = impacts!.impact_exceedance.values
+      let [probsCapped, valuesCapped] = capCurve(probs, values)
+
+      let scale = (units == "%") ? 100 : 1
+      let data = probsCapped.map((item, i) =>
         graphDataPoint(
           1.0 / item, // expects return periods
-          impacts!.impact_exceedance.values[i] * 100 // convert to %
-      )).filter(p => isFinite(p.x)).reverse()
+          valuesCapped[i] * scale 
+      )).reverse()
+      //.filter(p => isFinite(p.x)).reverse()
       curveSet[y] = data
     }
   })
-  return { hazardType: hazardType, scenario: scenarioId.toUpperCase(), curveSet: curveSet }
+  return { hazardType: hazardType, scenario: scenarioId.toUpperCase(), curveSet: { units: units, curves: curveSet } }
 }
 
 export function overallScores(result: CalculationResult, scenarioId: string, year: number) {
@@ -249,23 +305,26 @@ export function overallScores(result: CalculationResult, scenarioId: string, yea
       scores = measure.assetScores.map((s, i) => Math.max(s, scores[i]))
     }
   })
-  return scores.map(s => helper.scoreText(s))
+  return scores.map(s => scoreText(s))
 }
 
-export function trafficLightColour(valueText: string) 
+function capCurve(probs: number[], values: number[], probCap = 0.001)
 {
-  switch (valueText)
+  // assume that probs is sorted decreasing and probs and values have same length
+  let probsCapped = probs.filter(p => p >= probCap)
+  let valuesCapped = values.filter((v, i) => i < probsCapped.length)
+  if (probs.length > probsCapped.length && probsCapped[probsCapped.length - 1] != probCap)
   {
-      case "Low":
-          return green[800];
-      case "Medium":
-          return orange[800]
-      case "High":
-          return red[700]
-      case "Red flag":
-          return red[900]
-      default:
-          return grey[400];
+    // we need to add prob 0.001 by linear interpolation
+    let index = probsCapped.length - 1
+    let value = values[index] + (probCap - probs[index]) * (values[index + 1] - values[index]) / (probs[index + 1] - probs[index])
+    probsCapped.push(probCap)
+    valuesCapped.push(value)
   }
+  return [probsCapped, valuesCapped]
+  //return { probs: probsCapped, values: valuesCapped }
 }
+
+
+
 

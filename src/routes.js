@@ -29,7 +29,7 @@ export const routes = [
     {
         path: "/assets",
         name: "Assets",
-        longName: "Assets",
+        longName: "Asset-level analysis",
         icon: PrecisionManufacturing,
         component: (visible) => <AssetViewer visible={visible} />,
         layout: "/standard",

@@ -15,10 +15,11 @@ import AssetTable from "../components/AssetTable"
 import AssetImpactSummary from "../components/AssetImpactSummary"
 import MenuButton from "../components/MenuButton"
 import SingleAssetTable from "../components/SingleAssetTable"
+import SingleAssetBarChart from "../components/SingleAssetBarChart"
 import { hazardMenuReducer, loadHazardMenuData } from "../data/HazardInventory.js"
 import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio.ts"
 import { GlobalDataContext } from "../data/GlobalData"
-import { createDataTable, createSingleHazardImpact, overallScores } from "../data/CalculationResult"
+import { createBarChartData, createDataTable, createHazardImpact, overallScores } from "../data/CalculationResult"
 
 
 export default function AssetViewer(props) {
@@ -41,14 +42,18 @@ export default function AssetViewer(props) {
         portfolioInitialiser()
     )
 
-    const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
+    // the screen has one asset, hazard type, scenario and year selected
+    // although elements may choose to display more e.g. table of of risk scores
+    // for multiple scenarios, where clicking on a row will change the selected scenario. 
+    const [assetIndex, setAssetIndex] = useState(0);
     const [scenarioId, setScenarioId] = useState("ssp585")
     const [year, setYear] = useState(2050)
+    const [hazardType, setHazardType] = useState("Coastal Flood")
+
     const [assetScores, setAssetScores] = useState(null)
-    const [selectedHazard, setSelectedHazard] = useState("Coastal Flood")
-    // items for results display:
     const [dataTable, setDataTable] = useState(null)
-    const [singleHazardImpact, setSingleHazardImpact] = useState(null)
+    const [barChartData, setBarChartData] = useState(null)
+    const [hazardImpact, setHazardImpact] = useState(null)
 
     const globals = useContext(GlobalDataContext);
 
@@ -82,25 +87,26 @@ export default function AssetViewer(props) {
     useEffect(() => {
         if (portfolio?.calculationResult)
         {
-            setDataTable(createDataTable(portfolio.calculationResult, selectedAssetIndex, year))
+            setDataTable(createDataTable(portfolio.calculationResult, assetIndex, year))
             setAssetScores(overallScores(portfolio.calculationResult, scenarioId, year))
         }
         else {
             setDataTable(null)
             setAssetScores(null)
         }
-    }, [portfolio, year, selectedAssetIndex])
+    }, [portfolio, year, assetIndex])
 
     useEffect(() => {
         if (portfolio?.calculationResult)
         {
-            setSingleHazardImpact(createSingleHazardImpact(portfolio.calculationResult, selectedAssetIndex, 
-                selectedHazard, scenarioId))
+            setHazardImpact(createHazardImpact(portfolio.calculationResult, assetIndex, 
+                hazardType, scenarioId))
+            setBarChartData(createBarChartData(portfolio.calculationResult, assetIndex, hazardType))
         }
         else {
-            setSingleHazardImpact(null)
+            setHazardImpact(null)
         }
-    }, [portfolio, selectedHazard, scenarioId, selectedAssetIndex])
+    }, [portfolio, hazardType, scenarioId, assetIndex])
 
     const handleClick = async () => {
         // This is currently a no-op.
@@ -113,7 +119,7 @@ export default function AssetViewer(props) {
             const result = await runCalculation(portfolio, portfolioDispatch, globals)
             portfolioDispatch({ type: "updateCalculationResult", calculationResult: result })
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
-            if (!selectedAssetIndex) setSelectedAssetIndex(0)
+            if (!assetIndex) setAssetIndex(0)
         }
         run()        
     }
@@ -213,8 +219,8 @@ export default function AssetViewer(props) {
                         hazardMenu={null} // {hazardMenu}
                         hazardMenuDispatch={null} // {hazardMenuDispatch}
                         onClick={handleClick}
-                        selectedAssetIndex={selectedAssetIndex}
-                        setSelectedAssetIndex={setSelectedAssetIndex}
+                        selectedAssetIndex={assetIndex}
+                        setSelectedAssetIndex={setAssetIndex}
                         assetData={portfolio.portfolioJson}
                         assetScores={assetScores}
                         visible={visible}
@@ -284,15 +290,23 @@ export default function AssetViewer(props) {
                     <SingleAssetTable title={`Risk scores (${year}) `} 
                         rows={dataTable}
                         hazardMenu={hazardMenu}
-                        selectedHazard={selectedHazard}
-                        setSelectedHazard={setSelectedHazard}
-                        scenarioId={scenarioId} 
+                        hazardType={hazardType}
+                        setHazardType={setHazardType}
+                        scenarioId={scenarioId}
                         setScenarioId={setScenarioId} 
                     />
-                    {selectedHazard ? 
-                    <AssetImpactSummary
-                        singleHazardImpact={singleHazardImpact}
-                    />
+                    {hazardType ?
+                    <div>
+                        <SingleAssetBarChart 
+                            title={hazardType + " scores"}
+                            data={barChartData}
+                            hazard={hazardType}
+                            scenarios={scenarioMarks.map(m => m.label)}
+                        />
+                        <AssetImpactSummary
+                            singleHazardImpact={hazardImpact}
+                        />
+                    </div>
                     : <></>}
                 </Paper>
             </Grid>

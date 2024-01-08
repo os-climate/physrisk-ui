@@ -1,4 +1,5 @@
 import * as React from "react"
+import { blue, cyan, green, grey, lime, orange, pink, purple, red, teal } from '@mui/material/colors';
 import PropTypes from "prop-types"
 import { MemoryRouter, useLocation } from "react-router-dom"
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles"
@@ -70,6 +71,22 @@ export const themeOptions = {
         body2: {
             fontSize: 14
         }
+    },
+    scores: {
+        0: grey[400], // no data
+        1: green[800], // low
+        2: orange[800], // medium
+        3: red[700], // high
+        4: red[900], // red flag
+        other: grey[400] // other
+    },
+    graphs: {
+        0 : pink[800],
+        1 : cyan[800],
+        2 : purple[900], 
+        3 : lime[800],
+        4 : teal[900], 
+        5 : blue[900] 
     }
 }
 

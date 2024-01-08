@@ -1,4 +1,5 @@
 import React, { useRef, useContext, useEffect, useState } from "react"
+import { useTheme } from "@mui/material/styles"
 import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl';
 import Box from "@mui/material/Box"
 import { ColourBar } from "./ColourBar.js"
@@ -9,7 +10,7 @@ import IconButton from "@mui/material/IconButton"
 import { InfoOutlined } from "@mui/icons-material";
 import Popover from "@mui/material/Popover"
 import Tooltip from "@mui/material/Tooltip"
-import { trafficLightColour } from "../data/CalculationResult";
+import { scoreTextToNumber } from "../data/CalculationResult";
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -20,7 +21,8 @@ export default function ScatterMap(props) {
     const { hazardMenu, hazardMenuDispatch, onClick, 
         selectedAssetIndex, setSelectedAssetIndex, assetData, assetScores, assetSummary, 
         visible } = props
-
+    
+    const theme = useTheme()
     // popover
     const [popoverAnchorPos, setPopoverAnchorPos] = React.useState(null);
     const popoverOpen = Boolean(popoverAnchorPos);
@@ -233,14 +235,14 @@ export default function ScatterMap(props) {
                     'match',
                     ['get', 'risk'],
                     'Low',
-                    trafficLightColour('Low'),
+                    theme.scores[scoreTextToNumber('Low')],
                     'Medium',
-                    trafficLightColour('Medium'),
+                    theme.scores[scoreTextToNumber('Medium')],
                     'High',
-                    trafficLightColour('High'),
+                    theme.scores[scoreTextToNumber('High')],
                     'Red flag',
-                    trafficLightColour('Red flag'),
-                    /* other */ trafficLightColour('No data'),
+                    theme.scores[scoreTextToNumber('Red flag')],
+                    /* other */ theme.scores[scoreTextToNumber('No data')],
                 ],
                 "circle-radius": 7,
                 "circle-stroke-width": 1.5,
