@@ -15,6 +15,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import Typography from "@mui/material/Typography"
+import Papa from "papaparse"
 import AssetTable from "../components/AssetTable"
 import { AssetImpactSummary, AssetHazardSummary } from "../components/AssetImpactSummary"
 import MenuButton from "../components/MenuButton"
@@ -68,19 +69,33 @@ export default function AssetViewer(props) {
     const globals = useContext(GlobalDataContext);
 
     const uploadFile = (event) => {
+        const extension = event.target.files[0].name.split('.').pop(); 
         const reader = new FileReader()
+        let portfolio = null
         reader.onload = (event) => {
-            const content = JSON.parse(event.target.result)
-            if (content.items) {
-                portfolioDispatch(({ type: "updatePortfolio", portfolioJson: content}))
-            } else {
-                // TODO: improve validation (JSON schema?) & error handling
-                portfolioDispatch(({ type: "updatePortfolio", portfolioJson: {
-                    items: [
-                        { asset_class: "Invalid file; no asset items found." },
-                    ],
-                }}))
+            if (extension == "csv") {
+                const transformHeader = h => {
+                    const transforms = { "Asset class": "asset_class",
+                        "Type": "type",
+                        "Latitude": "latitude",
+                        "Longitude": "longitude" }
+                    return transforms[h]
+                }
+                let items = Papa.parse(event.target.result, { header: true, transformHeader: transformHeader })?.data
+                portfolio = { items: items }
             }
+            else
+            {
+                portfolio = JSON.parse(event.target.result) 
+                if (!portfolio.items) {
+                    portfolio = {
+                        items: [
+                            { asset_class: "Invalid file; no asset items found." },
+                        ],
+                    }
+                }
+            }
+            portfolioDispatch(({ type: "updatePortfolio", portfolioJson: portfolio}))
         }
         reader.readAsText(event.target.files[0])
     }
@@ -209,7 +224,7 @@ export default function AssetViewer(props) {
                             <input
                                 type="file"
                                 multiple={false}
-                                accept=".json,application/json"
+                                accept=".csv,.json,application/json"
                                 onChange={uploadFile}
                                 hidden
                             ></input>
