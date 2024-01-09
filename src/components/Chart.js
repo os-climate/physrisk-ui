@@ -1,5 +1,4 @@
 import * as React from "react"
-import { blue, purple, lime, pink, teal } from '@mui/material/colors';
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import { ContentCopy } from "@mui/icons-material";
@@ -24,14 +23,6 @@ function graphDataPoint(x, y) {
     return { x, y }
 }
 
-const colours = {
-    0 : purple[800],
-    1 : lime[900],
-    2 : pink[900],
-    3 : blue[900],
-    4 : teal[800]
-}
-
 export default function ExceedancePlot(props) {
     const { title, data, dataSets, quantity, units, graphType } = props
     
@@ -54,7 +45,10 @@ export default function ExceedancePlot(props) {
         }
     }
     var dataPoints = Object.entries(dataPointsSet).map(([, v]) => v)[0]
+    if (!dataPoints) return (<></>)
+    
     domain = dataPoints.map(d => d.x)
+    // domain = (graphType == "exceedance") ? [0.001, 0.01, 0.1, 0.2] : [1000, 100, 10, 5]
     scale = d3ScaleLog().domain(domain).range([0, 1]);
     ticks = scale.ticks(10)
     // labelTicks = scale.ticks(5)
@@ -77,7 +71,6 @@ export default function ExceedancePlot(props) {
         ...theme.typography.body2,
         textAlign: 'center',
         color: theme.palette.text.secondary,
-        //height: 60,
         lineHeight: '60px',
       }));
 
@@ -99,104 +92,101 @@ export default function ExceedancePlot(props) {
 
     return (
         <React.Fragment>
-            <Box sx={{ width: '100%', height: '100%', position: "relative" }} 
-                // sx={{
-                //     position: "relative"
-                // }}
-            >
             <Title>{title}</Title>
-            <IconButton sx={{
-                position: "absolute",
-                //top: 40,
-                right: 0,
-                bottom: 14,
-                //top: 0,
-                zIndex: 1,
-                    }} aria-label="info" size="small" onClick={copyData}>
-                <ContentCopy fontSize="inherit" color="primary" />
-            </IconButton>
-            <ResponsiveContainer>
-                <ScatterChart
-                    margin={{
-                        top: 16,
-                        right: 18,
-                        bottom: 34,
-                        left: 42,
-                    }}
-                >
-                    <CartesianGrid />
-                    <XAxis
-                        dataKey="x"
-                        type="number"
-                        stroke={theme.palette.text.secondary}
-                        style={theme.typography.body2}
-                        reversed={graphType == "exceedance"}
-                        domain={['dataMin', 'dataMax']}
-                        //domain={['auto', 'auto']}
-                        interval={0}
-                        tickFormatter = {tickFormat}
-                        scale="log"
-                        //scale={(graphType == "returnPeriod") ? "linear" : "log"}
-                        ticks={ticks}
+            <Box sx={{ width: '100%', height: '100%', position: "relative" }}>
+                <IconButton sx={{
+                    position: "absolute",
+                    //top: 40,
+                    right: 0,
+                    bottom: dataSets ? 35 : 0,
+                    //top: 0,
+                    zIndex: 1,
+                        }} aria-label="info" size="small" onClick={copyData}>
+                    <ContentCopy fontSize="inherit" color="primary" />
+                </IconButton>
+                <ResponsiveContainer height={240}>
+                    <ScatterChart
+                        margin={{
+                            top: 0,
+                            right: 20, 
+                            bottom: 15, 
+                            left: 50, 
+                        }}
                     >
-                        <Label
-                            position="bottom"
-                            offset={0}
-                            style={{
-                                textAnchor: "middle",
-                                fill: theme.palette.text.primary,
-                                ...theme.typography.body1,
-                            }}
+                        <CartesianGrid />
+                        <XAxis
+                            allowDataOverflow={false}
+                            dataKey="x"
+                            type="number"
+                            stroke={theme.palette.text.secondary}
+                            style={theme.typography.body2}
+                            reversed={graphType == "exceedance"}
+                            domain={(graphType == "exceedance") ? [ () => (0.001), 'dataMax'] : ['dataMin', 'dataMax']}
+                            //domain={['auto', 'auto']}
+                            interval={0}
+                            tickFormatter = {tickFormat}
+                            scale="log"
+                            ticks={ticks}
                         >
-                            {xAxisLabel}
-                        </Label>
-                    </XAxis>
-                    <YAxis
-                        dataKey="y"
-                        type="number"
-                        stroke={theme.palette.text.secondary}
-                        style={theme.typography.body2}
-                    >
-                        <Label
-                            angle={270}
-                            offset={32}
-                            position="left"
-                            style={{
-                                textAnchor: "middle",
-                                fill: theme.palette.text.primary,
-                                ...theme.typography.body1,
-                            }}>
-                            {prettify(quantity)}
-                        </Label>
-                        <Label
-                            angle={270}
-                            offset={16}
-                            position="left"
-                            style={{
-                                textAnchor: "middle",
-                                fill: theme.palette.text.primary,
-                                ...theme.typography.body1,
-                            }}>
-                            {"(" + units + ")"}
-                        </Label>
-                    </YAxis>
-                    {Object.entries(dataPointsSet).map(([k, v], i) => 
-                        <Scatter key={k} name={k} isAnimationActive={false} data={v} fill={colours[i]} line shape="dot" />)
-                    }
-                    {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
-                    <Tooltip content={<CustomTooltip />} />
-                    {dataSets ? 
-                        (<Legend verticalAlign="top" />) 
-                        : (<></>)}
-                    {/* <Line
-                        isAnimationActive={false}
-                        type="monotone"
-                        dataKey="y"
-                        stroke={theme.palette.primary.main}
-                        dot={false}
-                    /> */}
-                </ScatterChart>
-            </ResponsiveContainer>
+                            <Label
+                                position="bottom"
+                                offset={0}
+                                style={{
+                                    textAnchor: "middle",
+                                    fill: theme.palette.text.primary,
+                                    ...theme.typography.body1,
+                                }}
+                            >
+                                {xAxisLabel}
+                            </Label>
+                        </XAxis>
+                        <YAxis
+                            allowDataOverflow={false}
+                            dataKey="y"
+                            type="number"
+                            stroke={theme.palette.text.secondary}
+                            style={theme.typography.body2}
+                        >
+                            <Label
+                                angle={270}
+                                offset={32}
+                                position="left"
+                                style={{
+                                    textAnchor: "middle",
+                                    fill: theme.palette.text.primary,
+                                    ...theme.typography.body1,
+                                }}>
+                                {prettify(quantity)}
+                            </Label>
+                            <Label
+                                angle={270}
+                                offset={14}
+                                position="left"
+                                style={{
+                                    textAnchor: "middle",
+                                    fill: theme.palette.text.primary,
+                                    ...theme.typography.body1,
+                                }}>
+                                {"(" + units + ")"}
+                            </Label>
+                        </YAxis>
+                        {Object.entries(dataPointsSet).map(([k, v], i) => 
+                            <Scatter key={k} name={k} isAnimationActive={false} data={v} fill={theme.graphs[i]} line shape="dot" />)
+                        }
+                        {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
+                        <Tooltip content={<CustomTooltip />} />
+                        {dataSets ? 
+                            (<Legend verticalAlign="top" />) 
+                            : (<></>)}
+                        {/* <Line
+                            isAnimationActive={false}
+                            type="monotone"
+                            dataKey="y"
+                            stroke={theme.palette.primary.main}
+                            dot={false}
+                        /> */}
+                    </ScatterChart>
+                </ResponsiveContainer>
             </Box>
         </React.Fragment>
     )
