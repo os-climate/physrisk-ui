@@ -10,9 +10,13 @@ import LoadingButton from "@mui/lab/LoadingButton"
 import ScatterMap from "../components/ScatterMap"
 import Slider from '@mui/material/Slider'
 import Stack from "@mui/material/Stack"
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 import Typography from "@mui/material/Typography"
 import AssetTable from "../components/AssetTable"
-import AssetImpactSummary from "../components/AssetImpactSummary"
+import { AssetImpactSummary, AssetHazardSummary } from "../components/AssetImpactSummary"
 import MenuButton from "../components/MenuButton"
 import SingleAssetTable from "../components/SingleAssetTable"
 import SingleAssetBarChart from "../components/SingleAssetBarChart"
@@ -49,11 +53,17 @@ export default function AssetViewer(props) {
     const [scenarioId, setScenarioId] = useState("ssp585")
     const [year, setYear] = useState(2050)
     const [hazardType, setHazardType] = useState("Coastal Flood")
+    const [details, setDetails] = useState(null)
 
     const [assetScores, setAssetScores] = useState(null)
     const [dataTable, setDataTable] = useState(null)
     const [barChartData, setBarChartData] = useState(null)
     const [hazardImpact, setHazardImpact] = useState(null)
+
+    const [impactTab, setImpactTab] = useState("1");
+    const handleTabChange = (event, newValue) => {
+        setImpactTab(newValue);
+    };
 
     const globals = useContext(GlobalDataContext);
 
@@ -87,7 +97,10 @@ export default function AssetViewer(props) {
     useEffect(() => {
         if (portfolio?.calculationResult)
         {
-            setDataTable(createDataTable(portfolio.calculationResult, assetIndex, year))
+            let dataTableRows = createDataTable(portfolio.calculationResult, assetIndex, year)
+            setDataTable(dataTableRows)
+            let selectedRow = dataTableRows.find(r => r.hazard == hazardType)
+            setDetails(selectedRow.details[scenarioId])
             setAssetScores(overallScores(portfolio.calculationResult, scenarioId, year))
         }
         else {
@@ -102,6 +115,10 @@ export default function AssetViewer(props) {
             setHazardImpact(createHazardImpact(portfolio.calculationResult, assetIndex, 
                 hazardType, scenarioId))
             setBarChartData(createBarChartData(portfolio.calculationResult, assetIndex, hazardType))
+            if (dataTable) {
+                let selectedRow = dataTable.find(r => r.hazard == hazardType)
+                setDetails(selectedRow.details[scenarioId])
+            }
         }
         else {
             setHazardImpact(null)
@@ -224,8 +241,6 @@ export default function AssetViewer(props) {
                         assetData={portfolio.portfolioJson}
                         assetScores={assetScores}
                         visible={visible}
-                        // assetSummary={(index) => (<AssetImpactSummary 
-                        //     assetIndex={index} assetImpact={portfolio?.calculationResult?.result?.asset_impacts[index]}/>)} 
                     />
                     <Box sx={{ mt: 2 }} />
                     <AssetTable data={portfolio.portfolioJson} />
@@ -290,22 +305,52 @@ export default function AssetViewer(props) {
                     <SingleAssetTable title={`Risk scores (${year}) `} 
                         rows={dataTable}
                         hazardMenu={hazardMenu}
-                        hazardType={hazardType}
                         setHazardType={setHazardType}
-                        scenarioId={scenarioId}
                         setScenarioId={setScenarioId} 
                     />
                     {hazardType ?
                     <div>
                         <SingleAssetBarChart 
-                            title={hazardType + " scores"}
+                            title={hazardType + " score evolution"}
                             data={barChartData}
                             hazard={hazardType}
                             scenarios={scenarioMarks.map(m => m.label)}
                         />
-                        <AssetImpactSummary
-                            singleHazardImpact={hazardImpact}
-                        />
+                        {hazardImpact ? 
+                        <Box sx={{ width: '100%', typography: 'body1', mt: 1 }}>
+                            <TabContext value={impactTab}>
+                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                <TabList onChange={handleTabChange} aria-label="lab API tabs example">
+                                    <Tab label="Score details" value="1" />
+                                    <Tab label="Impact details" value="2" />
+                                    <Tab label="Hazard details" value="3" />
+                                </TabList>
+                                </Box>
+                                <TabPanel value="1">
+                                    {details ?
+                                        <div>
+                                            <Typography sx={{ mt: 1 }} variant="body2">
+                                                {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${details?.valueText}'. `}
+                                                {details?.label}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
+                                                {details?.description}
+                                            </Typography>
+                                        </div>
+                                    : <></>}
+                                </TabPanel>    
+                                <TabPanel value="2">
+                                    <AssetImpactSummary
+                                        singleHazardImpact={hazardImpact}
+                                    />
+                                </TabPanel>
+                                <TabPanel value="3">
+                                    <AssetHazardSummary
+                                        singleHazardImpact={hazardImpact} 
+                                    />
+                                </TabPanel>
+                            </TabContext>
+                        </Box> : <></>}
                     </div>
                     : <></>}
                 </Paper>

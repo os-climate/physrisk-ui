@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 import * as React from "react"
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
@@ -73,7 +71,6 @@ export default function ExceedancePlot(props) {
         ...theme.typography.body2,
         textAlign: 'center',
         color: theme.palette.text.secondary,
-        //height: 60,
         lineHeight: '60px',
       }));
 
@@ -124,7 +121,7 @@ export default function ExceedancePlot(props) {
                             stroke={theme.palette.text.secondary}
                             style={theme.typography.body2}
                             reversed={graphType == "exceedance"}
-                            domain={(graphType == "exceedance") ? [ dataMin => (0.001), 'dataMax'] : ['dataMin', 'dataMax']}
+                            domain={(graphType == "exceedance") ? [ () => (0.001), 'dataMax'] : ['dataMin', 'dataMax']}
                             //domain={['auto', 'auto']}
                             interval={0}
                             tickFormatter = {tickFormat}

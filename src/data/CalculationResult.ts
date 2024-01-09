@@ -1,5 +1,3 @@
-import { green, grey, orange, red } from '@mui/material/colors';
-
 type ScoreBasedRiskMeasureDefinition = {
   hazard_types: string[]
   values: {
@@ -267,6 +265,7 @@ export function createHazardImpact(result: CalculationResult, assetIndex: number
   const assetImpacts = result.assetImpacts[assetIndex].impacts
   const allYears = ["historical", ...(defaultYears.map(y => y.toString()))]
   let curveSet: {[key: string]: any} = {}
+  let hazardCurveSet: {[key: string]: any} = {}
   
   var units = hazardType == "Heat" ? "kWh"  : "%" // get this from the service instead in future
   allYears.forEach(y => {
@@ -275,23 +274,35 @@ export function createHazardImpact(result: CalculationResult, assetIndex: number
       && i.key.year === (y === "historical" ? "None" : y.toString()))
     if (impacts)
     {
+      let scale = (units == "%") ? 100 : 1
       // for exceedance curves the curve might go to probability 0 which will not work
       // on a log plot. We want to truncate to probability 0.001 (1-in-1000 year events)
       let probs: number[] = impacts!.impact_exceedance.exceed_probabilities
       let values: number[] = impacts!.impact_exceedance.values
       let [probsCapped, valuesCapped] = capCurve(probs, values)
-
-      let scale = (units == "%") ? 100 : 1
       let data = probsCapped.map((item, i) =>
         graphDataPoint(
           1.0 / item, // expects return periods
           valuesCapped[i] * scale 
       )).reverse()
-      //.filter(p => isFinite(p.x)).reverse()
       curveSet[y] = data
+      
+      if (impacts!.calc_details?.hazard_exceedance) {
+        let hazardProbs: number[] = impacts!.calc_details.hazard_exceedance.exceed_probabilities
+        let hazardValues: number[] = impacts!.calc_details.hazard_exceedance.values
+        let [hazardProbsCapped, hazardValuesCapped] = capCurve(hazardProbs, hazardValues, 0.001, false)
+        let hazardData = hazardProbsCapped.map((item, i) =>
+          graphDataPoint(
+            1.0 / item, // expects return periods
+            hazardValuesCapped[i]
+        )).reverse()
+        hazardCurveSet[y] = hazardData
+      }
     }
   })
-  return { hazardType: hazardType, scenario: scenarioId.toUpperCase(), curveSet: { units: units, curves: curveSet } }
+  return { hazardType: hazardType, scenario: scenarioId.toUpperCase(), 
+    impactCurveSet: { units: units, curves: curveSet },
+    hazardCurveSet: { curves: hazardCurveSet } }
 }
 
 export function overallScores(result: CalculationResult, scenarioId: string, year: number) {
@@ -308,12 +319,12 @@ export function overallScores(result: CalculationResult, scenarioId: string, yea
   return scores.map(s => scoreText(s))
 }
 
-function capCurve(probs: number[], values: number[], probCap = 0.001)
+function capCurve(probs: number[], values: number[], probCap = 0.001, extrapolate = true)
 {
   // assume that probs is sorted decreasing and probs and values have same length
   let probsCapped = probs.filter(p => p >= probCap)
   let valuesCapped = values.filter((v, i) => i < probsCapped.length)
-  if (probs.length > probsCapped.length && probsCapped[probsCapped.length - 1] != probCap)
+  if (extrapolate && probs.length > probsCapped.length && probsCapped[probsCapped.length - 1] != probCap)
   {
     // we need to add prob 0.001 by linear interpolation
     let index = probsCapped.length - 1

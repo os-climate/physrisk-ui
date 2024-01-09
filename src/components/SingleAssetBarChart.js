@@ -1,30 +1,18 @@
-/* eslint-disable */
 import * as React from "react"
 import { useTheme } from "@mui/material/styles"
-import { blue, purple, lime, pink, teal } from '@mui/material/colors';
 import Box from "@mui/material/Box"
 import {
     BarChart,
     XAxis,
     YAxis,
     Label,
-    LabelList,
     Legend,
-    Tooltip,
     Bar,
     CartesianGrid,
     ResponsiveContainer
 } from "recharts"
 import Title from "./Title"
 import { scoreText } from "../data/CalculationResult";
-
-const colours = {
-    0 : purple[800],
-    1 : lime[900],
-    2 : pink[900],
-    3 : blue[900],
-    4 : teal[800]
-}
 
 export default function SingleAssetBarChart(props) {
     const { title, data, scenarios } = props // hazardType
@@ -33,7 +21,7 @@ export default function SingleAssetBarChart(props) {
         return (<></>)
     let barsData = data.map(d => {
         let barGroupItem = {...d};
-        for (const [s, v] of Object.entries(barGroupItem))
+        for (const [s, ] of Object.entries(barGroupItem))
         {
             if (s != "year") { // s is then scenario
                 let value = barGroupItem[s]
@@ -64,7 +52,7 @@ export default function SingleAssetBarChart(props) {
                         style={theme.typography.body2}
                                             />
                     <YAxis
-                        domain={[dataMin => 0, dataMax => 4]}
+                        domain={[() => 0, () => 4]}
                         interval={0}
                         stroke={theme.palette.text.secondary}
                         style={theme.typography.body2}

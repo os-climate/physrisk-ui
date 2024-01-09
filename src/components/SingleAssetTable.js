@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState, React } from "react";
+import { Fragment, React } from "react";
 import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box";
 import { DataGrid } from "@mui/x-data-grid";
@@ -11,28 +11,15 @@ import WaterIcon from "@mui/icons-material/Water";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import GrainIcon from "@mui/icons-material/Grain";
 import { scoreTextToNumber } from "../data/CalculationResult";
-import Typography from "@mui/material/Typography";
 
 export default function SingleAssetTable(props) {
     const {
         title,
         rows,
-        hazardType,
         setHazardType,
-        scenarioId,
         setScenarioId
     } = props
-    const [details, setDetails] = useState(null)
     const theme = useTheme()
-
-    useEffect(() => {
-        if (!rows) {
-            setDetails(null)
-            return
-        }
-        let selectedRow = rows.find(r => r.hazard == hazardType)
-        setDetails(selectedRow.details[scenarioId])
-    }, [rows, hazardType, scenarioId])
 
     if (!rows){
         return (
@@ -125,17 +112,6 @@ export default function SingleAssetTable(props) {
                     hideFooter
                     onCellClick={handleCellClicked}
                 />
-                {details ?
-                <Fragment>
-                    <Typography sx={{ mt: 1 }} variant="body2">
-                        {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${details?.valueText}'. `}
-                        {details?.label}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
-                        {details?.description}
-                    </Typography>
-                </Fragment>
-                : <></>}
             </Box>
         </Fragment>
     )
