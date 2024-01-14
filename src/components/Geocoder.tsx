@@ -177,7 +177,7 @@ export default function Geocoder({ apiKey, onSelect }: Props) {
   );
 }
 
-async function search(
+export async function search(
   endpoint: string,
   source: string,
   accessToken: string,

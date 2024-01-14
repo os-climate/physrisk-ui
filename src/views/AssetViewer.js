@@ -7,7 +7,7 @@ import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
 import { Upload, List, PlayArrow} from "@mui/icons-material"
 import LoadingButton from "@mui/lab/LoadingButton"
-import ScatterMap from "../components/ScatterMap"
+import { mapboxAccessToken, ScatterMap } from "../components/ScatterMap"
 import Slider from '@mui/material/Slider'
 import Stack from "@mui/material/Stack"
 import Tab from '@mui/material/Tab';
@@ -73,15 +73,20 @@ export default function AssetViewer(props) {
         const reader = new FileReader()
         let portfolio = null
         reader.onload = (event) => {
-            if (extension == "csv") {
+            if (extension == "csv" || extension == "txt") {
                 const transformHeader = h => {
                     const transforms = { "Asset class": "asset_class",
+                        "Identifier": "id",
+                        "Address": "address",
                         "Type": "type",
                         "Latitude": "latitude",
                         "Longitude": "longitude" }
                     return transforms[h]
                 }
-                let items = Papa.parse(event.target.result, { header: true, transformHeader: transformHeader })?.data
+                let items = Papa.parse(event.target.result, { header: true,
+                    transformHeader: transformHeader,
+                    delimiter: extension == "csv" ? "," : "\t"
+                 })?.data
                 portfolio = { items: items }
             }
             else
@@ -99,6 +104,10 @@ export default function AssetViewer(props) {
         }
         reader.readAsText(event.target.files[0])
     }
+    const handleFileClick = event => {
+        const { target = {} } = event || {};
+        target.value = "";
+      }
 
     useEffect(() => {
         async function fetchHazardMenuData() {
@@ -224,8 +233,9 @@ export default function AssetViewer(props) {
                             <input
                                 type="file"
                                 multiple={false}
-                                accept=".csv,.json,application/json"
+                                accept=".csv,.txt,.json,application/json"
                                 onChange={uploadFile}
+                                onClick={handleFileClick}
                                 hidden
                             ></input>
                         </Button>
@@ -258,7 +268,7 @@ export default function AssetViewer(props) {
                         visible={visible}
                     />
                     <Box sx={{ mt: 2 }} />
-                    <AssetTable data={portfolio.portfolioJson} />
+                    <AssetTable data={portfolio.portfolioJson} portfolioDispatch={portfolioDispatch} apiKey={mapboxAccessToken} />
                 </Paper>
             </Grid>
             <Grid item xs={12} md={5} lg={5}>
