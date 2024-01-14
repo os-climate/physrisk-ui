@@ -14,10 +14,10 @@ import { scoreTextToNumber } from "../data/CalculationResult";
 
 // note *public* access token
 // committing into code-base; public token is available on client
-const mapboxAccessToken =
+export const mapboxAccessToken =
     "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbG5hc2hqNnowMjliMmtsZHdiY3RnbzlxIn0.gboGNn4x1erl7O9Q3NrQDQ"
 
-export default function ScatterMap(props) {
+export function ScatterMap(props) {
     const { hazardMenu, hazardMenuDispatch, onClick, 
         selectedAssetIndex, setSelectedAssetIndex, assetData, assetScores, assetSummary, 
         visible } = props
@@ -118,11 +118,13 @@ export default function ScatterMap(props) {
         if (mapRef.current)
         { 
             let lngLat = [assetData.items[0].longitude, assetData.items[0].latitude] 
-            mapRef.current.flyTo({
-                center: lngLat,
-                zoom: 3,
-                speed: 1
-            });
+            if (lngLat[0] && lngLat[1]) {
+                mapRef.current.flyTo({
+                    center: lngLat,
+                    zoom: 3,
+                    speed: 1
+                });
+            }
         }
     }, [assetData])
 
@@ -204,7 +206,7 @@ export default function ScatterMap(props) {
     var assetsSourceStyle = null
     var assetsLayerStyle = null
 
-    if (assetData)
+    if (assetData && assetData.items)
     {
         var key = "test" 
 

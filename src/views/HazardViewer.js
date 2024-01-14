@@ -4,7 +4,7 @@ import LinearProgress from "@mui/material/LinearProgress"
 import ExceedancePlot from "../components/Chart"
 import Link from "@mui/material/Link"
 import Paper from "@mui/material/Paper"
-import ScatterMap from "../components/ScatterMap"
+import { ScatterMap } from "../components/ScatterMap"
 import Summary from "../components/Summary"
 import Title from "../components/Title"
 import {
@@ -90,6 +90,7 @@ export default function HazardViewer(props) {
                                 path: hazardMenu1.selectedModel.path,
                             },
                         ],
+                        interpolation: "max"
                     }
                     try {
                         const config = {
