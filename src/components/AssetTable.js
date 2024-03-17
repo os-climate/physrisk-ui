@@ -87,6 +87,11 @@ export default function AssetTable(props) {
             width: 110,
         },
         {
+            field: "location",
+            headerName: "Location",
+            width: 90,
+        },
+        {
             field: "address",
             headerName: "Address",
             width: 170,

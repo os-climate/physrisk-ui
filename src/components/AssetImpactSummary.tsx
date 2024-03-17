@@ -1,7 +1,7 @@
 import React from "react"
 import { useTheme } from "@mui/material/styles"
 import Box from '@mui/material/Box';
-import ExceedancePlot from "../components/Chart"
+import { ExceedancePlot } from "../components/Chart"
 
 
 export function AssetImpactSummary(props: { singleHazardImpact: any }) {
