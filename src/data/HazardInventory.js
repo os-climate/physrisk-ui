@@ -76,10 +76,8 @@ export function updateMenuOptions(inventory, selectedIndices) {
     var hazardTypeId = inventory.getHazardTypeIds()[selectedIndices[0]]
     var models = inventory.modelsOfHazardType[hazardTypeId]
 
-    // temporary: use groups specified in resource in future
-    var groups = [ "Mean degree days", "Mean work loss", "Days with average temperature above" ]
     var sortedModels = models.map(m => 
-        { return { group: emptyIfUndefined(groups.filter(group => m.display_name.includes(group))[0]), value: m }})
+        { return { group: emptyIfUndefined(m.display_groups.filter(group => m.display_name.includes(group))[0]), value: m }})
     sortedModels = sortedModels.sort((a, b) => (a.group > b.group) ? 1 : -1)
     var sortedModelNames = sortedModels.map(m => { return { group: m.group, value: m.value.display_name }})
 

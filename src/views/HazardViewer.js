@@ -1,7 +1,7 @@
 import { useContext, useEffect, useReducer, useState, React } from "react"
 import Box from "@mui/material/Box"
 import LinearProgress from "@mui/material/LinearProgress"
-import ExceedancePlot from "../components/Chart"
+import { ExceedancePlot, ThresholdPlot } from "../components/Chart"
 import Link from "@mui/material/Link"
 import Paper from "@mui/material/Paper"
 import { ScatterMap } from "../components/ScatterMap"
@@ -56,6 +56,7 @@ export default function HazardViewer(props) {
     const hazardPointInitialState = {
         status: 'idle',
         error: null,
+        indexName: null, // 'return period' or 'threshold'
         data: [],
     };
     
@@ -64,7 +65,8 @@ export default function HazardViewer(props) {
             case 'FETCHING':
                 return { ...hazardPointInitialState, status: 'fetching' };
             case 'FETCHED':
-                return { ...hazardPointInitialState, status: 'fetched', data: action.payload };
+                return { ...hazardPointInitialState, status: 'fetched', data: action.payload.data, 
+                indexName: action.payload.indexName };
             case 'FETCH_ERROR':
                 return { ...hazardPointInitialState, status: 'error', error: action.payload };
             default:
@@ -109,14 +111,14 @@ export default function HazardViewer(props) {
                         var points =
                             curve_set.intensities.length == 1
                                 ? [graphDataPoint(0, curve_set.intensities[0])]
-                                : curve_set.return_periods.map((item, i) =>
+                                : curve_set.index_values.map((item, i) =>
                                     graphDataPoint(
                                         item,
                                         curve_set.intensities[i]
                                     )
-                                ).reverse()
-                                hazardPointDispatch({ type: 'FETCHED', payload: points });
-                        // setGraphData(points)
+                                )
+                        if (curve_set.index_name == "return period") points = points.reverse()
+                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.index_name }});
                     } catch (error) {
                         hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
                     }
@@ -154,9 +156,15 @@ export default function HazardViewer(props) {
                     </Typography>
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
                         <Box sx={{ width: '90%', maxWidth: 900 }} >
-                            <ExceedancePlot data={hazardPointState.data} 
-                                quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
-                                graphType={graphType} />
+                            {hazardPointState.indexName == "return period" ?
+                                <ExceedancePlot data={hazardPointState.data} 
+                                    quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
+                                    graphType={graphType} />
+                                :
+                                <ThresholdPlot data={hazardPointState.data} 
+                                    quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
+                                    graphType={graphType} />    
+                            }
                         </Box>
                     </Box>
                 </div>

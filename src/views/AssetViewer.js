@@ -79,6 +79,7 @@ export default function AssetViewer(props) {
                         "Identifier": "id",
                         "Address": "address",
                         "Type": "type",
+                        "Location": "location",
                         "Latitude": "latitude",
                         "Longitude": "longitude" }
                     return transforms[h]
