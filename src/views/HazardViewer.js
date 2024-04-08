@@ -109,7 +109,7 @@ export default function HazardViewer(props) {
                         var curve_set =
                             response.data.items[0].intensity_curve_set[0]
                         var points =
-                            curve_set.intensities.length == 1
+                            curve_set.intensities.length <= 1
                                 ? [graphDataPoint(0, curve_set.intensities[0])]
                                 : curve_set.index_values.map((item, i) =>
                                     graphDataPoint(
@@ -174,7 +174,7 @@ export default function HazardViewer(props) {
                 <Typography>
                     {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
                         lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
-                        "value is " + hazardPointState.data[0].y.toPrecision(5) + 
+                        "value is " + (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none") + 
                         (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ? 
                             " " + hazardMenu1.selectedModel.units + "." : ".")}
                 </Typography>
