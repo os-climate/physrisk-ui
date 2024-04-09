@@ -159,7 +159,7 @@ export function ScatterMap(props) {
 
         // TODO we need maxzoom to prevent bug when changing source while over-zoomed
         // add to mapinfo - but as temporary measure:
-        var maxzoom = mapInfo.resource.includes("iris") ? 3 : 6
+        var maxzoom = mapInfo.resource.includes("iris") ? 3 : (mapInfo.resource.includes("tudelft") ? 9 : 6)
 
         if (mapInfo.source == "mapbox" || mapInfo.source == "map_array_pyramid")
         {
