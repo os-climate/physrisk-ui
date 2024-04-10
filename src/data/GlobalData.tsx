@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+declare global {
+  interface Window {
+    BASE_API:any;
+  }
+}
+
 //const baseUrl = "http://127.0.0.1:5000"
-const baseUrl = "https://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org" 
+const baseUrl = `${window.BASE_API}`
 //const baseUrl = "https://physrisk-api-uat-sandbox.apps.odh-cl1.apps.os-climate.org/" 
                  
 axios.defaults.baseURL = baseUrl
