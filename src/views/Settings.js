@@ -59,9 +59,12 @@ export default function AboutPage() {
     )
 }
 
+const BaseAPI = window.BASE_API;
+
 const options = [
     { label: 'Production', url: "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" },
     { label: 'Test', url: "https://physrisk-api-uat-sandbox.apps.odh-cl1.apps.os-climate.org" },
+    { label: 'afs', url: `${BaseAPI}` },
     { label: 'Local', url: "http://127.0.0.1:5000" }
   ];
   
