@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 
 //const baseUrl = "http://127.0.0.1:5000"
-const baseUrl = "https://physrisk-api2-sandbox.apps.odh-cl1.apps.os-climate.org" 
+const baseUrl = "https://physrisk-api-sandbox.apps.odh-cl1.apps.os-climate.org" 
 //const baseUrl = "https://physrisk-api-uat-sandbox.apps.odh-cl1.apps.os-climate.org/" 
                  
 axios.defaults.baseURL = baseUrl
