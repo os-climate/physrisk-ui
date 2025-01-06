@@ -13,7 +13,7 @@ Physrisk UI is a development React App intended to:
 - prototype (and share) visualisations
 
 The latest snapshot of the UI is pushed here: 
-[OS-Climate Sandbox](https://physrisk-ui-sandbox.apps.odh-cl1.apps.os-climate.org)
+[OS-Climate Sandbox](https://physrisk-ui-physrisk.apps.odh-cl2.apps.os-climate.org/)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Javascript and Typescript are currently supported, but this may change.
 
