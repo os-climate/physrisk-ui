@@ -24,61 +24,58 @@ type Props = {
 }
 
 const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
-    const [showPassword, setShowPassword] = useState(false);
-    const [loggedInUser, setLoggedInUser] = useState("");
-    const globals = useContext(GlobalDataContext)
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState("");
+  const globals = useContext(GlobalDataContext)
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
-  
-    const config = {
-      headers:{ Authorization: 'Bearer ' + globals.token }
-      };
+  const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  };
 
-    const [loginForm, setloginForm] = useState({
-      email: "",
-      password: ""
-    })
+  const config = {
+    headers: { Authorization: 'Bearer ' + globals.token }
+  };
 
-    useEffect(() => {
-      async function fetchProfile() {
-        try {
-          const profile: any = await axios.post("/api/profile", {}, (globals.token == "") ? {} : config)
-          setLoggedInUser(profile.data.id)
-        }
-        catch (error) {
-          console.log(error)
-        }
+  const [loginForm, setloginForm] = useState({
+    email: "",
+    password: ""
+  })
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const profile: any = await axios.post("/api/profile", {}, (globals.token == "") ? {} : config)
+        setLoggedInUser(profile.data.id)
       }
-      if (open)
-      {
-        fetchProfile()
+      catch (error) {
+        console.log(error)
       }
-    }, [open])
+    }
+    if (open) {
+      fetchProfile()
+    }
+  }, [open])
 
-    function logInOut(event: any) {
-      event.preventDefault()
-      if (loggedInUser)
-      {
-        axios.post(
-          "/api/logout", {}, (globals.token == "") ? {} : config
-        )
+  function logInOut(event: any) {
+    event.preventDefault()
+    if (loggedInUser) {
+      axios.post(
+        "/api/logout", {}, (globals.token == "") ? {} : config
+      )
         .then(() => {
           setLoggedInUser("")
           globals.removeToken()
         })
-      }
-      else
-      {
-        axios.post(
-          "/api/token",
-          {
-            email: loginForm.email,
-            password: loginForm.password
-          }
-        )
+    }
+    else {
+      axios.post(
+        "/api/token",
+        {
+          email: loginForm.email,
+          password: loginForm.password
+        }
+      )
         .then((response) => {
           globals.setToken(response.data.access_token)
           setLoggedInUser(loginForm.email)
@@ -87,57 +84,57 @@ const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
             console.log(error.response)
             console.log(error.response.status)
             console.log(error.response.headers)
-            }
-            setLoggedInUser("")
+          }
+          setLoggedInUser("")
         })
-      }
     }
+  }
 
-    return (
+  return (
     <Dialog open={open} onClose={handleClose}
       fullScreen={fullScreen}>
       <form action="" onSubmit={logInOut}>
         <DialogTitle>Account</DialogTitle>
         <DialogContent>
-          <Typography variant="body1" sx={{ mb:1 }}>
+          <Typography variant="body1" sx={{ mb: 1 }}>
             {loggedInUser ? "Logged in as user '" + loggedInUser + "'" : ""}
           </Typography>
-          { !loggedInUser ? 
+          {!loggedInUser ?
             (
-            <div>
-              <TextField
-                autoFocus
-                margin="dense"
-                id="name"
-                label="Username (email address)"
-                value={loginForm.email}
-                onChange={(e) => setloginForm({ email: e.target.value, password: loginForm.password })} 
-                fullWidth
-              />
-              <FormControl variant="outlined" fullWidth sx={{ mt: 1 }}>
-                <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
-                <OutlinedInput
-                  id="outlined-adornment-password"
-                  type={showPassword ? 'text' : 'password'}
-                  endAdornment={
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  }
-                  label="Password"
-                  value={loginForm.password}
-                  onChange={(e) => setloginForm({ email: loginForm.email, password: e.target.value })} 
+              <div>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  id="name"
+                  label="Username (email address)"
+                  value={loginForm.email}
+                  onChange={(e) => setloginForm({ email: e.target.value, password: loginForm.password })}
+                  fullWidth
                 />
-              </FormControl>
-            </div>
-            ) 
+                <FormControl variant="outlined" fullWidth sx={{ mt: 1 }}>
+                  <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
+                  <OutlinedInput
+                    id="outlined-adornment-password"
+                    type={showPassword ? 'text' : 'password'}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    label="Password"
+                    value={loginForm.password}
+                    onChange={(e) => setloginForm({ email: loginForm.email, password: e.target.value })}
+                  />
+                </FormControl>
+              </div>
+            )
             : null
           }
         </DialogContent>

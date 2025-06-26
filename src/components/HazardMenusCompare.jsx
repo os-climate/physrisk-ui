@@ -5,7 +5,7 @@ import { IconButton, Popover, Tooltip, Typography, styled } from "@mui/material"
 import Box from "@mui/material/Box"
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Collapse from '@mui/material/Collapse';
-import HazardMenus from "./HazardMenus.js"
+import HazardMenus from "./HazardMenus.jsx"
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
