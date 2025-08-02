@@ -127,6 +127,9 @@ export class RiskMeasuresHelper {
   {
     const measure_key = getKey(hazardType, scenarioId, year.toString(), this.measure_set_id())
     const measure = this.measures[measure_key]
+    if (!measure) {
+      return { assetScores: [], assetMeasures: [], measureDefinitions: [] }
+    }
     const assetScores = measure.scores
     const assetMeasures = [measure.measures_0, measure.measures_1]
     // scores for each asset
@@ -214,16 +217,23 @@ export function createDataTable(result: CalculationResult, assetIndex: number, y
       if (scenario.years.includes(year))
       {
         const measure = helper.measure(hazardType, scenario.id, year)
-        let score = measure.assetScores[assetIndex]
-        let measures = measure.assetMeasures[assetIndex]
-        let measureDefn = measure.measureDefinitions[assetIndex]
-        if (measureDefn)
+        if (measure.measureDefinitions.length == 0)
         {
-          let details = helper.scoreDetails(score, measureDefn)
-          rowDetails[scenario.id] = details
-          row[scenario.id] = details.valueText
+          row[scenario.id] = "No data"
         }
-        else row[scenario.id] = "No data"
+        else
+        {
+          let score = measure.assetScores[assetIndex]
+          let measures = measure.assetMeasures[assetIndex]
+          let measureDefn = measure.measureDefinitions[assetIndex]
+          if (measureDefn)
+          {
+            let details = helper.scoreDetails(score, measureDefn)
+            rowDetails[scenario.id] = details
+            row[scenario.id] = details.valueText
+          }
+          else row[scenario.id] = "No data"
+        }
       }
     });
   });
@@ -310,10 +320,13 @@ export function overallScores(result: CalculationResult, scenarioId: string, yea
   let scores: number[] = []
   Object.keys(hazardMap).forEach(hazardType => {
     const measure = helper.measure(hazardType, scenarioId, year)
-    if (scores.length === 0) {
-      scores = measure.assetScores }
-    else {
-      scores = measure.assetScores.map((s, i) => Math.max(s, scores[i]))
+    if (measure.assetScores.length > 0)
+    {
+      if (scores.length === 0) {
+        scores = measure.assetScores }
+      else {
+        scores = measure.assetScores.map((s, i) => Math.max(s, scores[i]))
+      }
     }
   })
   return scores.map(s => scoreText(s))

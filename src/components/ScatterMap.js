@@ -1,16 +1,29 @@
+/* eslint-disable */
+
 import React, { useRef, useContext, useEffect, useState } from "react"
 import { useTheme } from "@mui/material/styles"
-import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl';
+import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl'; //maplibre';
+//import maplibregl from 'maplibre-gl'
+//import 'maplibre-gl/dist/maplibre-gl.css';
+//import './map.css';
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
+import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.js"
 import IconButton from "@mui/material/IconButton"
-import { InfoOutlined } from "@mui/icons-material";
+import InputLabel from '@mui/material/InputLabel';
+import { InfoOutlined, StackedBarChart } from "@mui/icons-material";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Popover from "@mui/material/Popover"
+import Select from '@mui/material/Select';
+import Stack from '@mui/material/Stack';
 import Tooltip from "@mui/material/Tooltip"
 import { scoreTextToNumber } from "../data/CalculationResult";
+import axios from "axios";
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -96,8 +109,40 @@ export function ScatterMap(props) {
     const [lat] = useState(45)
     const [zoom] = useState(3)
 
+    // hazard index values
+    const globals2 = useContext(GlobalDataContext)
+    //const apiHost = globals.services.apiHost
+    useEffect(() => {
+        async function fetchMapAvailableLayers() {
+            if (hazardMenu.selectedModel) {
+                //hazardPointDispatch({ type: 'FETCHING' });
+                var payload = {
+                    resource: hazardMenu.selectedModel.path
+                }
+                try {
+                    const config = {
+                        headers:{
+                            Authorization: 'Bearer ' + globals.token
+                        }
+                        };
+                    var response = await axios.post(
+                        globals.value.services.apiHost + "/api/get_image_info",
+                        payload,
+                        (globals.token == "") ? null : config 
+                    )
+                } catch (error) {
+                    print(error)
+                    //hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
+                }
+            }
+        }
+        fetchMapAvailableLayers()
+    }, [hazardMenu])
+
     // markers
     const [markers, setMarkers] = useState([])
+
+    const [hazard_index] = useState(4);
 
     var transformRequest=(url, resourceType) => {
         if (resourceType == "Image" && globals.value.token)
@@ -290,6 +335,8 @@ export function ScatterMap(props) {
                             id="map"
                             mapboxAccessToken={mapboxAccessToken}
                             projection="globe"
+                            //mapLib={maplibregl}
+                            //mapStyle="https://api.maptiler.com/maps/streets-v2/style.json?key=LiH20XNxcFiTXyT4fgjM"
                             mapStyle="mapbox://styles/mapbox/streets-v11"
                             attributionControl={false}
                             initialViewState={{
@@ -333,9 +380,10 @@ export function ScatterMap(props) {
                         <InfoOutlined fontSize="inherit" color="primary" />
                     </IconButton>
                 </Tooltip>
-                <Box
+                
+                <Stack
                     sx={{
-                        height: 45,
+                        height: 70,
                         width: 175,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
@@ -344,10 +392,20 @@ export function ScatterMap(props) {
                         zIndex: 1,
                         borderRadius: "4px",
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
+                        justifyContent: "center",
+                        alignItems: "center",
                     }}
                 >
-                    <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
-                </Box></> : <></>}
+                    <HazardIndexSelector buttonText="Hazard index" menuOptions={["100", "200"]} />
+                    <Box sx={{
+                        height: 45,
+                        width: 175,
+                        p: 0,
+                        m: 0
+                    }}>
+                        <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
+                    </Box>
+                </Stack></> : <></>}
                 {assetSummary ?
                 <Popover
                     id="mouse-over-popover"

@@ -133,7 +133,7 @@ export default function HazardViewer(props) {
         ? hazardMenu1.selectedModel.display_name
         : ""
     if (hazardPointState.data && hazardPointState.data.length > 0) {
-        if (hazardPointState.data.length > 1) {
+        if (hazardPointState.data.length > 1 && typeof hazardPointState.data[0].x != 'string') {
             chart = (
                 <div>
                     <div>

@@ -17,7 +17,7 @@ export function ColourBar(props) {
         <ResponsiveContainer width={"100%"} height={50}>
             <AreaChart
                 data={colorbarData}
-                margin={{ top: 6, right: 7, left: 7, bottom: 8 }}
+                margin={{ top: 0, right: 7, left: 7, bottom: 10 }}
                 backgroundColor="white"
             >
                 <defs>
