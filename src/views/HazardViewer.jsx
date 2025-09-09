@@ -27,7 +27,7 @@ export default function HazardViewer(props) {
         hazardMenuReducer,
         hazardMenuInitialState
     )
-    
+
     //const [hazardMenu2, hazardMenuDispatch2] = useReducer(
     //    hazardMenuReducer,
     //    hazardMenuInitialState
@@ -59,14 +59,16 @@ export default function HazardViewer(props) {
         indexName: null, // 'return period' or 'threshold'
         data: [],
     };
-    
+
     const [hazardPointState, hazardPointDispatch] = useReducer((state, action) => {
         switch (action.type) {
             case 'FETCHING':
                 return { ...hazardPointInitialState, status: 'fetching' };
             case 'FETCHED':
-                return { ...hazardPointInitialState, status: 'fetched', data: action.payload.data, 
-                indexName: action.payload.indexName };
+                return {
+                    ...hazardPointInitialState, status: 'fetched', data: action.payload.data,
+                    indexName: action.payload.indexName
+                };
             case 'FETCH_ERROR':
                 return { ...hazardPointInitialState, status: 'error', error: action.payload };
             default:
@@ -96,14 +98,14 @@ export default function HazardViewer(props) {
                     }
                     try {
                         const config = {
-                            headers:{
+                            headers: {
                                 Authorization: 'Bearer ' + globals.token
                             }
-                          };
+                        };
                         var response = await axios.post(
                             apiHost + "/api/get_hazard_data",
                             payload,
-                            (globals.token == "") ? null : config 
+                            (globals.token == "") ? null : config
                         )
                         response.access_token && globals.setToken(response.access_token)
                         var curve_set =
@@ -118,7 +120,7 @@ export default function HazardViewer(props) {
                                     )
                                 )
                         if (curve_set.index_name == "return period") points = points.reverse()
-                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.index_name }});
+                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.index_name } });
                     } catch (error) {
                         hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
                     }
@@ -137,16 +139,16 @@ export default function HazardViewer(props) {
             chart = (
                 <div>
                     <div>
-                        {lngLat ? 
+                        {lngLat ?
                             <div>
                                 <Typography>
                                     <Link onClick={() => {
                                         setGraphType(graphType == "returnPeriod" ? "exceedance" : "returnPeriod");
                                     }}>
-                                        {graphType == "returnPeriod" ? "Return period curve" : "Exceedance curve"} 
+                                        {graphType == "returnPeriod" ? "Return period curve" : "Exceedance curve"}
                                     </Link>
                                     {" for pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
-                                    lngLat.lng.toFixed(4) + "\u00b0:"} 
+                                        lngLat.lng.toFixed(4) + "\u00b0:"}
                                 </Typography>
                             </div>
                             : <div></div>
@@ -157,13 +159,13 @@ export default function HazardViewer(props) {
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
                         <Box sx={{ width: '90%', maxWidth: 900 }} >
                             {hazardPointState.indexName == "return period" ?
-                                <ExceedancePlot data={hazardPointState.data} 
+                                <ExceedancePlot data={hazardPointState.data}
                                     quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
                                     graphType={graphType} />
                                 :
-                                <ThresholdPlot data={hazardPointState.data} 
+                                <ThresholdPlot data={hazardPointState.data}
                                     quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
-                                    graphType={graphType} />    
+                                    graphType={graphType} />
                             }
                         </Box>
                     </Box>
@@ -173,9 +175,9 @@ export default function HazardViewer(props) {
             chart = (
                 <Typography>
                     {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
-                        lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
-                        "value is " + (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none") + 
-                        (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ? 
+                        lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") +
+                        "value is " + (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none") +
+                        (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ?
                             " " + hazardMenu1.selectedModel.units + "." : ".")}
                 </Typography>
             )
@@ -201,14 +203,14 @@ export default function HazardViewer(props) {
             <Title>{title}</Title>
             <Box sx={{ width: '100%' }}>
                 {hazardPointState.status === 'fetching' ? (
-                <LinearProgress /> ) : (<div></div>)}
+                    <LinearProgress />) : (<div></div>)}
             </Box>
             {chart}
             <Summary
                 modelDescription={
                     hazardMenu1?.selectedModel?.description
                 }
-            /> 
+            />
         </Paper>
 
     )

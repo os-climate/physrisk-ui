@@ -5,7 +5,7 @@ import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
-import { Upload, List, PlayArrow} from "@mui/icons-material"
+import { Upload, List, PlayArrow } from "@mui/icons-material"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { mapboxAccessToken, ScatterMap } from "../components/ScatterMap"
 import Slider from '@mui/material/Slider'
@@ -22,7 +22,7 @@ import MenuButton from "../components/MenuButton"
 import SingleAssetTable from "../components/SingleAssetTable"
 import SingleAssetBarChart from "../components/SingleAssetBarChart"
 import { hazardMenuReducer, loadHazardMenuData } from "../data/HazardInventory.js"
-import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio.ts"
+import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio"
 import { GlobalDataContext } from "../data/GlobalData"
 import { createBarChartData, createDataTable, createHazardImpact, overallScores } from "../data/CalculationResult"
 
@@ -69,30 +69,32 @@ export default function AssetViewer(props) {
     const globals = useContext(GlobalDataContext);
 
     const uploadFile = (event) => {
-        const extension = event.target.files[0].name.split('.').pop(); 
+        const extension = event.target.files[0].name.split('.').pop();
         const reader = new FileReader()
         let portfolio = null
         reader.onload = (event) => {
             if (extension == "csv" || extension == "txt") {
                 const transformHeader = h => {
-                    const transforms = { "Asset class": "asset_class",
+                    const transforms = {
+                        "Asset class": "asset_class",
                         "Identifier": "id",
                         "Address": "address",
                         "Type": "type",
                         "Location": "location",
                         "Latitude": "latitude",
-                        "Longitude": "longitude" }
+                        "Longitude": "longitude"
+                    }
                     return transforms[h]
                 }
-                let items = Papa.parse(event.target.result, { header: true,
+                let items = Papa.parse(event.target.result, {
+                    header: true,
                     transformHeader: transformHeader,
                     delimiter: extension == "csv" ? "," : "\t"
-                 })?.data
+                })?.data
                 portfolio = { items: items }
             }
-            else
-            {
-                portfolio = JSON.parse(event.target.result) 
+            else {
+                portfolio = JSON.parse(event.target.result)
                 if (!portfolio.items) {
                     portfolio = {
                         items: [
@@ -101,14 +103,14 @@ export default function AssetViewer(props) {
                     }
                 }
             }
-            portfolioDispatch(({ type: "updatePortfolio", portfolioJson: portfolio}))
+            portfolioDispatch(({ type: "updatePortfolio", portfolioJson: portfolio }))
         }
         reader.readAsText(event.target.files[0])
     }
     const handleFileClick = event => {
         const { target = {} } = event || {};
         target.value = "";
-      }
+    }
 
     useEffect(() => {
         async function fetchHazardMenuData() {
@@ -120,8 +122,7 @@ export default function AssetViewer(props) {
     }, [])
 
     useEffect(() => {
-        if (portfolio?.calculationResult)
-        {
+        if (portfolio?.calculationResult) {
             let dataTableRows = createDataTable(portfolio.calculationResult, assetIndex, year)
             setDataTable(dataTableRows)
             let selectedRow = dataTableRows.find(r => r.hazard == hazardType)
@@ -135,9 +136,8 @@ export default function AssetViewer(props) {
     }, [portfolio, year, assetIndex])
 
     useEffect(() => {
-        if (portfolio?.calculationResult)
-        {
-            setHazardImpact(createHazardImpact(portfolio.calculationResult, assetIndex, 
+        if (portfolio?.calculationResult) {
+            setHazardImpact(createHazardImpact(portfolio.calculationResult, assetIndex,
                 hazardType, scenarioId))
             setBarChartData(createBarChartData(portfolio.calculationResult, assetIndex, hazardType))
             if (dataTable) {
@@ -163,50 +163,50 @@ export default function AssetViewer(props) {
             portfolioDispatch(({ type: "updateStatus", newState: "runComplete" }))
             if (!assetIndex) setAssetIndex(0)
         }
-        run()        
+        run()
     }
 
     const yearMarks = [
         {
-          value: 2030,
-          label: '2030',
+            value: 2030,
+            label: '2030',
         },
         {
-          value: 2040,
-          label: '2040',
+            value: 2040,
+            label: '2040',
         },
         {
-          value: 2050,
-          label: '2050',
+            value: 2050,
+            label: '2050',
         }
-      ];
+    ];
     function yearValueText(value) {
         return `${value}`;
     }
     const handleYearChange = (event, newValue) => {
         setYear(newValue);
-      };
-      
+    };
+
     const scenarioMarks = [
         {
-          value: 1,
-          label: 'SSP126',
+            value: 1,
+            label: 'SSP126',
         },
         {
-          value: 2,
-          label: 'SSP245',
+            value: 2,
+            label: 'SSP245',
         },
         {
-          value: 3,
-          label: 'SSP585',
+            value: 3,
+            label: 'SSP585',
         }
-      ];
+    ];
     function scenarioValueText(value) {
         return `${value}`;
     }
     const handleScenarioChange = (event, newValue) => {
         setScenarioId(scenarioMarks.find(m => m.value == newValue).label.toLowerCase())
-      };
+    };
 
     return (
         <Grid container spacing={1}>
@@ -217,7 +217,7 @@ export default function AssetViewer(props) {
                         display: "flex",
                         flexDirection: "column",
                         m: 0
-                    }} 
+                    }}
                 >
                     <Stack spacing={2} direction="row" sx={{
                         display: "flex",
@@ -282,13 +282,13 @@ export default function AssetViewer(props) {
                     }}>
                     <Stack spacing={2} direction="row" alignItems="center"
                         useFlexGap flexWrap="wrap"
-                        sx={{justifyContent: 'space-evenly'}}>
+                        sx={{ justifyContent: 'space-evenly' }}>
                         <Box sx={{ width: 150, ml: 2, mr: 2 }} alignSelf="center">
                             <Typography align="center" style={theme.typography.body2}>
                                 Projected year
                             </Typography>
                             <Slider
-                                sx={{ 
+                                sx={{
                                     '& .MuiSlider-markLabel': { fontSize: 14 },
                                     '& .MuiSlider-mark': { height: 6 }
                                 }}
@@ -310,7 +310,7 @@ export default function AssetViewer(props) {
                                 Scenario
                             </Typography>
                             <Slider
-                                sx={{ 
+                                sx={{
                                     '& .MuiSlider-markLabel': { fontSize: 14 },
                                     '& .MuiSlider-mark': { height: 6 }
                                 }}
@@ -328,57 +328,57 @@ export default function AssetViewer(props) {
                             />
                         </Box>
                     </Stack>
-                    <SingleAssetTable title={`Risk scores (${year}) `} 
+                    <SingleAssetTable title={`Risk scores (${year}) `}
                         rows={dataTable}
                         hazardMenu={hazardMenu}
                         setHazardType={setHazardType}
-                        setScenarioId={setScenarioId} 
+                        setScenarioId={setScenarioId}
                     />
                     {hazardType ?
-                    <div>
-                        <SingleAssetBarChart 
-                            title={hazardType + " score evolution"}
-                            data={barChartData}
-                            hazard={hazardType}
-                            scenarios={scenarioMarks.map(m => m.label)}
-                        />
-                        {hazardImpact ? 
-                        <Box sx={{ width: '100%', typography: 'body1', mt: 1 }}>
-                            <TabContext value={impactTab}>
-                                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                <TabList onChange={handleTabChange} aria-label="lab API tabs example">
-                                    <Tab label="Score details" value="1" />
-                                    <Tab label="Impact details" value="2" />
-                                    <Tab label="Hazard details" value="3" />
-                                </TabList>
-                                </Box>
-                                <TabPanel value="1">
-                                    {details ?
-                                        <div>
-                                            <Typography sx={{ mt: 1 }} variant="body2">
-                                                {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${details?.valueText}'. `}
-                                                {details?.label}
-                                            </Typography>
-                                            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
-                                                {details?.description}
-                                            </Typography>
-                                        </div>
-                                    : <></>}
-                                </TabPanel>    
-                                <TabPanel value="2">
-                                    <AssetImpactSummary
-                                        singleHazardImpact={hazardImpact}
-                                    />
-                                </TabPanel>
-                                <TabPanel value="3">
-                                    <AssetHazardSummary
-                                        singleHazardImpact={hazardImpact} 
-                                    />
-                                </TabPanel>
-                            </TabContext>
-                        </Box> : <></>}
-                    </div>
-                    : <></>}
+                        <div>
+                            <SingleAssetBarChart
+                                title={hazardType + " score evolution"}
+                                data={barChartData}
+                                hazard={hazardType}
+                                scenarios={scenarioMarks.map(m => m.label)}
+                            />
+                            {hazardImpact ?
+                                <Box sx={{ width: '100%', typography: 'body1', mt: 1 }}>
+                                    <TabContext value={impactTab}>
+                                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                            <TabList onChange={handleTabChange} aria-label="lab API tabs example">
+                                                <Tab label="Score details" value="1" />
+                                                <Tab label="Impact details" value="2" />
+                                                <Tab label="Hazard details" value="3" />
+                                            </TabList>
+                                        </Box>
+                                        <TabPanel value="1">
+                                            {details ?
+                                                <div>
+                                                    <Typography sx={{ mt: 1 }} variant="body2">
+                                                        {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${details?.valueText}'. `}
+                                                        {details?.label}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>
+                                                        {details?.description}
+                                                    </Typography>
+                                                </div>
+                                                : <></>}
+                                        </TabPanel>
+                                        <TabPanel value="2">
+                                            <AssetImpactSummary
+                                                singleHazardImpact={hazardImpact}
+                                            />
+                                        </TabPanel>
+                                        <TabPanel value="3">
+                                            <AssetHazardSummary
+                                                singleHazardImpact={hazardImpact}
+                                            />
+                                        </TabPanel>
+                                    </TabContext>
+                                </Box> : <></>}
+                        </div>
+                        : <></>}
                 </Paper>
             </Grid>
         </Grid>

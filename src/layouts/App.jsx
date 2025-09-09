@@ -16,10 +16,10 @@ import Link from "@mui/material/Link"
 import MenuIcon from "@mui/icons-material/Menu"
 import NotificationsIcon from "@mui/icons-material/Notifications"
 import PersonIcon from '@mui/icons-material/Person'
-import DrawerContents from "../components/DrawerContents"
-import { GlobalDataContextProvider } from "../data/GlobalData"
-import routes from "../routes.js"
-import LoginDialog from "../components/LoginDialog"
+import DrawerContents from "../components/DrawerContents.jsx"
+import { GlobalDataContextProvider } from "../data/GlobalData.js"
+import routes from "../routes.jsx"
+import LoginDialog from "../components/LoginDialog.js"
 
 function Copyright(props) {
     return (
@@ -81,12 +81,12 @@ export const themeOptions = {
         other: grey[400] // other
     },
     graphs: {
-        0 : pink[800],
-        1 : cyan[800],
-        2 : purple[900], 
-        3 : lime[800],
-        4 : teal[900], 
-        5 : blue[900] 
+        0: pink[800],
+        1: cyan[800],
+        2: purple[900],
+        3: lime[800],
+        4: teal[900],
+        5: blue[900]
     }
 }
 
@@ -158,7 +158,7 @@ function AppContent() {
 
     const handleLoginClose = () => {
         setLoginOpen(false);
-      };
+    };
 
     return (
         <GlobalDataContextProvider>

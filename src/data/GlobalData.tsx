@@ -10,7 +10,7 @@ declare global {
 //const baseUrl = "http://127.0.0.1:5000"
 const baseUrl = `${window.BASE_API}`
 //const baseUrl = "https://physrisk-api-uat-sandbox.apps.odh-cl1.apps.os-climate.org/" 
-                 
+
 axios.defaults.baseURL = baseUrl
 
 interface Services {
@@ -28,42 +28,41 @@ interface Globals {
 
 export const globals: Globals = {
   inventorySources: [],
-  removeToken: () => {},
+  removeToken: () => { },
   services: { apiHost: "" },
-  setApiHost: (apiHost: string) => {},
-  setToken: (token: string) => {},
+  setApiHost: (apiHost: string) => { },
+  setToken: (token: string) => { },
   token: ""
 };
 
 export const GlobalDataContext = React.createContext(
-    globals
+  globals
 );
 
 export const GlobalDataContextProvider = (props: any) => {
 
   const setApiHost = (apiHost: string) => {
-    setState({...state, services: { apiHost: apiHost }})
+    setState({ ...state, services: { apiHost: apiHost } })
   }
-  
+
   const getStoredToken = () => {
     const userToken = localStorage.getItem("token");
-    return userToken ? userToken : "" 
+    return userToken ? userToken : ""
   }
-  
+
   const setToken = (token: string) => {
     localStorage.setItem("token", token);
-    setState({...state, token: token})
+    setState({ ...state, token: token })
   }
 
   const removeToken = () => {
     localStorage.removeItem("token");
-    setState({...state, token: ""})
+    setState({ ...state, token: "" })
   }
 
-  const initState = () => 
-  { 
+  const initState = () => {
     return {
-      inventorySources: [ "embedded", "hazard" ],
+      inventorySources: ["embedded", "hazard"],
       token: getStoredToken(),
       removeToken: removeToken,
       setApiHost: setApiHost,
