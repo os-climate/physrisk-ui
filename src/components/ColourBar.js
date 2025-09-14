@@ -17,7 +17,7 @@ export function ColourBar(props) {
         <ResponsiveContainer width={"100%"} height={50}>
             <AreaChart
                 data={colorbarData}
-                margin={{ top: 0, right: 7, left: 7, bottom: 10 }}
+                margin={{ top: 0, right: 7, left: 7, bottom: 6 }}
                 backgroundColor="white"
             >
                 <defs>
@@ -59,7 +59,7 @@ export function ColourBar(props) {
                     //fontFamily="Arial"
                     stroke="rgb(117,117,117"
                     label={{
-                        value: "Intensity" + ((units && units != "" && units.toLowerCase() != "none") ?
+                        value: "Indicator value" + ((units && units != "" && units.toLowerCase() != "none") ?
                                 " (" + units + ")" : ""),
                         position: "insideBottom",
                         dy: 3,

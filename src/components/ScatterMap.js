@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import React, { useRef, useContext, useEffect, useState } from "react"
+import React, { useRef, useContext, useEffect, useReducer, useState } from "react"
 import { useTheme } from "@mui/material/styles"
 import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl'; //maplibre';
 //import maplibregl from 'maplibre-gl'
@@ -109,15 +109,48 @@ export function ScatterMap(props) {
     const [lat] = useState(45)
     const [zoom] = useState(3)
 
+    const indexValuesInitialState = {
+        status: 'idle',
+        error: null,
+        allIndexValues: [],
+        availableIndexValues: [],
+        indexUnits: null,
+        indexSelectedValue: null
+    };
+    
+    const [indexValuesState, indexValuesDispatch] = useReducer((state, action) => {
+        switch (action.type) {
+            case 'FETCHING':
+                return { ...indexValuesInitialState, status: 'fetching' };
+            case 'FETCHED':
+                return { ...indexValuesInitialState, status: 'fetched', 
+                    allIndexValues: action.payload.allIndexValues,
+                    availableIndexValues: action.payload.availableIndexValues,
+                    indexDisplayName: action.payload.indexDisplayName,
+                    indexUnits: action.payload.indexUnits,
+                    indexSelectedValue: action.payload.availableIndexValues.at(-1)
+                 };
+            case 'SELECTED':
+                return { ...state, status: 'fetched',
+                    indexSelectedValue: action.payload.indexSelectedValue
+                 };
+            case 'FETCH_ERROR':
+                return { ...indexValuesInitialState, status: 'error', error: action.payload };
+            default:
+                return state;
+        }
+    }, indexValuesInitialState);
+
     // hazard index values
-    const globals2 = useContext(GlobalDataContext)
-    //const apiHost = globals.services.apiHost
     useEffect(() => {
         async function fetchMapAvailableLayers() {
             if (hazardMenu.selectedModel) {
                 //hazardPointDispatch({ type: 'FETCHING' });
+                indexValuesDispatch({ type: 'FETCHING' });
                 var payload = {
-                    resource: hazardMenu.selectedModel.path
+                    resource: hazardMenu.selectedModel.path,
+                    scenario_id: hazardMenu.selectedScenario.id,
+                    year: hazardMenu.selectedYear
                 }
                 try {
                     const config = {
@@ -130,9 +163,14 @@ export function ScatterMap(props) {
                         payload,
                         (globals.token == "") ? null : config 
                     )
+                    var index_units = response.data.index_units
+                    indexValuesDispatch({ type: 'FETCHED', payload: { allIndexValues: response.data.all_index_values,
+                        availableIndexValues: response.data.available_index_values,
+                        indexDisplayName: response.data.index_display_name,
+                        indexUnits: index_units
+                     }});
                 } catch (error) {
-                    print(error)
-                    //hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
+                    indexValuesDispatch({ type: 'FETCH_ERROR', payload: error.message });
                 }
             }
         }
@@ -141,8 +179,6 @@ export function ScatterMap(props) {
 
     // markers
     const [markers, setMarkers] = useState([])
-
-    const [hazard_index] = useState(4);
 
     var transformRequest=(url, resourceType) => {
         if (resourceType == "Image" && globals.value.token)
@@ -202,14 +238,12 @@ export function ScatterMap(props) {
         const apiHost = globals.value.services.apiHost;
         if (!mapInfo) return ""
 
-        // TODO we need maxzoom to prevent bug when changing source while over-zoomed
-        // add to mapinfo - but as temporary measure:
-        var maxzoom = mapInfo.resource.includes("iris") ? 3 : (mapInfo.resource.includes("tudelft") ? 9 : 6)
+        var maxzoom = 15
 
         if (mapInfo.source == "mapbox" || mapInfo.source == "map_array_pyramid")
         {
             var url = (mapInfo.source == "mapbox") ? "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png" :
-                apiHost + "/api/tiles/" + mapInfo.resource + "/{z}/{x}/{y}.png" + "?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year
+                apiHost + "/api/tiles/" + mapInfo.resource + "/{z}/{x}/{y}.png" + "?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year + (indexValuesState.indexSelectedValue !== null ? "&indexValue=" + indexValuesState.indexSelectedValue : "")
             return {
                 id: "hazard",
                 type: "raster",
@@ -365,25 +399,10 @@ export function ScatterMap(props) {
                         </Map>
                     </MapProvider>
                 </Box>
-                {hazardMenu ? <>
-               <Tooltip title="For acute hazards, the map overlay corresponds to the maximum return period.
-                Click a point on the map to view all hazard indicator values.
-                Note that indicator values are calculated using the original coordinate reference system of the data, 
-                whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
-                    <IconButton sx={{
-                            p: 0.5,
-                            position: "absolute",
-                            bottom: 55,
-                            right: 5,
-                            zIndex: 1
-                        }}aria-label="info" size="small">
-                        <InfoOutlined fontSize="inherit" color="primary" />
-                    </IconButton>
-                </Tooltip>
-                
+                {hazardMenu ? <>                
                 <Stack
                     sx={{
-                        height: 70,
+                        // height: 70,
                         width: 175,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
@@ -395,13 +414,32 @@ export function ScatterMap(props) {
                         justifyContent: "center",
                         alignItems: "center",
                     }}
+                    spacing={0}
                 >
-                    <HazardIndexSelector buttonText="Hazard index" menuOptions={["100", "200"]} />
+                    <Tooltip title="For acute hazards, the map overlay may be limited to the maximum return period.
+                    Click a point on the map to view all hazard indicator values.
+                    Note that indicator values are calculated using the original coordinate reference system of the data, 
+                    whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
+                        <IconButton sx={{
+                                p: 0.5,
+                                position: "absolute",
+                                top: -24,
+                                // bottom: -4,
+                                right: -2,
+                                zIndex: 1
+                            }}aria-label="info" size="small">
+                            <InfoOutlined fontSize="inherit" color="primary" />
+                        </IconButton>
+                    </Tooltip>
+                    
+                    <HazardIndexSelector indexSelectedValue={indexValuesState.indexSelectedValue} indexUnits={indexValuesState.indexUnits} availableIndexValues={indexValuesState.availableIndexValues}
+                        allIndexValues={indexValuesState.allIndexValues} indexDisplayName={indexValuesState.indexDisplayName}
+                    indexValuesDispatch={indexValuesDispatch} />
                     <Box sx={{
                         height: 45,
                         width: 175,
                         p: 0,
-                        m: 0
+                        m: 0.5
                     }}>
                         <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
                     </Box>
