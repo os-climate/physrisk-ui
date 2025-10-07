@@ -144,6 +144,9 @@ export default function AssetViewer(props) {
                 let selectedRow = dataTable.find(r => r.hazard == hazardType)
                 setDetails(selectedRow.details[scenarioId])
             }
+            setAssetScores(
+                overallScores(portfolio.calculationResult, scenarioId, year)
+            )
         }
         else {
             setHazardImpact(null)
