@@ -1,16 +1,29 @@
-import React, { useRef, useContext, useEffect, useState } from "react"
+/* eslint-disable */
+
+import React, { useRef, useContext, useEffect, useReducer, useState } from "react"
 import { useTheme } from "@mui/material/styles"
-import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl';
+import {ScaleControl, Map, Marker, Layer, Source, MapProvider} from 'react-map-gl'; //maplibre';
+//import maplibregl from 'maplibre-gl'
+//import 'maplibre-gl/dist/maplibre-gl.css';
+//import './map.css';
 import Box from "@mui/material/Box"
+import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.js"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
+import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.js"
 import IconButton from "@mui/material/IconButton"
-import { InfoOutlined } from "@mui/icons-material";
+import InputLabel from '@mui/material/InputLabel';
+import { InfoOutlined, StackedBarChart } from "@mui/icons-material";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import Popover from "@mui/material/Popover"
+import Select from '@mui/material/Select';
+import Stack from '@mui/material/Stack';
 import Tooltip from "@mui/material/Tooltip"
 import { scoreTextToNumber } from "../data/CalculationResult";
+import axios from "axios";
 
 // note *public* access token
 // committing into code-base; public token is available on client
@@ -96,6 +109,74 @@ export function ScatterMap(props) {
     const [lat] = useState(45)
     const [zoom] = useState(3)
 
+    const indexValuesInitialState = {
+        status: 'idle',
+        error: null,
+        allIndexValues: [],
+        availableIndexValues: [],
+        indexUnits: null,
+        indexSelectedValue: null
+    };
+    
+    const [indexValuesState, indexValuesDispatch] = useReducer((state, action) => {
+        switch (action.type) {
+            case 'FETCHING':
+                return { ...indexValuesInitialState, status: 'fetching' };
+            case 'FETCHED':
+                return { ...indexValuesInitialState, status: 'fetched', 
+                    allIndexValues: action.payload.allIndexValues,
+                    availableIndexValues: action.payload.availableIndexValues,
+                    indexDisplayName: action.payload.indexDisplayName,
+                    indexUnits: action.payload.indexUnits,
+                    indexSelectedValue: action.payload.availableIndexValues.at(-1)
+                 };
+            case 'SELECTED':
+                return { ...state, status: 'fetched',
+                    indexSelectedValue: action.payload.indexSelectedValue
+                 };
+            case 'FETCH_ERROR':
+                return { ...indexValuesInitialState, status: 'error', error: action.payload };
+            default:
+                return state;
+        }
+    }, indexValuesInitialState);
+
+    // hazard index values
+    useEffect(() => {
+        async function fetchMapAvailableLayers() {
+            if (hazardMenu && hazardMenu.selectedModel) {
+                //hazardPointDispatch({ type: 'FETCHING' });
+                indexValuesDispatch({ type: 'FETCHING' });
+                var payload = {
+                    resource: hazardMenu.selectedModel.path,
+                    scenario_id: hazardMenu.selectedScenario.id,
+                    year: hazardMenu.selectedYear
+                }
+                try {
+                    const config = {
+                        headers:{
+                            Authorization: 'Bearer ' + globals.token
+                        }
+                        };
+                    var response = await axios.post(
+                        globals.value.services.apiHost + "/api/get_image_info",
+                        payload,
+                        (globals.token == "") ? null : config 
+                    )
+                    var index_units = response.data.index_units
+                    indexValuesDispatch({ type: 'FETCHED', payload: { allIndexValues: response.data.all_index_values,
+                        availableIndexValues: response.data.available_index_values,
+                        indexDisplayName: response.data.index_display_name,
+                        indexUnits: index_units
+                     }});
+                } catch (error) {
+                    indexValuesDispatch({ type: 'FETCH_ERROR', payload: error.message });
+                }
+            }
+        }
+        fetchMapAvailableLayers()
+    }, [hazardMenu])
+
     // markers
     const [markers, setMarkers] = useState([])
 
@@ -157,14 +238,12 @@ export function ScatterMap(props) {
         const apiHost = globals.value.services.apiHost;
         if (!mapInfo) return ""
 
-        // TODO we need maxzoom to prevent bug when changing source while over-zoomed
-        // add to mapinfo - but as temporary measure:
-        var maxzoom = mapInfo.resource.includes("iris") ? 3 : (mapInfo.resource.includes("tudelft") ? 9 : 6)
+        var maxzoom = 15
 
         if (mapInfo.source == "mapbox" || mapInfo.source == "map_array_pyramid")
         {
             var url = (mapInfo.source == "mapbox") ? "https://api.mapbox.com/v4/" + mapInfo.mapId + "/{z}/{x}/{y}.png" :
-                apiHost + "/api/tiles/" + mapInfo.resource + "/{z}/{x}/{y}.png" + "?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year
+                apiHost + "/api/tiles/" + mapInfo.resource + "/{z}/{x}/{y}.png" + "?minValue=" + mapInfo.minValue + "&maxValue=" + mapInfo.maxValue + "&scenarioId=" + mapInfo.scenarioId + "&year=" + mapInfo.year + (indexValuesState.indexSelectedValue !== null ? "&indexValue=" + indexValuesState.indexSelectedValue : "")
             return {
                 id: "hazard",
                 type: "raster",
@@ -290,6 +369,8 @@ export function ScatterMap(props) {
                             id="map"
                             mapboxAccessToken={mapboxAccessToken}
                             projection="globe"
+                            //mapLib={maplibregl}
+                            //mapStyle="https://api.maptiler.com/maps/streets-v2/style.json?key=LiH20XNxcFiTXyT4fgjM"
                             mapStyle="mapbox://styles/mapbox/streets-v11"
                             attributionControl={false}
                             initialViewState={{
@@ -318,24 +399,10 @@ export function ScatterMap(props) {
                         </Map>
                     </MapProvider>
                 </Box>
-                {hazardMenu ? <>
-               <Tooltip title="For acute hazards, the map overlay corresponds to the maximum return period.
-                Click a point on the map to view all hazard indicator values.
-                Note that indicator values are calculated using the original coordinate reference system of the data, 
-                whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
-                    <IconButton sx={{
-                            p: 0.5,
-                            position: "absolute",
-                            bottom: 55,
-                            right: 5,
-                            zIndex: 1
-                        }}aria-label="info" size="small">
-                        <InfoOutlined fontSize="inherit" color="primary" />
-                    </IconButton>
-                </Tooltip>
-                <Box
+                {hazardMenu ? <>                
+                <Stack
                     sx={{
-                        height: 45,
+                        // height: 70,
                         width: 175,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
@@ -344,10 +411,39 @@ export function ScatterMap(props) {
                         zIndex: 1,
                         borderRadius: "4px",
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
+                        justifyContent: "center",
+                        alignItems: "center",
                     }}
+                    spacing={0}
                 >
-                    <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
-                </Box></> : <></>}
+                    <Tooltip title="For acute hazards, the map overlay may be limited to the maximum return period.
+                    Click a point on the map to view all hazard indicator values.
+                    Note that indicator values are calculated using the original coordinate reference system of the data, 
+                    whereas the overlay is a Mercator reprojection (i.e. small differences in overlay at pixel level).">
+                        <IconButton sx={{
+                                p: 0.5,
+                                position: "absolute",
+                                top: -24,
+                                // bottom: -4,
+                                right: -2,
+                                zIndex: 1
+                            }}aria-label="info" size="small">
+                            <InfoOutlined fontSize="inherit" color="primary" />
+                        </IconButton>
+                    </Tooltip>
+                    
+                    <HazardIndexSelector indexSelectedValue={indexValuesState.indexSelectedValue} indexUnits={indexValuesState.indexUnits} availableIndexValues={indexValuesState.availableIndexValues}
+                        allIndexValues={indexValuesState.allIndexValues} indexDisplayName={indexValuesState.indexDisplayName}
+                    indexValuesDispatch={indexValuesDispatch} />
+                    <Box sx={{
+                        height: 45,
+                        width: 175,
+                        p: 0,
+                        m: 0.5
+                    }}>
+                        <ColourBar colorbarData={colorbarData} colorbarStops={colorbarStops} units={hazardMenu?.mapColorbar?.units} />            
+                    </Box>
+                </Stack></> : <></>}
                 {assetSummary ?
                 <Popover
                     id="mouse-over-popover"
