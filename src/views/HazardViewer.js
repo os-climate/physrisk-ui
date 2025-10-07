@@ -118,7 +118,7 @@ export default function HazardViewer(props) {
                                     )
                                 )
                         if (curve_set.index_name == "return period") points = points.reverse()
-                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.o7 }});
+                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.index_name }});
                     } catch (error) {
                         hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
                     }

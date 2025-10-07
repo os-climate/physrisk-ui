@@ -144,7 +144,7 @@ export function ScatterMap(props) {
     // hazard index values
     useEffect(() => {
         async function fetchMapAvailableLayers() {
-            if (hazardMenu.selectedModel) {
+            if (hazardMenu && hazardMenu.selectedModel) {
                 //hazardPointDispatch({ type: 'FETCHING' });
                 indexValuesDispatch({ type: 'FETCHING' });
                 var payload = {

@@ -77,9 +77,12 @@ export function updateMenuOptions(inventory, selectedIndices) {
     var models = inventory.modelsOfHazardType[hazardTypeId]
 
     var sortedModels = models.map(m => 
-        { return { group: emptyIfUndefined(m.display_groups.filter(group => m.display_name.includes(group))[0]), value: m }})
-    sortedModels = sortedModels.sort((a, b) => ((a.group > b.group) || ((a.group == b.group) && (a.value.display_name > b.value.display_name))) ? 1 : -1)
-    var sortedModelNames = sortedModels.map(m => { return { group: m.group, value: m.value.display_name }})
+        { return { group: emptyIfUndefined(m.display_groups.filter(
+            group => m.display_name.includes(group))[0]), value: m }})
+    sortedModels = sortedModels.sort((a, b) => 
+        ((a.group > b.group) || ((a.group == b.group) && (b.value.indicator_model_gcm.includes("multi_model_0") || (a.value.display_name > b.value.display_name)))) ? 1 : -1)
+    
+    var sortedModelNames = sortedModels.map(m => { return { group: m.group, value: prettifyGCM(m.value.display_name) }})
 
     newSelectedIndices[1] = Math.min(selectedIndices[1], sortedModels.length - 1)
     var model = sortedModels[newSelectedIndices[1]].value
@@ -217,6 +220,10 @@ function prettifyScenarioId(id) {
 
 function prettifyPascalCase(text) {
     return text.replace(/([A-Z])/g, " $1").trim(0)
+}
+
+function prettifyGCM(text) {
+    return text.replace("multi_model_0", "Multi-model")
 }
 
 // Note that all of this look-up information will be retrieved via API call.
