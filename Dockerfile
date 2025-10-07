@@ -1,10 +1,11 @@
 #Build Steps
-FROM node:alpine3.10 as build-step
+FROM node:alpine3.21 AS build-step
 
 RUN mkdir /appwork
 WORKDIR /appwork
 
 COPY package.json /appwork
+COPY package-lock.json /appwork
 RUN npm install
 COPY . /appwork
 
