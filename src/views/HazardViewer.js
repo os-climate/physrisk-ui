@@ -27,7 +27,7 @@ export default function HazardViewer(props) {
         hazardMenuReducer,
         hazardMenuInitialState
     )
-    
+
     //const [hazardMenu2, hazardMenuDispatch2] = useReducer(
     //    hazardMenuReducer,
     //    hazardMenuInitialState
@@ -54,31 +54,42 @@ export default function HazardViewer(props) {
     }, [globals])
 
     const hazardPointInitialState = {
-        status: 'idle',
+        status: "idle",
         error: null,
         indexName: null, // 'return period' or 'threshold'
         data: [],
-    };
-    
-    const [hazardPointState, hazardPointDispatch] = useReducer((state, action) => {
-        switch (action.type) {
-            case 'FETCHING':
-                return { ...hazardPointInitialState, status: 'fetching' };
-            case 'FETCHED':
-                return { ...hazardPointInitialState, status: 'fetched', data: action.payload.data, 
-                indexName: action.payload.indexName };
-            case 'FETCH_ERROR':
-                return { ...hazardPointInitialState, status: 'error', error: action.payload };
-            default:
-                return state;
-        }
-    }, hazardPointInitialState);
+    }
+
+    const [hazardPointState, hazardPointDispatch] = useReducer(
+        (state, action) => {
+            switch (action.type) {
+                case "FETCHING":
+                    return { ...hazardPointInitialState, status: "fetching" }
+                case "FETCHED":
+                    return {
+                        ...hazardPointInitialState,
+                        status: "fetched",
+                        data: action.payload.data,
+                        indexName: action.payload.indexName,
+                    }
+                case "FETCH_ERROR":
+                    return {
+                        ...hazardPointInitialState,
+                        status: "error",
+                        error: action.payload,
+                    }
+                default:
+                    return state
+            }
+        },
+        hazardPointInitialState
+    )
 
     useEffect(() => {
         async function fetchGraphData() {
             if (hazardMenu1.inventory) {
                 if (lngLat) {
-                    hazardPointDispatch({ type: 'FETCHING' });
+                    hazardPointDispatch({ type: "FETCHING" })
                     var payload = {
                         items: [
                             {
@@ -88,39 +99,51 @@ export default function HazardViewer(props) {
                                 latitudes: [lngLat.lat],
                                 year: hazardMenu1.selectedYear,
                                 scenario: hazardMenu1.selectedScenario.id,
-                                indicator_id: hazardMenu1.selectedModel.indicator_id,
+                                indicator_id:
+                                    hazardMenu1.selectedModel.indicator_id,
                                 path: hazardMenu1.selectedModel.path,
                             },
                         ],
-                        interpolation: "max"
+                        interpolation: "max",
                     }
                     try {
                         const config = {
-                            headers:{
-                                Authorization: 'Bearer ' + globals.token
-                            }
-                          };
+                            headers: {
+                                Authorization: "Bearer " + globals.token,
+                            },
+                        }
                         var response = await axios.post(
                             apiHost + "/api/get_hazard_data",
                             payload,
-                            (globals.token == "") ? null : config 
+                            globals.token == "" ? null : config
                         )
-                        response.access_token && globals.setToken(response.access_token)
+                        response.access_token &&
+                            globals.setToken(response.access_token)
                         var curve_set =
                             response.data.items[0].intensity_curve_set[0]
                         var points =
                             curve_set.intensities.length <= 1
                                 ? [graphDataPoint(0, curve_set.intensities[0])]
                                 : curve_set.index_values.map((item, i) =>
-                                    graphDataPoint(
-                                        item,
-                                        curve_set.intensities[i]
-                                    )
-                                )
-                        if (curve_set.index_name == "return period") points = points.reverse()
-                        hazardPointDispatch({ type: 'FETCHED', payload: { data: points, indexName: curve_set.index_name }});
+                                      graphDataPoint(
+                                          item,
+                                          curve_set.intensities[i]
+                                      )
+                                  )
+                        if (curve_set.index_name == "return period")
+                            points = points.reverse()
+                        hazardPointDispatch({
+                            type: "FETCHED",
+                            payload: {
+                                data: points,
+                                indexName: curve_set.index_name,
+                            },
+                        })
                     } catch (error) {
-                        hazardPointDispatch({ type: 'FETCH_ERROR', payload: error.message });
+                        hazardPointDispatch({
+                            type: "FETCH_ERROR",
+                            payload: error.message,
+                        })
                     }
                 }
             }
@@ -133,38 +156,69 @@ export default function HazardViewer(props) {
         ? hazardMenu1.selectedModel.display_name
         : ""
     if (hazardPointState.data && hazardPointState.data.length > 0) {
-        if (hazardPointState.data.length > 1 && typeof hazardPointState.data[0].x != 'string') {
+        if (
+            hazardPointState.data.length > 1 &&
+            typeof hazardPointState.data[0].x != "string"
+        ) {
             chart = (
                 <div>
                     <div>
-                        {lngLat ? 
+                        {lngLat ? (
                             <div>
                                 <Typography>
-                                    <Link onClick={() => {
-                                        setGraphType(graphType == "returnPeriod" ? "exceedance" : "returnPeriod");
-                                    }}>
-                                        {graphType == "returnPeriod" ? "Return period curve" : "Exceedance curve"} 
+                                    <Link
+                                        onClick={() => {
+                                            setGraphType(
+                                                graphType == "returnPeriod"
+                                                    ? "exceedance"
+                                                    : "returnPeriod"
+                                            )
+                                        }}
+                                    >
+                                        {graphType == "returnPeriod"
+                                            ? "Return period curve"
+                                            : "Exceedance curve"}
                                     </Link>
-                                    {" for pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
-                                    lngLat.lng.toFixed(4) + "\u00b0:"} 
+                                    {" for pinned location (lat, lon) " +
+                                        lngLat.lat.toFixed(4) +
+                                        "\u00b0, " +
+                                        lngLat.lng.toFixed(4) +
+                                        "\u00b0:"}
                                 </Typography>
                             </div>
-                            : <div></div>
-                        }
+                        ) : (
+                            <div></div>
+                        )}
                     </div>
-                    <Typography>
-                    </Typography>
-                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', flexDirection: 'row' }} >
-                        <Box sx={{ width: '90%', maxWidth: 900 }} >
-                            {hazardPointState.indexName == "return period" ?
-                                <ExceedancePlot data={hazardPointState.data} 
-                                    quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
-                                    graphType={graphType} />
-                                :
-                                <ThresholdPlot data={hazardPointState.data} 
-                                    quantity={hazardMenu1.selectedModel.indicator_id} units={hazardMenu1.selectedModel.units}
-                                    graphType={graphType} />    
-                            }
+                    <Typography></Typography>
+                    <Box
+                        sx={{
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            flexDirection: "row",
+                        }}
+                    >
+                        <Box sx={{ width: "90%", maxWidth: 900 }}>
+                            {hazardPointState.indexName == "return period" ? (
+                                <ExceedancePlot
+                                    data={hazardPointState.data}
+                                    quantity={
+                                        hazardMenu1.selectedModel.indicator_id
+                                    }
+                                    units={hazardMenu1.selectedModel.units}
+                                    graphType={graphType}
+                                />
+                            ) : (
+                                <ThresholdPlot
+                                    data={hazardPointState.data}
+                                    quantity={
+                                        hazardMenu1.selectedModel.indicator_id
+                                    }
+                                    units={hazardMenu1.selectedModel.units}
+                                    graphType={graphType}
+                                />
+                            )}
                         </Box>
                     </Box>
                 </div>
@@ -172,18 +226,31 @@ export default function HazardViewer(props) {
         } else {
             chart = (
                 <Typography>
-                    {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
-                        lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
-                        "value is " + (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none") + 
-                        (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ? 
-                            " " + hazardMenu1.selectedModel.units + "." : ".")}
+                    {(lngLat
+                        ? "For pinned location (lat, lon) " +
+                          lngLat.lat.toFixed(4) +
+                          "\u00b0, " +
+                          lngLat.lng.toFixed(4) +
+                          "\u00b0, indicator "
+                        : "Indicator ") +
+                        "value is " +
+                        (hazardPointState.data.length == 1
+                            ? hazardPointState.data[0].y
+                                ? hazardPointState.data[0].y.toPrecision(5)
+                                : "none"
+                            : hazardPointState.data
+                                  .map((d) => d.x + ": " + d.y.toPrecision(5))
+                                  .join(", ")) +
+                        (hazardMenu1.selectedModel.units &&
+                        hazardMenu1.selectedModel.units != "none"
+                            ? " " + hazardMenu1.selectedModel.units + "."
+                            : ".")}
                 </Typography>
             )
         }
     } else chart = <div></div>
 
     return (
-
         <Paper
             sx={{
                 p: 1,
@@ -199,17 +266,17 @@ export default function HazardViewer(props) {
                 visible={visible}
             />
             <Title>{title}</Title>
-            <Box sx={{ width: '100%' }}>
-                {hazardPointState.status === 'fetching' ? (
-                <LinearProgress /> ) : (<div></div>)}
+            <Box sx={{ width: "100%" }}>
+                {hazardPointState.status === "fetching" ? (
+                    <LinearProgress />
+                ) : (
+                    <div></div>
+                )}
             </Box>
             {chart}
             <Summary
-                modelDescription={
-                    hazardMenu1?.selectedModel?.description
-                }
-            /> 
+                modelDescription={hazardMenu1?.selectedModel?.description}
+            />
         </Paper>
-
     )
 }

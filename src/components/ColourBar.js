@@ -21,13 +21,7 @@ export function ColourBar(props) {
                 backgroundColor="white"
             >
                 <defs>
-                    <linearGradient
-                        id={"colorUv"}
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                    >
+                    <linearGradient id={"colorUv"} x1="0" y1="0" x2="1" y2="0">
                         {colorbarStops.map((prop, key) => {
                             return (
                                 <stop
@@ -59,8 +53,13 @@ export function ColourBar(props) {
                     //fontFamily="Arial"
                     stroke="rgb(117,117,117"
                     label={{
-                        value: "Indicator value" + ((units && units != "" && units.toLowerCase() != "none") ?
-                                " (" + units + ")" : ""),
+                        value:
+                            "Indicator value" +
+                            (units &&
+                            units != "" &&
+                            units.toLowerCase() != "none"
+                                ? " (" + units + ")"
+                                : ""),
                         position: "insideBottom",
                         dy: 3,
                         fontSize: 11,

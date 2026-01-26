@@ -64,7 +64,6 @@ const options = [
     {
         label: "Production",
         url: "https://physrisk-api-physrisk.apps.osc-cl1.apps.os-climate.org",
-        
     },
     {
         label: "Test",

@@ -1,7 +1,14 @@
 import { Fragment, React } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import { DataGrid, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarFilterButton, GridToolbarExport, useGridApiRef  } from "@mui/x-data-grid"
+import {
+    DataGrid,
+    GridToolbarColumnsButton,
+    GridToolbarContainer,
+    GridToolbarFilterButton,
+    GridToolbarExport,
+    useGridApiRef,
+} from "@mui/x-data-grid"
 import { search } from "../components/Geocoder"
 
 //function getRowId(row) {
@@ -14,47 +21,56 @@ export default function AssetTable(props) {
 
     const handleGeocodeClick = async () => {
         async function geocode() {
-            if (data.items.length < 30)
-            {
-                for (const row of data.items)
-                {
+            if (data.items.length < 30) {
+                for (const row of data.items) {
                     let query = row.address
                     if (!query || (row.latitude && row.longitude)) continue
-                    search("https://api.mapbox.com", "mapbox.places", apiKey, query, 
-                    (err, res, searchTime) => {
-                        if (!err && res && res.features) {
-                            let feature = res.features.find(f => f)
-                            let newData = { items: [...data.items] }
-                            const rowId = row.id
-                            const changedRow = newData.items.find(r => r.id == rowId)
-                            changedRow.latitude = feature.center[1]
-                            changedRow.longitude = feature.center[0]
-                            portfolioDispatch(({ type: "updatePortfolio", portfolioJson: newData }))
-                            //apiRef.current.updateRows([{ identifier: rowId, latitude: feature.center[1], longitude: feature.center[0] }])
-                        }
-                        // place_name for additional check?
-                        console.log(err)
-                        console.log(res)
-                        console.log(searchTime)
-                        console.log(portfolioDispatch)
-                    }, undefined)
+                    search(
+                        "https://api.mapbox.com",
+                        "mapbox.places",
+                        apiKey,
+                        query,
+                        (err, res, searchTime) => {
+                            if (!err && res && res.features) {
+                                let feature = res.features.find((f) => f)
+                                let newData = { items: [...data.items] }
+                                const rowId = row.id
+                                const changedRow = newData.items.find(
+                                    (r) => r.id == rowId
+                                )
+                                changedRow.latitude = feature.center[1]
+                                changedRow.longitude = feature.center[0]
+                                portfolioDispatch({
+                                    type: "updatePortfolio",
+                                    portfolioJson: newData,
+                                })
+                                //apiRef.current.updateRows([{ identifier: rowId, latitude: feature.center[1], longitude: feature.center[0] }])
+                            }
+                            // place_name for additional check?
+                            console.log(err)
+                            console.log(res)
+                            console.log(searchTime)
+                            console.log(portfolioDispatch)
+                        },
+                        undefined
+                    )
                 }
             }
         }
-        geocode()        
+        geocode()
     }
 
     function CustomToolbar() {
         return (
-          <GridToolbarContainer>
-            <GridToolbarColumnsButton />
-            <GridToolbarFilterButton />
-            {/* <GridToolbarDensitySelector /> */}
-            <GridToolbarExport />
-            <Button onClick={handleGeocodeClick}>Geocode</Button>
-          </GridToolbarContainer>
-        );
-      }
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                {/* <GridToolbarDensitySelector /> */}
+                <GridToolbarExport />
+                <Button onClick={handleGeocodeClick}>Geocode</Button>
+            </GridToolbarContainer>
+        )
+    }
 
     const columns = [
         {
@@ -95,18 +111,23 @@ export default function AssetTable(props) {
             field: "address",
             headerName: "Address",
             width: 170,
-        }
+        },
     ]
 
-    const rows = (data && data.items) ? data.items.map((row, i) => {
-        return row.id ? row : { ...row, id: i }
-    }) : []
+    const rows =
+        data && data.items
+            ? data.items.map((row, i) => {
+                  return row.id ? row : { ...row, id: i }
+              })
+            : []
 
     return (
         <Fragment>
-            <Box sx={{
-                    width: "100%"
-                }}>
+            <Box
+                sx={{
+                    width: "100%",
+                }}
+            >
                 <DataGrid
                     //getRowId={getRowId}
                     apiRef={apiRef}

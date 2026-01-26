@@ -1,5 +1,16 @@
 import * as React from "react"
-import { blue, cyan, green, grey, lime, orange, pink, purple, red, teal } from '@mui/material/colors';
+import {
+    blue,
+    cyan,
+    green,
+    grey,
+    lime,
+    orange,
+    pink,
+    purple,
+    red,
+    teal,
+} from "@mui/material/colors"
 import PropTypes from "prop-types"
 import { MemoryRouter, useLocation } from "react-router-dom"
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles"
@@ -15,7 +26,7 @@ import Container from "@mui/material/Container"
 import Link from "@mui/material/Link"
 import MenuIcon from "@mui/icons-material/Menu"
 import NotificationsIcon from "@mui/icons-material/Notifications"
-import PersonIcon from '@mui/icons-material/Person'
+import PersonIcon from "@mui/icons-material/Person"
 import DrawerContents from "../components/DrawerContents"
 import { GlobalDataContextProvider } from "../data/GlobalData"
 import routes from "../routes.js"
@@ -66,11 +77,11 @@ export const themeOptions = {
     },
     typography: {
         body: {
-            fontSize: 14
+            fontSize: 14,
         },
         body2: {
-            fontSize: 14
-        }
+            fontSize: 14,
+        },
     },
     scores: {
         0: grey[400], // no data
@@ -78,16 +89,16 @@ export const themeOptions = {
         2: orange[800], // medium
         3: red[700], // high
         4: red[900], // red flag
-        other: grey[400] // other
+        other: grey[400], // other
     },
     graphs: {
-        0 : pink[800],
-        1 : cyan[800],
-        2 : purple[900], 
-        3 : lime[800],
-        4 : teal[900], 
-        5 : blue[900] 
-    }
+        0: pink[800],
+        1: cyan[800],
+        2: purple[900],
+        3: lime[800],
+        4: teal[900],
+        5: blue[900],
+    },
 }
 
 const appTheme = createTheme(themeOptions)
@@ -130,10 +141,7 @@ function ViewPanel(props) {
         child = component(visible)
     }
     return (
-        <Box
-            hidden={!visible}
-            {...other}
-        >
+        <Box hidden={!visible} {...other}>
             {child}
         </Box>
     )
@@ -157,8 +165,8 @@ function AppContent() {
     }
 
     const handleLoginClose = () => {
-        setLoginOpen(false);
-      };
+        setLoginOpen(false)
+    }
 
     return (
         <GlobalDataContextProvider>
@@ -190,8 +198,10 @@ function AppContent() {
                                 >
                                     <ViewHeader />
                                 </Typography>
-                                <IconButton color="inherit"
-                                    onClick={handleLogin}>
+                                <IconButton
+                                    color="inherit"
+                                    onClick={handleLogin}
+                                >
                                     <Badge color="secondary">
                                         <PersonIcon />
                                     </Badge>
@@ -270,12 +280,20 @@ function AppContent() {
                                 m: 0,
                                 p: 0,
                                 minHeight: "100vh",
-                                width: `calc(100% - ${drawerWidth}px)`
+                                width: `calc(100% - ${drawerWidth}px)`,
                             }}
                         >
                             <Toolbar />
-                            <LoginDialog open={loginOpen} handleClose={handleLoginClose} fullScreen={false}></LoginDialog>
-                            <Container maxWidth={false} sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }} disableGutters>
+                            <LoginDialog
+                                open={loginOpen}
+                                handleClose={handleLoginClose}
+                                fullScreen={false}
+                            ></LoginDialog>
+                            <Container
+                                maxWidth={false}
+                                sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }}
+                                disableGutters
+                            >
                                 {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
                                 {routes.map((prop, key) => {
                                     return (

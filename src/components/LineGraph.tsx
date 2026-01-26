@@ -16,17 +16,23 @@ function graphDataPoint(x: number, y: number) {
     return { x, y }
 }
 
-function dataFromArrays(x: number[], y: number[]) {    
-    var points = x.map((item, i) =>
-        graphDataPoint(item, y[i]))
-    
-    points = points.filter(i => i.x > 0)
+function dataFromArrays(x: number[], y: number[]) {
+    var points = x.map((item, i) => graphDataPoint(item, y[i]))
+
+    points = points.filter((i) => i.x > 0)
     //const sorted = unsorted.sort((i, j) => i.x - j.x)
     return points
 }
 
-export default function LineGraph(props: { title?: any, x: number[], y: number[], 
-    xQuantity: string, yQuantity: string, xUnits?: string, yUnits?: string  }) {
+export default function LineGraph(props: {
+    title?: any
+    x: number[]
+    y: number[]
+    xQuantity: string
+    yQuantity: string
+    xUnits?: string
+    yUnits?: string
+}) {
     const { title, x, y, xQuantity, yQuantity, xUnits, yUnits } = props
     const theme = useTheme()
 

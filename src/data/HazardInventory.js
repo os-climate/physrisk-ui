@@ -67,7 +67,9 @@ export const hazardMenuReducer = (state, action) => {
     }
 }
 
-const emptyIfUndefined = (item) => { return item ? item : "" }
+const emptyIfUndefined = (item) => {
+    return item ? item : ""
+}
 
 /** Update options as necessary and get current selection, adjusting indices as needed. */
 export function updateMenuOptions(inventory, selectedIndices) {
@@ -76,15 +78,33 @@ export function updateMenuOptions(inventory, selectedIndices) {
     var hazardTypeId = inventory.getHazardTypeIds()[selectedIndices[0]]
     var models = inventory.modelsOfHazardType[hazardTypeId]
 
-    var sortedModels = models.map(m => 
-        { return { group: emptyIfUndefined(m.display_groups.filter(
-            group => m.display_name.includes(group))[0]), value: m }})
-    sortedModels = sortedModels.sort((a, b) => 
-        ((a.group > b.group) || ((a.group == b.group) && (b.value.indicator_model_gcm.includes("multi_model_0") || (a.value.display_name > b.value.display_name)))) ? 1 : -1)
-    
-    var sortedModelNames = sortedModels.map(m => { return { group: m.group, value: prettifyGCM(m.value.display_name) }})
+    var sortedModels = models.map((m) => {
+        return {
+            group: emptyIfUndefined(
+                m.display_groups.filter((group) =>
+                    m.display_name.includes(group)
+                )[0]
+            ),
+            value: m,
+        }
+    })
+    sortedModels = sortedModels.sort((a, b) =>
+        a.group > b.group ||
+        (a.group == b.group &&
+            (b.value.indicator_model_gcm.includes("multi_model_0") ||
+                a.value.display_name > b.value.display_name))
+            ? 1
+            : -1
+    )
 
-    newSelectedIndices[1] = Math.min(selectedIndices[1], sortedModels.length - 1)
+    var sortedModelNames = sortedModels.map((m) => {
+        return { group: m.group, value: prettifyGCM(m.value.display_name) }
+    })
+
+    newSelectedIndices[1] = Math.min(
+        selectedIndices[1],
+        sortedModels.length - 1
+    )
     var model = sortedModels[newSelectedIndices[1]].value
     newSelectedIndices[2] = Math.min(
         selectedIndices[2],
@@ -95,14 +115,20 @@ export function updateMenuOptions(inventory, selectedIndices) {
         selectedIndices[3],
         scenario.years.length - 1
     )
-    var year = scenario.years[newSelectedIndices[3]]    
+    var year = scenario.years[newSelectedIndices[3]]
 
     return [
         [
-            inventory.getHazardTypeIds().map(h => { return { group: "", value: prettifyPascalCase(h) }}),
+            inventory.getHazardTypeIds().map((h) => {
+                return { group: "", value: prettifyPascalCase(h) }
+            }),
             sortedModelNames,
-            model.scenarios.map(s => { return { group: "", value: prettifyScenarioId(s.id) }}),
-            scenario.years.map(y => { return { group: "", value: y.toString() }}),
+            model.scenarios.map((s) => {
+                return { group: "", value: prettifyScenarioId(s.id) }
+            }),
+            scenario.years.map((y) => {
+                return { group: "", value: y.toString() }
+            }),
         ],
         newSelectedIndices,
         [hazardTypeId, model, scenario, year],
@@ -111,8 +137,8 @@ export function updateMenuOptions(inventory, selectedIndices) {
 
 export const loadHazardMenuData = async (globals) => {
     try {
-        const apiHost = globals.services.apiHost;
-    
+        const apiHost = globals.services.apiHost
+
         var response = await axios.post(
             apiHost + "/api/get_hazard_data_availability",
             { sources: globals.inventorySources }
@@ -124,19 +150,19 @@ export const loadHazardMenuData = async (globals) => {
         const menus = [
             {
                 name: "Hazard type",
-                minWidth: 100
+                minWidth: 100,
             },
             {
                 name: "Hazard indicator",
-                minWidth: 100
+                minWidth: 100,
             },
             {
                 name: "Scenario",
-                minWidth: 100
+                minWidth: 100,
             },
             {
                 name: "Year",
-                minWidth: 100
+                minWidth: 100,
             },
         ]
         return {
@@ -171,23 +197,27 @@ export class HazardInventory {
         const model = this.modelsOfHazardType[hazardTypeId].filter(
             (m) => m.path == modelId // path acts as the unique id
         )[0]
-        const scenario = model.scenarios
-            .filter((s) => s.id == scenarioId)[0]
-        const period = scenario.periods ? scenario.periods.filter((p) => p.year == year)[0] : null
+        const scenario = model.scenarios.filter((s) => s.id == scenarioId)[0]
+        const period = scenario.periods
+            ? scenario.periods.filter((p) => p.year == year)[0]
+            : null
 
-        const result = { 
+        const result = {
             bounds: model.map.bounds,
             source: model.map.source,
-            mapId: model.map.source == "mapbox" ? "osc-mapbox." + period.map_id : null,
+            mapId:
+                model.map.source == "mapbox"
+                    ? "osc-mapbox." + period.map_id
+                    : null,
             resource: model.path,
             scenarioId: scenario.id,
             year: year,
             colorbar: getColorbar(this.colormaps, model.map.colormap),
             minValue: model.map.colormap.min_value,
-            maxValue: model.map.colormap.max_value 
+            maxValue: model.map.colormap.max_value,
         }
 
-        return result 
+        return result
     }
 }
 
@@ -230,14 +260,15 @@ function prettifyGCM(text) {
 // This includes inventory, map IDs, and map color bars.
 // Added here as temporary measure pending update of API.
 
-
 function getColorbar(colormaps, mapColormap) {
     const minIndex = mapColormap["min_index"]
     const maxIndex = mapColormap["max_index"]
     const n = maxIndex - minIndex + 1
     const stops = [...Array(n).keys()].map((i) => ({
         offset: ((i * 100.0) / (n - 1)).toFixed(1) + "%",
-        stopColor: rgbToHex(colormaps[mapColormap["name"]][(i + minIndex).toString()]),
+        stopColor: rgbToHex(
+            colormaps[mapColormap["name"]][(i + minIndex).toString()]
+        ),
     }))
     return {
         stops: stops,
@@ -272,5 +303,3 @@ export const exampleInventory = [
         scenarios: [{ id: "Historical", years: [1980] }],
     },
 ]
-
-
