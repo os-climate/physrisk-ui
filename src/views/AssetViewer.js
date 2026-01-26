@@ -22,7 +22,7 @@ import MenuButton from "../components/MenuButton"
 import SingleAssetTable from "../components/SingleAssetTable"
 import SingleAssetBarChart from "../components/SingleAssetBarChart"
 import { hazardMenuReducer, loadHazardMenuData } from "../data/HazardInventory.js"
-import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, setExamplePortfolioNames } from "../data/Portfolio.ts"
+import { loadExamplePortfolio, portfolioReducer, portfolioInitialiser, runCalculation, loadExamplePortfolios } from "../data/Portfolio.ts"
 import { GlobalDataContext } from "../data/GlobalData"
 import { createBarChartData, createDataTable, createHazardImpact, overallScores } from "../data/CalculationResult"
 
@@ -115,8 +115,12 @@ export default function AssetViewer(props) {
             const hazardMenuData = await loadHazardMenuData(globals)
             hazardMenuDispatch({ type: "initialise", payload: hazardMenuData })
         }
+        async function fetchExamplePortfolios() {
+            const examplePortfolios = await loadExamplePortfolios(globals)
+            portfolioDispatch({ type: "setExamplePortfolios", examplePortfolios: examplePortfolios })
+        }
         fetchHazardMenuData()
-        setExamplePortfolioNames(portfolioDispatch)
+        fetchExamplePortfolios()
     }, [])
 
     useEffect(() => {
@@ -129,6 +133,7 @@ export default function AssetViewer(props) {
             setAssetScores(overallScores(portfolio.calculationResult, scenarioId, year))
         }
         else {
+            setBarChartData(null)
             setDataTable(null)
             setAssetScores(null)
         }
@@ -244,8 +249,8 @@ export default function AssetViewer(props) {
                             ></input>
                         </Button>
                         <MenuButton buttonText="Example portfolios" buttonIcon={<List />}
-                            menuOptions={portfolio.examplePortfolioNames}
-                            onPortfolioSelected={portfolioName => loadExamplePortfolio(portfolioDispatch, portfolioName, globals)}
+                            menuOptions={Object.keys(portfolio.examplePortfolios)}
+                            onPortfolioSelected={portfolioName => loadExamplePortfolio(portfolio, portfolioDispatch, portfolioName, globals)}
                         >
                         </MenuButton>
                         <LoadingButton

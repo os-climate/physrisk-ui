@@ -174,7 +174,8 @@ export default function HazardViewer(props) {
                 <Typography>
                     {(lngLat ? "For pinned location (lat, lon) " + lngLat.lat.toFixed(4) + "\u00b0, " +
                         lngLat.lng.toFixed(4) + "\u00b0, indicator " : "Indicator ") + 
-                        "value is " + (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none") + 
+                        "value is " + (hazardPointState.data.length == 1 ? (hazardPointState.data[0].y ? hazardPointState.data[0].y.toPrecision(5) : "none")
+                        : hazardPointState.data.map(d => d.x + ": " + d.y.toPrecision(5) ).join(", ")) +
                         (hazardMenu1.selectedModel.units && hazardMenu1.selectedModel.units != "none" ? 
                             " " + hazardMenu1.selectedModel.units + "." : ".")}
                 </Typography>
