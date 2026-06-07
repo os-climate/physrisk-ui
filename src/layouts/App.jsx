@@ -29,7 +29,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications"
 import PersonIcon from "@mui/icons-material/Person"
 import DrawerContents from "../components/DrawerContents"
 import { GlobalDataContextProvider } from "../data/GlobalData"
-import routes from "../routes.js"
+import routes from "../routes.jsx"
 import LoginDialog from "../components/LoginDialog"
 
 function Copyright(props) {

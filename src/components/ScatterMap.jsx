@@ -21,11 +21,11 @@ import {
 //import './map.css';
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import { ColourBar } from "./ColourBar.js"
+import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
-import HazardMenusCompare from "./HazardMenusCompare.js"
+import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
 import InputLabel from "@mui/material/InputLabel"
 import { InfoOutlined, StackedBarChart } from "@mui/icons-material"
