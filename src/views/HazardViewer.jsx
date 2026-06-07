@@ -1,4 +1,4 @@
-import { useContext, useEffect, useReducer, useState, React } from "react"
+import { useContext, useEffect, useReducer, useState } from "react"
 import Box from "@mui/material/Box"
 import LinearProgress from "@mui/material/LinearProgress"
 import { ExceedancePlot, ThresholdPlot } from "../components/Chart"
@@ -27,11 +27,6 @@ export default function HazardViewer(props) {
         hazardMenuReducer,
         hazardMenuInitialState
     )
-
-    //const [hazardMenu2, hazardMenuDispatch2] = useReducer(
-    //    hazardMenuReducer,
-    //    hazardMenuInitialState
-    //)
 
     const [graphType, setGraphType] = useState("returnPeriod")
     const [lngLat, setLngLat] = useState(null)

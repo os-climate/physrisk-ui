@@ -16,9 +16,6 @@ import {
     Source,
     MapProvider,
 } from "react-map-gl" //maplibre';
-//import maplibregl from 'maplibre-gl'
-//import 'maplibre-gl/dist/maplibre-gl.css';
-//import './map.css';
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.jsx"

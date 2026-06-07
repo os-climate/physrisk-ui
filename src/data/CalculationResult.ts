@@ -287,7 +287,6 @@ export function createBarChartData(
         helper.scenarios().forEach((scenario) => {
             if (scenario.years.includes(year)) {
                 const measure = helper.measure(hazardTypeKey, scenario.id, year)
-                //let measureDefn = measure.measureDefinitions[assetIndex]
                 if (measure) {
                     let score = measure.assetScores[assetIndex]
                     yearData[scenario.id.toUpperCase()] = score
@@ -419,5 +418,4 @@ function capCurve(
         valuesCapped.push(value)
     }
     return [probsCapped, valuesCapped]
-    //return { probs: probsCapped, values: valuesCapped }
 }

@@ -1,5 +1,4 @@
 import axios from "axios"
-//import path from "path-browserify"
 
 export const hazardMenuInitialiser = () => {
     return {

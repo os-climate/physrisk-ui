@@ -1,8 +1,6 @@
-import { React } from "react"
 import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
 import { useTheme } from "@mui/material/styles"
-//import { Typography } from "@mui/material"
 
 export default function AboutPage() {
     const theme = useTheme()

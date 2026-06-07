@@ -20,7 +20,6 @@ function dataFromArrays(x: number[], y: number[]) {
     var points = x.map((item, i) => graphDataPoint(item, y[i]))
 
     points = points.filter((i) => i.x > 0)
-    //const sorted = unsorted.sort((i, j) => i.x - j.x)
     return points
 }
 

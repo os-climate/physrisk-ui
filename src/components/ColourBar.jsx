@@ -3,8 +3,8 @@ import { useTheme } from "@mui/material/styles"
 import {
     Area,
     AreaChart,
-    CartesianGrid,
     CartesianAxis,
+    CartesianGrid,
     XAxis,
     YAxis,
     ResponsiveContainer,
@@ -31,8 +31,6 @@ export function ColourBar(props) {
                                 />
                             )
                         })}
-                        {/* <stop offset="0%" stopColor="#FF0000" stopOpacity={1.0}/>
-            <stop offset="100%" stopColor="#FFFFFF" stopOpacity={1.0}/> */}
                     </linearGradient>
                 </defs>
                 <Area

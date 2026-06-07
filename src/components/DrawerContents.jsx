@@ -1,4 +1,3 @@
-import { React } from "react"
 import { styled } from "@mui/material/styles"
 import List from "@mui/material/List"
 import Divider from "@mui/material/Divider"

@@ -1,11 +1,9 @@
 import React from "react"
-import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import { ExceedancePlot } from "../components/Chart"
 
 export function AssetImpactSummary(props: { singleHazardImpact: any }) {
     const { singleHazardImpact } = props
-    const theme = useTheme()
     if (!singleHazardImpact?.impactCurveSet) {
         return <></>
     }
@@ -43,7 +41,6 @@ export function AssetImpactSummary(props: { singleHazardImpact: any }) {
 
 export function AssetHazardSummary(props: { singleHazardImpact: any }) {
     const { singleHazardImpact } = props
-    const theme = useTheme()
     if (!singleHazardImpact?.hazardCurveSet) {
         return <></>
     }

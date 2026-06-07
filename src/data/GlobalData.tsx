@@ -7,7 +7,6 @@ declare global {
     }
 }
 
-//const baseUrl = "http://0.0.0.0:8000"
 const baseUrl = `${window.BASE_API}`
 
 axios.defaults.baseURL = baseUrl
