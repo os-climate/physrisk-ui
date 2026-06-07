@@ -9,7 +9,6 @@ declare global {
 
 //const baseUrl = "http://0.0.0.0:8000"
 const baseUrl = `${window.BASE_API}`
-//const baseUrl = "https://physrisk-api-physrisk.apps.osc-cl1.apps.os-climate.org"
 
 axios.defaults.baseURL = baseUrl
 
