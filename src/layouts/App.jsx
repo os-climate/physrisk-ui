@@ -1,4 +1,5 @@
 import * as React from "react"
+import { GlobalDataContext } from "../data/GlobalData"
 import {
     blue,
     cyan,
@@ -151,7 +152,8 @@ Router.propTypes = {
     children: PropTypes.node,
 }
 
-function AppContent() {
+function AppInner() {
+    const globals = React.useContext(GlobalDataContext)
     const [mobileOpen, setMobileOpen] = React.useState(false)
     const [loginOpen, setLoginOpen] = React.useState(false)
     const [open] = React.useState(true)
@@ -168,11 +170,15 @@ function AppContent() {
         setLoginOpen(false)
     }
 
+    React.useEffect(() => {
+        if (globals.authRequired) {
+            setLoginOpen(true)
+        }
+    }, [globals.authRequired])
+
     return (
-        <GlobalDataContextProvider>
-            <ThemeProvider theme={appTheme}>
-                <Box sx={{ display: "flex" }}>
-                    <Router>
+        <Box sx={{ display: "flex" }}>
+            <Router>
                         <CssBaseline />
                         <AppBar
                             position="absolute"
@@ -309,6 +315,14 @@ function AppContent() {
                         </Box>
                     </Router>
                 </Box>
+    )
+}
+
+function AppContent() {
+    return (
+        <GlobalDataContextProvider>
+            <ThemeProvider theme={appTheme}>
+                <AppInner />
             </ThemeProvider>
         </GlobalDataContextProvider>
     )

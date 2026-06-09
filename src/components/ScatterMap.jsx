@@ -222,13 +222,14 @@ export function ScatterMap(props) {
     const [markers, setMarkers] = useState([])
 
     var transformRequest = (url, resourceType) => {
-        if (resourceType == "Image" && globals.value.token) {
+        if (
+            (resourceType === "Tile" || resourceType === "Image") &&
+            globals.value.token &&
+            !url.startsWith("https://api.mapbox.com")
+        ) {
             return {
                 url: url,
-                headers:
-                    globals.value.token == ""
-                        ? null
-                        : { Authorization: "Bearer " + globals.value.token },
+                headers: { Authorization: "Bearer " + globals.value.token },
             }
         }
     }
