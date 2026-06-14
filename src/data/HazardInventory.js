@@ -1,5 +1,4 @@
 import axios from "axios"
-//import path from "path-browserify"
 
 export const hazardMenuInitialiser = () => {
     return {
@@ -45,7 +44,8 @@ export const hazardMenuReducer = (state, action) => {
                     action.payload.selectedIndices
                 )
             var [hazardTypeId, model, scenario, year] = selection // eslint-disable-line no-redeclare
-            var mapInfo = state.inventory.getMapInfo( // eslint-disable-line no-redeclare
+            var mapInfo = state.inventory.getMapInfo(
+                // eslint-disable-line no-redeclare
                 hazardTypeId,
                 model.path,
                 scenario.id,

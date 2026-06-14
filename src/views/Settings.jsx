@@ -1,4 +1,4 @@
-import { useContext, React } from "react"
+import { useContext } from "react"
 import Box from "@mui/material/Box"
 import Divider from "@mui/material/Divider"
 import Paper from "@mui/material/Paper"
@@ -7,8 +7,7 @@ import Autocomplete from "@mui/material/Autocomplete"
 import { Typography } from "@mui/material"
 import { GlobalDataContext } from "../data/GlobalData"
 
-export default function AboutPage() {
-    //const theme = useTheme()
+export default function Settings() {
     const globals = useContext(GlobalDataContext)
 
     const onValueChanged = (newValue) => {

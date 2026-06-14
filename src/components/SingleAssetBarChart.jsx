@@ -12,7 +12,6 @@ import {
     ResponsiveContainer,
 } from "recharts"
 import Title from "./Title"
-import { scoreText } from "../data/CalculationResult"
 
 export default function SingleAssetBarChart(props) {
     const { title, data, scenarios } = props // hazardType
@@ -63,7 +62,7 @@ export default function SingleAssetBarChart(props) {
                             stroke={theme.palette.text.secondary}
                             style={theme.typography.body2}
                             ticks={[0, 1, 2, 3, 4]}
-                            tickFormatter={(t) => scoreText(t)}
+                            tickFormatter={String}
                         >
                             <Label
                                 angle={270}

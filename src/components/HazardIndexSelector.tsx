@@ -80,5 +80,3 @@ export default function HazardIndexSelector(props: {
         </Box>
     )
 }
-
-export { HazardIndexSelector }

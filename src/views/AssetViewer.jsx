@@ -1,14 +1,18 @@
 import { useContext, useEffect, useReducer, useState, React } from "react"
-import { useTheme } from "@mui/material/styles"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
-import { Upload, List, PlayArrow } from "@mui/icons-material"
+import { Upload, List, PlayArrow, ChevronRight, Assessment } from "@mui/icons-material"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
 import LoadingButton from "@mui/lab/LoadingButton"
 import { mapboxAccessToken, ScatterMap } from "../components/ScatterMap"
-import Slider from "@mui/material/Slider"
+import FormControl from "@mui/material/FormControl"
+import InputLabel from "@mui/material/InputLabel"
+import MenuItem from "@mui/material/MenuItem"
+import Select from "@mui/material/Select"
 import Stack from "@mui/material/Stack"
 import Tab from "@mui/material/Tab"
 import TabContext from "@mui/lab/TabContext"
@@ -45,7 +49,6 @@ import {
 
 export default function AssetViewer(props) {
     const { visible } = props
-    const theme = useTheme()
     const hazardMenuInitialState = {
         inventory: null,
         menus: [],
@@ -77,6 +80,7 @@ export default function AssetViewer(props) {
     const [barChartData, setBarChartData] = useState(null)
     const [hazardImpact, setHazardImpact] = useState(null)
 
+    const [showDetails, setShowDetails] = useState(false)
     const [impactTab, setImpactTab] = useState("1")
     const handleTabChange = (event, newValue) => {
         setImpactTab(newValue)
@@ -204,6 +208,7 @@ export default function AssetViewer(props) {
     }
 
     const handleCalculateButtonClick = async () => {
+        if (!portfolio?.portfolioJson?.items?.length) return
         async function run() {
             portfolioDispatch({ type: "updateStatus", newState: "running" })
             const result = await runCalculation(
@@ -217,57 +222,21 @@ export default function AssetViewer(props) {
             })
             portfolioDispatch({ type: "updateStatus", newState: "runComplete" })
             if (!assetIndex) setAssetIndex(0)
+            setShowDetails(true)
         }
         run()
     }
 
-    const yearMarks = [
-        {
-            value: 2030,
-            label: "2030",
-        },
-        {
-            value: 2040,
-            label: "2040",
-        },
-        {
-            value: 2050,
-            label: "2050",
-        },
+    const years = [2030, 2040, 2050]
+    const scenarios = [
+        { id: "ssp126", label: "SSP126" },
+        { id: "ssp245", label: "SSP245" },
+        { id: "ssp585", label: "SSP585" },
     ]
-    function yearValueText(value) {
-        return `${value}`
-    }
-    const handleYearChange = (event, newValue) => {
-        setYear(newValue)
-    }
-
-    const scenarioMarks = [
-        {
-            value: 1,
-            label: "SSP126",
-        },
-        {
-            value: 2,
-            label: "SSP245",
-        },
-        {
-            value: 3,
-            label: "SSP585",
-        },
-    ]
-    function scenarioValueText(value) {
-        return `${value}`
-    }
-    const handleScenarioChange = (event, newValue) => {
-        setScenarioId(
-            scenarioMarks.find((m) => m.value == newValue).label.toLowerCase()
-        )
-    }
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} md={7} lg={7}>
+            <Grid item xs={12} md={showDetails ? 7 : 12} lg={showDetails ? 7 : 12}>
                 <Paper
                     sx={{
                         p: 1,
@@ -333,6 +302,17 @@ export default function AssetViewer(props) {
                         >
                             Calculate impacts
                         </LoadingButton>
+                        {portfolio?.calculationResult && !showDetails && (
+                            <Button
+                                variant="text"
+                                size="small"
+                                endIcon={<Assessment />}
+                                onClick={() => setShowDetails(true)}
+                                sx={{ flexShrink: 0 }}
+                            >
+                                Show scores
+                            </Button>
+                        )}
                     </Stack>
                     <Divider light sx={{ mt: 2, mb: 1 }} />
                     <ScatterMap
@@ -353,6 +333,7 @@ export default function AssetViewer(props) {
                     />
                 </Paper>
             </Grid>
+            {showDetails && (
             <Grid item xs={12} md={5} lg={5}>
                 <Paper
                     sx={{
@@ -362,75 +343,46 @@ export default function AssetViewer(props) {
                         m: 0,
                     }}
                 >
+                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                        <Tooltip title="Collapse scores panel">
+                            <IconButton
+                                size="small"
+                                onClick={() => setShowDetails(false)}
+                            >
+                                <ChevronRight fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
                     <Stack
                         spacing={2}
                         direction="row"
                         alignItems="center"
-                        useFlexGap
-                        flexWrap="wrap"
-                        sx={{ justifyContent: "space-evenly" }}
+                        sx={{ justifyContent: "space-evenly", mt: 1, mb: 1 }}
                     >
-                        <Box
-                            sx={{ width: 150, ml: 2, mr: 2 }}
-                            alignSelf="center"
-                        >
-                            <Typography
-                                align="center"
-                                style={theme.typography.body2}
-                            >
-                                Projected year
-                            </Typography>
-                            <Slider
-                                sx={{
-                                    "& .MuiSlider-markLabel": { fontSize: 14 },
-                                    "& .MuiSlider-mark": { height: 6 },
-                                }}
-                                aria-label="Projected year"
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+                            <InputLabel>Projected year</InputLabel>
+                            <Select
                                 value={year}
-                                getAriaValueText={yearValueText}
-                                marks={yearMarks}
-                                min={2028}
-                                max={2052}
-                                size="normal"
-                                step={null}
-                                track={false}
-                                valueLabelDisplay="off"
-                                onChange={handleYearChange}
-                            />
-                        </Box>
-                        <Box
-                            sx={{ width: 150, ml: 2, mr: 2 }}
-                            alignSelf="center"
-                        >
-                            <Typography
-                                align="center"
-                                style={theme.typography.body2}
+                                label="Projected year"
+                                onChange={(e) => setYear(e.target.value)}
                             >
-                                Scenario
-                            </Typography>
-                            <Slider
-                                sx={{
-                                    "& .MuiSlider-markLabel": { fontSize: 14 },
-                                    "& .MuiSlider-mark": { height: 6 },
-                                }}
-                                aria-label="Scenario"
-                                value={
-                                    scenarioMarks.find(
-                                        (m) =>
-                                            m.label == scenarioId.toUpperCase()
-                                    ).value
-                                }
-                                getAriaValueText={scenarioValueText}
-                                marks={scenarioMarks}
-                                min={0.8}
-                                max={3.2}
-                                size="normal"
-                                step={null}
-                                track={false}
-                                valueLabelDisplay="off"
-                                onChange={handleScenarioChange}
-                            />
-                        </Box>
+                                {years.map((y) => (
+                                    <MenuItem key={y} value={y}>{y}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <FormControl size="small" sx={{ minWidth: 140 }}>
+                            <InputLabel>Scenario</InputLabel>
+                            <Select
+                                value={scenarioId}
+                                label="Scenario"
+                                onChange={(e) => setScenarioId(e.target.value)}
+                            >
+                                {scenarios.map((s) => (
+                                    <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                     </Stack>
                     <SingleAssetTable
                         title={`Risk scores (${year}) `}
@@ -445,7 +397,7 @@ export default function AssetViewer(props) {
                                 title={hazardType + " score evolution"}
                                 data={barChartData}
                                 hazard={hazardType}
-                                scenarios={scenarioMarks.map((m) => m.label)}
+                                scenarios={scenarios.map((s) => s.label)}
                             />
                             {hazardImpact ? (
                                 <Box
@@ -531,6 +483,7 @@ export default function AssetViewer(props) {
                     )}
                 </Paper>
             </Grid>
+            )}
         </Grid>
     )
 }

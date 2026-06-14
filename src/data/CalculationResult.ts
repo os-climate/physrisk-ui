@@ -80,6 +80,7 @@ const defaultYears: number[] = [2030, 2040, 2050]
 const hazardMap: { [key: string]: string } = {
     CoastalInundation: "Coastal Flood",
     RiverineInundation: "Riverine Flood",
+    PluvialInundation: "Pluvial Flood",
     ChronicHeat: "Heat",
     Wind: "Wind",
     Drought: "Drought",
@@ -182,42 +183,27 @@ export class RiskMeasuresHelper {
         let details = definition.values.find((v) => v.value == score)
         if (!details)
             return {
-                value: -1,
-                valueText: "No data",
+                value: score === -1 ? 0 : -1,
+                valueText: scoreText(score),
                 label: "",
                 description: "",
             }
         return {
             ...details,
-            valueText: scoreText(details ? details.value : -1),
+            valueText: scoreText(details.value),
         }
     }
 }
 
 export function scoreText(score: number) {
-    if (score == 0) return "No data"
-    else if (score == 1) return "Low"
-    else if (score == 2) return "Medium"
-    else if (score == 3) return "High"
-    else if (score == 4) return "Red flag"
-    else return "No data"
+    if (score === -1) return "0"
+    if (score >= 0) return score.toString()
+    return "No data"
 }
 
 export function scoreTextToNumber(valueText: string) {
-    switch (valueText) {
-        case "No data":
-            return 0
-        case "Low":
-            return 1
-        case "Medium":
-            return 2
-        case "High":
-            return 3
-        case "Red flag":
-            return 4
-        default:
-            return -1
-    }
+    if (valueText === "No data") return -1
+    return parseInt(valueText, 10)
 }
 
 type ScoreDetails = {
@@ -287,7 +273,6 @@ export function createBarChartData(
         helper.scenarios().forEach((scenario) => {
             if (scenario.years.includes(year)) {
                 const measure = helper.measure(hazardTypeKey, scenario.id, year)
-                //let measureDefn = measure.measureDefinitions[assetIndex]
                 if (measure) {
                     let score = measure.assetScores[assetIndex]
                     yearData[scenario.id.toUpperCase()] = score
@@ -419,5 +404,4 @@ function capCurve(
         valuesCapped.push(value)
     }
     return [probsCapped, valuesCapped]
-    //return { probs: probsCapped, values: valuesCapped }
 }

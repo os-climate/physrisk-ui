@@ -229,8 +229,6 @@ export function ThresholdPlot(props) {
     const { title, data, dataSets, quantity, units } = props
 
     const theme = useTheme()
-
-    //var ticks, tickFormat, domain, scale, tickFormatAll
     const dataPointsSet = {}
     for (const [key, value] of Object.entries(
         dataSets ? dataSets : { data: data }

@@ -2,8 +2,6 @@ import * as React from "react"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid from "@mui/material/Grid"
-//import match from 'autosuggest-highlight/match';
-//import parse from 'autosuggest-highlight/parse';
 import SearchIcon from "@mui/icons-material/Search"
 import throttle from "lodash/throttle"
 import { InputAdornment } from "@mui/material"

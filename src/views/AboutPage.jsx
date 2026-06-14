@@ -1,13 +1,12 @@
 import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
-import { React } from "react"
 import { useTheme } from "@mui/material/styles"
 
-export default function RiskViewer() {
+export default function AboutPage() {
     const theme = useTheme()
     return (
-        <Grid container spacing={3}>
-            <Grid item xs={12} md={12} lg={12}>
+        <Grid container spacing={0} sx={{ m: 0, p: 0 }}>
+            <Grid item xs={12} md={12} lg={12} sx={{ p: 0, m: 0 }}>
                 <Paper
                     sx={{
                         p: 2,
@@ -18,7 +17,9 @@ export default function RiskViewer() {
                         lineHeight: "13px",
                     }}
                 >
-                    Risk viewer goes here.
+                    The OS-Climate Physical Risk app is intended to be a
+                    reference UI: a place to test visualizations and receive
+                    feedback.
                 </Paper>
             </Grid>
         </Grid>

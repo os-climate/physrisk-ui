@@ -16,16 +16,13 @@ import {
     Source,
     MapProvider,
 } from "react-map-gl" //maplibre';
-//import maplibregl from 'maplibre-gl'
-//import 'maplibre-gl/dist/maplibre-gl.css';
-//import './map.css';
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
-import { ColourBar } from "./ColourBar.js"
+import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
-import HazardMenusCompare from "./HazardMenusCompare.js"
+import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
 import InputLabel from "@mui/material/InputLabel"
 import { InfoOutlined, StackedBarChart } from "@mui/icons-material"
@@ -35,7 +32,6 @@ import Popover from "@mui/material/Popover"
 import Select from "@mui/material/Select"
 import Stack from "@mui/material/Stack"
 import Tooltip from "@mui/material/Tooltip"
-import { scoreTextToNumber } from "../data/CalculationResult"
 import axios from "axios"
 
 // note *public* access token
@@ -225,13 +221,14 @@ export function ScatterMap(props) {
     const [markers, setMarkers] = useState([])
 
     var transformRequest = (url, resourceType) => {
-        if (resourceType == "Image" && globals.value.token) {
+        if (
+            (resourceType === "Tile" || resourceType === "Image") &&
+            globals.value.token &&
+            !url.startsWith("https://api.mapbox.com")
+        ) {
             return {
                 url: url,
-                headers:
-                    globals.value.token == ""
-                        ? null
-                        : { Authorization: "Bearer " + globals.value.token },
+                headers: { Authorization: "Bearer " + globals.value.token },
             }
         }
     }
@@ -411,15 +408,12 @@ export function ScatterMap(props) {
                 "circle-color": [
                     "match",
                     ["get", "risk"],
-                    "Low",
-                    theme.scores[scoreTextToNumber("Low")],
-                    "Medium",
-                    theme.scores[scoreTextToNumber("Medium")],
-                    "High",
-                    theme.scores[scoreTextToNumber("High")],
-                    "Red flag",
-                    theme.scores[scoreTextToNumber("Red flag")],
-                    /* other */ theme.scores[scoreTextToNumber("No data")],
+                    "0", theme.scores[0],
+                    "1", theme.scores[1],
+                    "2", theme.scores[2],
+                    "3", theme.scores[3],
+                    "4", theme.scores[4],
+                    /* No data */ theme.scores[-1],
                 ],
                 "circle-radius": 7,
                 "circle-stroke-width": 1.5,
