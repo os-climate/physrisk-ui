@@ -13,7 +13,7 @@ RUN npm run build
 
 #Run Steps
 FROM bitnami/nginx:latest  
-COPY --from=build-step /appwork/build /app
+COPY --from=build-step /appwork/dist /app
 
 #EXPOSE 8080
 #CMD ["nginx", "-g", "daemon off;"]
