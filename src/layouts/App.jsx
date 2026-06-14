@@ -1,17 +1,6 @@
 import * as React from "react"
 import { GlobalDataContext } from "../data/GlobalData"
-import {
-    blue,
-    cyan,
-    green,
-    grey,
-    lime,
-    orange,
-    pink,
-    purple,
-    red,
-    teal,
-} from "@mui/material/colors"
+import { blue, grey, lime, teal } from "@mui/material/colors"
 import PropTypes from "prop-types"
 import { MemoryRouter, useLocation } from "react-router-dom"
 import { styled, createTheme, ThemeProvider } from "@mui/material/styles"
@@ -85,17 +74,17 @@ export const themeOptions = {
         },
     },
     scores: {
-        0: grey[400], // no data
-        1: green[800], // low
-        2: orange[800], // medium
-        3: red[700], // high
-        4: red[900], // red flag
-        other: grey[400], // other
+        [-1]: grey[400], // no data (score < 0)
+        0: "#1a9850",
+        1: "#91cf60",
+        2: "#f0b429",
+        3: "#fc8d59",
+        4: "#d73027",
     },
     graphs: {
-        0: pink[800],
-        1: cyan[800],
-        2: purple[900],
+        0: "#b39ddb", // SSP126 — lavender
+        1: "#7e57c2", // SSP245 — medium violet
+        2: "#4527a0", // SSP585 — deep indigo
         3: lime[800],
         4: teal[900],
         5: blue[900],
