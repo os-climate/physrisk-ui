@@ -72,54 +72,63 @@ export default function AssetTable(props) {
         )
     }
 
-    const columns = [
-        {
-            field: "id",
-            headerName: "Identifier",
-            width: 120,
-        },
-        {
-            field: "asset_class",
-            headerName: "Asset class",
-            width: 150,
-        },
-        {
-            field: "type",
-            headerName: "Type",
-            width: 150,
-            description: "Hierarchical specification of asset type.",
-        },
-        {
-            field: "latitude",
-            headerName: "Latitude",
-            type: "number",
-            width: 110,
-            editable: true,
-        },
-        {
-            field: "longitude",
-            headerName: "Longitude",
-            type: "number",
-            width: 110,
-        },
-        {
-            field: "location",
-            headerName: "Location",
-            width: 90,
-        },
-        {
-            field: "address",
-            headerName: "Address",
-            width: 170,
-        },
-    ]
-
     const rows =
         data && data.items
-            ? data.items.map((row, i) => {
-                  return row.id ? row : { ...row, id: i }
-              })
+            ? data.items.map((row, i) => (row.id ? row : { ...row, id: i }))
             : []
+
+    // Sentinel values that mean "unknown" — cells with these are shown blank
+    const sentinels = {
+        occupancy_code: 1000,
+        construction_code: 5000,
+        number_of_storeys: -1,
+        basement: 0,
+    }
+
+    const hasValue = (field) => {
+        const sentinel = sentinels[field]
+        return rows.some((r) => {
+            const v = r[field]
+            return v != null && v !== "" && v != sentinel
+        })
+    }
+
+    const blankIfSentinel = (sentinel) => ({
+        renderCell: ({ value }) => (value == sentinel ? "" : value ?? ""),
+    })
+
+    const oedColumns = [
+        { field: "occupancy_code", headerName: "Occupancy code", width: 140, ...blankIfSentinel(sentinels.occupancy_code) },
+        { field: "construction_code", headerName: "Construction code", width: 150, ...blankIfSentinel(sentinels.construction_code) },
+        { field: "number_of_storeys", headerName: "Storeys", type: "number", width: 80, ...blankIfSentinel(sentinels.number_of_storeys) },
+        { field: "first_floor_height", headerName: "First floor height (metres)", type: "number", width: 190 },
+        { field: "basement", headerName: "Basement", width: 90, ...blankIfSentinel(sentinels.basement) },
+        { field: "buffer", headerName: "Buffer (metres)", type: "number", width: 120 },
+        { field: "wkt_geometry", headerName: "WKT geometry", width: 180 },
+    ]
+
+    const leftColumns = [
+        { field: "id", headerName: "Identifier", width: 120 },
+        { field: "latitude", headerName: "Latitude", type: "number", width: 110, editable: true },
+        { field: "longitude", headerName: "Longitude", type: "number", width: 110 },
+        { field: "address", headerName: "Address", width: 170 },
+    ]
+
+    const rightColumns = [
+        { field: "asset_class", headerName: "Asset class", width: 150 },
+        { field: "type", headerName: "Type", width: 150, description: "Hierarchical specification of asset type." },
+        { field: "location", headerName: "Location", width: 90 },
+    ]
+
+    const [populatedOed, unpopulatedOed] = oedColumns.reduce(
+        ([pop, unpop], col) =>
+            hasValue(col.field)
+                ? [[...pop, col], unpop]
+                : [pop, [...unpop, col]],
+        [[], []]
+    )
+
+    const columns = [...populatedOed, ...leftColumns, ...unpopulatedOed, ...rightColumns]
 
     return (
         <Fragment>
