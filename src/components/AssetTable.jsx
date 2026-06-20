@@ -1,4 +1,4 @@
-import { Fragment, React } from "react"
+import { Fragment, React, useContext, useEffect, useState } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import {
@@ -9,6 +9,8 @@ import {
     GridToolbarExport,
     useGridApiRef,
 } from "@mui/x-data-grid"
+import axios from "axios"
+import { GlobalDataContext } from "../data/GlobalData"
 import { search } from "../components/Geocoder"
 
 //function getRowId(row) {
@@ -18,6 +20,22 @@ import { search } from "../components/Geocoder"
 export default function AssetTable(props) {
     const { data, portfolioDispatch, apiKey } = props // updateDataTableRow
     const apiRef = useGridApiRef()
+    const globals = useContext(GlobalDataContext)
+    const [occupancyCodes, setOccupancyCodes] = useState({})
+
+    useEffect(() => {
+        async function fetchStaticInfo() {
+            try {
+                const response = await axios.get(
+                    globals.services.apiHost + "/api/get_static_information"
+                )
+                setOccupancyCodes(response.data.oed_occupancy_codes ?? {})
+            } catch {
+                // static info unavailable; occupancy codes show raw values
+            }
+        }
+        fetchStaticInfo()
+    }, [globals.services.apiHost])
 
     const handleGeocodeClick = async () => {
         async function geocode() {
@@ -98,7 +116,16 @@ export default function AssetTable(props) {
     })
 
     const oedColumns = [
-        { field: "occupancy_code", headerName: "Occupancy code", width: 140, ...blankIfSentinel(sentinels.occupancy_code) },
+        {
+            field: "occupancy_code",
+            headerName: "Occupancy code",
+            width: 300,
+            renderCell: ({ value }) => {
+                if (value == sentinels.occupancy_code || value == null || value === "") return ""
+                const label = occupancyCodes[String(value)]
+                return label != null ? `${value} (${label})` : value
+            },
+        },
         { field: "construction_code", headerName: "Construction code", width: 150, ...blankIfSentinel(sentinels.construction_code) },
         { field: "number_of_storeys", headerName: "Storeys", type: "number", width: 80, ...blankIfSentinel(sentinels.number_of_storeys) },
         { field: "first_floor_height", headerName: "First floor height (metres)", type: "number", width: 190 },
