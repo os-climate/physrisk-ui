@@ -128,6 +128,7 @@ export const runCalculation = async (
             include_measures: true,
             years: [2030, 2040, 2050],
             scenarios: ["ssp126", "ssp245", "ssp585"],
+            provider_max_requests: { "jba": 20 },
         }
 
         var response = await axios.post(

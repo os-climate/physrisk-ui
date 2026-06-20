@@ -68,6 +68,7 @@ type AssetSingleImpact = {
             exceed_probabilities: number[]
             units: string
         }
+        hazard_units?: string
         hazard_distribution: any
         vulnerability_distribution: any
     }
@@ -299,6 +300,7 @@ export function createHazardImpact(
     const allYears = ["historical", ...defaultYears.map((y) => y.toString())]
     let curveSet: { [key: string]: any } = {}
     let hazardCurveSet: { [key: string]: any } = {}
+    let hazardUnits: string | undefined = undefined
 
     var units = hazardType == "Heat" ? "kWh" : "%" // get this from the service instead in future
     allYears.forEach((y) => {
@@ -327,6 +329,9 @@ export function createHazardImpact(
                 .reverse()
             curveSet[y] = data
 
+            if (!hazardUnits && impacts!.calc_details?.hazard_units)
+                hazardUnits = impacts!.calc_details.hazard_units
+
             if (impacts!.calc_details?.hazard_exceedance) {
                 let hazardProbs: number[] =
                     impacts!.calc_details.hazard_exceedance.exceed_probabilities
@@ -354,7 +359,7 @@ export function createHazardImpact(
         hazardType: hazardType,
         scenario: scenarioId.toUpperCase(),
         impactCurveSet: { units: units, curves: curveSet },
-        hazardCurveSet: { curves: hazardCurveSet },
+        hazardCurveSet: { units: hazardUnits, curves: hazardCurveSet },
     }
 }
 
