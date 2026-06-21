@@ -193,7 +193,9 @@ export class HazardInventory {
     }
 
     findModelByPath(path) {
-        for (const [hazardTypeId, models] of Object.entries(this.modelsOfHazardType)) {
+        for (const [hazardTypeId, models] of Object.entries(
+            this.modelsOfHazardType
+        )) {
             const model = models.find((m) => m.path === path)
             if (model) return { hazardTypeId, model }
         }

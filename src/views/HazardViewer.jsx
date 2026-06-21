@@ -100,7 +100,7 @@ export default function HazardViewer(props) {
                             },
                         ],
                         interpolation: "max",
-                        provider_max_requests: { "jba": 20 },
+                        provider_max_requests: { jba: 20 },
                     }
                     try {
                         const config = {

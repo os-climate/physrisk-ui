@@ -412,11 +412,16 @@ export function ScatterMap(props) {
                 "circle-color": [
                     "match",
                     ["get", "risk"],
-                    "0", theme.scores[0],
-                    "1", theme.scores[1],
-                    "2", theme.scores[2],
-                    "3", theme.scores[3],
-                    "4", theme.scores[4],
+                    "0",
+                    theme.scores[0],
+                    "1",
+                    theme.scores[1],
+                    "2",
+                    theme.scores[2],
+                    "3",
+                    theme.scores[3],
+                    "4",
+                    theme.scores[4],
                     /* No data */ theme.scores[-1],
                 ],
                 "circle-radius": 7,
@@ -469,7 +474,13 @@ export function ScatterMap(props) {
                     ref={mapContainerRef}
                     sx={{ height: "60vh", position: "relative" }}
                 >
-                    <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+                    <Tooltip
+                        title={
+                            satellite
+                                ? "Switch to map view"
+                                : "Switch to satellite view"
+                        }
+                    >
                         <IconButton
                             onClick={() => setSatellite((s) => !s)}
                             size="small"
@@ -479,12 +490,18 @@ export function ScatterMap(props) {
                                 left: 10,
                                 zIndex: 1,
                                 backgroundColor: "rgba(255,255,255,0.9)",
-                                "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                "&:hover": {
+                                    backgroundColor: "rgba(255,255,255,1)",
+                                },
                                 borderRadius: "4px",
                                 boxShadow: "0 0 6px rgba(0,0,0,0.25)",
                             }}
                         >
-                            {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                            {satellite ? (
+                                <MapIcon fontSize="small" />
+                            ) : (
+                                <SatelliteAlt fontSize="small" />
+                            )}
                         </IconButton>
                     </Tooltip>
                     <MapProvider>
@@ -495,7 +512,11 @@ export function ScatterMap(props) {
                             projection="globe"
                             //mapLib={maplibregl}
                             //mapStyle="https://api.maptiler.com/maps/streets-v2/style.json?key=LiH20XNxcFiTXyT4fgjM"
-                            mapStyle={satellite ? "mapbox://styles/mapbox/satellite-streets-v12" : "mapbox://styles/mapbox/streets-v11"}
+                            mapStyle={
+                                satellite
+                                    ? "mapbox://styles/mapbox/satellite-streets-v12"
+                                    : "mapbox://styles/mapbox/streets-v11"
+                            }
                             attributionControl={false}
                             initialViewState={{
                                 latitude: lat,

@@ -168,142 +168,139 @@ function AppInner() {
     return (
         <Box sx={{ display: "flex" }}>
             <Router>
-                        <CssBaseline />
-                        <AppBar
-                            position="absolute"
-                            open={open}
-                            elevation={0}
-                            border={0}
-                            sx={{
-                                color: (theme) => theme.palette.grey[800],
-                                mr: 0,
-                                backgroundColor: (theme) =>
-                                    theme.palette.mode === "light"
-                                        ? theme.palette.grey[100]
-                                        : theme.palette.grey[900],
-                            }}
+                <CssBaseline />
+                <AppBar
+                    position="absolute"
+                    open={open}
+                    elevation={0}
+                    border={0}
+                    sx={{
+                        color: (theme) => theme.palette.grey[800],
+                        mr: 0,
+                        backgroundColor: (theme) =>
+                            theme.palette.mode === "light"
+                                ? theme.palette.grey[100]
+                                : theme.palette.grey[900],
+                    }}
+                >
+                    <Toolbar>
+                        <Typography
+                            component="h1"
+                            variant="h6"
+                            color="inherit"
+                            noWrap
+                            sx={{ flexGrow: 1 }}
                         >
-                            <Toolbar>
-                                <Typography
-                                    component="h1"
-                                    variant="h6"
-                                    color="inherit"
-                                    noWrap
-                                    sx={{ flexGrow: 1 }}
-                                >
-                                    <ViewHeader />
-                                </Typography>
-                                <IconButton
-                                    color="inherit"
-                                    onClick={handleLogin}
-                                >
-                                    <Badge color="secondary">
-                                        <PersonIcon />
-                                    </Badge>
-                                </IconButton>
-                                <IconButton color="inherit" sx={{ ml: 0 }}>
-                                    <Badge badgeContent={0} color="secondary">
-                                        <NotificationsIcon />
-                                    </Badge>
-                                </IconButton>
-                                <IconButton
-                                    color="inherit"
-                                    aria-label="open drawer"
-                                    edge="start"
-                                    onClick={handleDrawerToggle}
-                                    sx={{ ml: 0, display: { sm: "none" } }}
-                                >
-                                    <MenuIcon />
-                                </IconButton>
-                            </Toolbar>
-                        </AppBar>
-                        <Box
-                            component="nav"
-                            sx={{
-                                width: { sm: drawerWidth },
-                                flexShrink: { sm: 0 },
-                            }}
-                            aria-label="mailbox folders"
+                            <ViewHeader />
+                        </Typography>
+                        <IconButton color="inherit" onClick={handleLogin}>
+                            <Badge color="secondary">
+                                <PersonIcon />
+                            </Badge>
+                        </IconButton>
+                        <IconButton color="inherit" sx={{ ml: 0 }}>
+                            <Badge badgeContent={0} color="secondary">
+                                <NotificationsIcon />
+                            </Badge>
+                        </IconButton>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            onClick={handleDrawerToggle}
+                            sx={{ ml: 0, display: { sm: "none" } }}
                         >
-                            <MuiDrawer // the small screen drawer
-                                sx={{
-                                    width: drawerWidth,
-                                    height: "100vh",
-                                    flexShrink: 0,
+                            <MenuIcon />
+                        </IconButton>
+                    </Toolbar>
+                </AppBar>
+                <Box
+                    component="nav"
+                    sx={{
+                        width: { sm: drawerWidth },
+                        flexShrink: { sm: 0 },
+                    }}
+                    aria-label="mailbox folders"
+                >
+                    <MuiDrawer // the small screen drawer
+                        sx={{
+                            width: drawerWidth,
+                            height: "100vh",
+                            flexShrink: 0,
 
-                                    display: { xs: "block", sm: "none" },
-                                    "& .MuiDrawer-paper": {
-                                        boxSizing: "border-box",
-                                        width: drawerWidth,
-                                    },
-                                }}
-                                anchor="right"
-                                variant="temporary"
-                                onClose={handleDrawerToggle}
-                                ModalProps={{
-                                    keepMounted: true, // Better open performance on mobile.
-                                }}
-                                open={mobileOpen}
-                            >
-                                <DrawerContents routes={routes} />
-                            </MuiDrawer>
-                            <MuiDrawer // the large screen drawer
-                                sx={{
-                                    width: drawerWidth,
-                                    height: "100%",
-                                    flexShrink: 0,
-                                    display: { xs: "none", sm: "block" },
-                                    "& .MuiDrawer-paper": {
-                                        width: drawerWidth,
-                                    },
-                                }}
-                                variant="permanent"
-                                anchor={"left"}
-                                open={open}
-                            >
-                                <DrawerContents routes={routes} />
-                            </MuiDrawer>
-                        </Box>
-                        <Box
-                            component="main"
-                            sx={{
-                                backgroundColor: (theme) =>
-                                    theme.palette.mode === "light"
-                                        ? theme.palette.grey[100]
-                                        : theme.palette.grey[900],
-                                flexGrow: 1,
-                                m: 0,
-                                p: 0,
-                                minHeight: "100vh",
-                                width: `calc(100% - ${drawerWidth}px)`,
-                            }}
-                        >
-                            <Toolbar />
-                            <LoginDialog
-                                open={loginOpen}
-                                handleClose={handleLoginClose}
-                                fullScreen={false}
-                            ></LoginDialog>
-                            <Container
-                                maxWidth={false}
-                                sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }}
-                                disableGutters
-                            >
-                                {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
-                                {routes.map((prop, key) => {
-                                    return (
-                                        <ViewPanel
-                                            component={prop.component}
-                                            path={prop.path}
-                                            key={key}
-                                        />
-                                    )
-                                })}
-                                <Copyright sx={{ pt: 4 }} />
-                            </Container>
-                        </Box>
-                    </Router>
+                            display: { xs: "block", sm: "none" },
+                            "& .MuiDrawer-paper": {
+                                boxSizing: "border-box",
+                                width: drawerWidth,
+                            },
+                        }}
+                        anchor="right"
+                        variant="temporary"
+                        onClose={handleDrawerToggle}
+                        ModalProps={{
+                            keepMounted: true, // Better open performance on mobile.
+                        }}
+                        open={mobileOpen}
+                    >
+                        <DrawerContents routes={routes} />
+                    </MuiDrawer>
+                    <MuiDrawer // the large screen drawer
+                        sx={{
+                            width: drawerWidth,
+                            height: "100%",
+                            flexShrink: 0,
+                            display: { xs: "none", sm: "block" },
+                            "& .MuiDrawer-paper": {
+                                width: drawerWidth,
+                            },
+                        }}
+                        variant="permanent"
+                        anchor={"left"}
+                        open={open}
+                    >
+                        <DrawerContents routes={routes} />
+                    </MuiDrawer>
                 </Box>
+                <Box
+                    component="main"
+                    sx={{
+                        backgroundColor: (theme) =>
+                            theme.palette.mode === "light"
+                                ? theme.palette.grey[100]
+                                : theme.palette.grey[900],
+                        flexGrow: 1,
+                        m: 0,
+                        p: 0,
+                        minHeight: "100vh",
+                        width: `calc(100% - ${drawerWidth}px)`,
+                    }}
+                >
+                    <Toolbar />
+                    <LoginDialog
+                        open={loginOpen}
+                        handleClose={handleLoginClose}
+                        fullScreen={false}
+                    ></LoginDialog>
+                    <Container
+                        maxWidth={false}
+                        sx={{ mt: 0, mb: 4, pl: 1, pr: 1 }}
+                        disableGutters
+                    >
+                        {/* Could have used <Routes> and <Route>, but we do not want the remounting */}
+                        {routes.map((prop, key) => {
+                            return (
+                                <ViewPanel
+                                    component={prop.component}
+                                    path={prop.path}
+                                    key={key}
+                                />
+                            )
+                        })}
+                        <Copyright sx={{ pt: 4 }} />
+                    </Container>
+                </Box>
+            </Router>
+        </Box>
     )
 }
 

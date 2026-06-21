@@ -21,15 +21,23 @@ export default function AboutPage() {
                     <Typography variant="body2" gutterBottom>
                         The OS-Climate physical risk app is intended to be a
                         reference UI: a place to test visualizations and receive
-                        feedback. 
+                        feedback.
                     </Typography>
                     <Typography variant="body2" gutterBottom>
-                        <Link href="https://physrisk.readthedocs.io/en/latest/" target="_blank" rel="noopener">
+                        <Link
+                            href="https://physrisk.readthedocs.io/en/latest/"
+                            target="_blank"
+                            rel="noopener"
+                        >
                             Physrisk documentation
                         </Link>
                     </Typography>
                     <Typography variant="body2">
-                        <Link href="https://www.finos.org/os-climate" target="_blank" rel="noopener">
+                        <Link
+                            href="https://www.finos.org/os-climate"
+                            target="_blank"
+                            rel="noopener"
+                        >
                             OS-Climate on FINOS
                         </Link>
                     </Typography>
