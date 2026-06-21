@@ -25,7 +25,7 @@ import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
 import InputLabel from "@mui/material/InputLabel"
-import { InfoOutlined, StackedBarChart } from "@mui/icons-material"
+import { InfoOutlined, SatelliteAlt, Map as MapIcon } from "@mui/icons-material"
 import Menu from "@mui/material/Menu"
 import MenuItem from "@mui/material/MenuItem"
 import Popover from "@mui/material/Popover"
@@ -43,6 +43,7 @@ export function ScatterMap(props) {
     const {
         hazardMenu,
         hazardMenuDispatch,
+        showHazardMenus = true,
         onClick,
         selectedAssetIndex,
         setSelectedAssetIndex,
@@ -127,6 +128,7 @@ export function ScatterMap(props) {
     const [lng] = useState(0)
     const [lat] = useState(45)
     const [zoom] = useState(3)
+    const [satellite, setSatellite] = useState(false)
 
     const indexValuesInitialState = {
         status: "idle",
@@ -238,6 +240,12 @@ export function ScatterMap(props) {
         mapRef.current?.resize()
     }, [visible])
 
+    // clear firstSymbolId immediately when style switches so react-map-gl
+    // doesn't try to insert the hazard layer before a layer from the old style
+    useEffect(() => {
+        setFirstSymbolId(undefined)
+    }, [satellite])
+
     useEffect(() => {
         if (mapRef.current) {
             let lngLat = [
@@ -254,27 +262,23 @@ export function ScatterMap(props) {
         }
     }, [assetData])
 
-    function getFirstSymbolId() {
-        if (!mapRef.current) return ""
+    const [firstSymbolId, setFirstSymbolId] = useState(undefined)
+
+    const updateFirstSymbolId = () => {
         try {
-            const layers = mapRef.current.getStyle().layers
-            // Find the index of the first symbol layer in the map style.
-            let firstSymbolId
-            for (const layer of layers) {
-                // if (layer.type === "symbol") {
-                if (layer["source-layer"] === "water") {
-                    firstSymbolId = layer.id
-                    break
-                }
-            }
-            //firstSymbolId = layers[layers.length - 1].id
-            return firstSymbolId
+            const layers = mapRef.current?.getStyle()?.layers ?? []
+            const layer = layers.find((l) => l["source-layer"] === "water")
+            setFirstSymbolId(layer?.id)
         } catch {
-            return "water-shadow"
+            setFirstSymbolId(undefined)
         }
     }
 
-    const firstSymbolId = getFirstSymbolId()
+    const handleMapLoad = () => {
+        updateFirstSymbolId()
+        // style.load fires on every style switch (onLoad does not)
+        mapRef.current?.on("style.load", updateFirstSymbolId)
+    }
 
     function getSourceStyle(mapInfo) {
         const apiHost = globals.value.services.apiHost
@@ -368,7 +372,7 @@ export function ScatterMap(props) {
               },
               paint: {
                   "raster-resampling": "nearest",
-                  //"raster-fade-duration": "0"
+                  "raster-opacity": satellite ? 0.8 : 1.0,
               },
           }
         : null
@@ -434,7 +438,7 @@ export function ScatterMap(props) {
     return (
         <React.Fragment>
             <Box>
-                {hazardMenu ? (
+                {hazardMenu && showHazardMenus ? (
                     <HazardMenusCompare
                         hazardMenu1={hazardMenu}
                         hazardMenuDispatch1={hazardMenuDispatch}
@@ -461,7 +465,28 @@ export function ScatterMap(props) {
                         onSelect={onSelectHandler}
                     />
                 </Box>
-                <Box ref={mapContainerRef} sx={{ height: "60vh" }}>
+                <Box
+                    ref={mapContainerRef}
+                    sx={{ height: "60vh", position: "relative" }}
+                >
+                    <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+                        <IconButton
+                            onClick={() => setSatellite((s) => !s)}
+                            size="small"
+                            sx={{
+                                position: "absolute",
+                                top: 10,
+                                left: 10,
+                                zIndex: 1,
+                                backgroundColor: "rgba(255,255,255,0.9)",
+                                "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                borderRadius: "4px",
+                                boxShadow: "0 0 6px rgba(0,0,0,0.25)",
+                            }}
+                        >
+                            {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                        </IconButton>
+                    </Tooltip>
                     <MapProvider>
                         <Map
                             ref={mapRef}
@@ -470,13 +495,14 @@ export function ScatterMap(props) {
                             projection="globe"
                             //mapLib={maplibregl}
                             //mapStyle="https://api.maptiler.com/maps/streets-v2/style.json?key=LiH20XNxcFiTXyT4fgjM"
-                            mapStyle="mapbox://styles/mapbox/streets-v11"
+                            mapStyle={satellite ? "mapbox://styles/mapbox/satellite-streets-v12" : "mapbox://styles/mapbox/streets-v11"}
                             attributionControl={false}
                             initialViewState={{
                                 latitude: lat,
                                 longitude: lng,
                                 zoom: zoom,
                             }}
+                            onLoad={handleMapLoad}
                             transformRequest={transformRequest}
                             onClick={handleClick}
                             onMouseEnter={handleAssetsMouseEnter}
@@ -489,7 +515,7 @@ export function ScatterMap(props) {
                             {sourceStyle ? (
                                 <Source {...sourceStyle}>
                                     <Layer
-                                        beforeId={firstSymbolId}
+                                        beforeId={firstSymbolId || undefined}
                                         {...layerStyle}
                                     />
                                 </Source>

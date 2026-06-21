@@ -69,6 +69,7 @@ type AssetSingleImpact = {
             units: string
         }
         hazard_units?: string
+        hazard_path?: string[]
         hazard_distribution: any
         vulnerability_distribution: any
     }
@@ -383,6 +384,22 @@ export function overallScores(
         }
     })
     return scores.map((s) => scoreText(s))
+}
+
+export function getHazardPath(
+    result: CalculationResult,
+    assetIndex: number,
+    hazardType: string,
+    scenarioId: string,
+    year: number
+): string | undefined {
+    const impact = result.assetImpacts[assetIndex]?.impacts?.find(
+        (i) =>
+            hazardMap[i.key.hazard_type] === hazardType &&
+            i.key.scenario_id === scenarioId &&
+            i.key.year === year.toString()
+    )
+    return impact?.calc_details?.hazard_path?.[0]
 }
 
 function capCurve(

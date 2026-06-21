@@ -44,6 +44,7 @@ import {
     createBarChartData,
     createDataTable,
     createHazardImpact,
+    getHazardPath,
     overallScores,
 } from "../data/CalculationResult"
 
@@ -80,6 +81,7 @@ export default function AssetViewer(props) {
     const [barChartData, setBarChartData] = useState(null)
     const [hazardImpact, setHazardImpact] = useState(null)
 
+    const [hazardMapInfo, setHazardMapInfo] = useState(null)
     const [showDetails, setShowDetails] = useState(false)
     const [impactTab, setImpactTab] = useState("1")
     const handleTabChange = (event, newValue) => {
@@ -172,6 +174,40 @@ export default function AssetViewer(props) {
             setAssetScores(null)
         }
     }, [portfolio, year, assetIndex])
+
+    useEffect(() => {
+        if (!portfolio?.calculationResult || !hazardMenu?.inventory) {
+            setHazardMapInfo(null)
+            return
+        }
+        try {
+            const path = getHazardPath(
+                portfolio.calculationResult,
+                assetIndex,
+                hazardType,
+                scenarioId,
+                year
+            )
+            if (!path) { setHazardMapInfo(null); return }
+            const found = hazardMenu.inventory.findModelByPath(path)
+            if (!found) { setHazardMapInfo(null); return }
+            const mapInfo = hazardMenu.inventory.getMapInfo(
+                found.hazardTypeId,
+                path,
+                scenarioId,
+                year
+            )
+            setHazardMapInfo({
+                mapInfo,
+                mapColorbar: mapInfo.colorbar,
+                selectedModel: found.model,
+                selectedScenario: { id: scenarioId },
+                selectedYear: year,
+            })
+        } catch {
+            setHazardMapInfo(null)
+        }
+    }, [portfolio?.calculationResult, hazardType, scenarioId, year, assetIndex, hazardMenu?.inventory])
 
     useEffect(() => {
         if (portfolio?.calculationResult) {
@@ -316,8 +352,9 @@ export default function AssetViewer(props) {
                     </Stack>
                     <Divider light sx={{ mt: 2, mb: 1 }} />
                     <ScatterMap
-                        hazardMenu={null} // {hazardMenu}
-                        hazardMenuDispatch={null} // {hazardMenuDispatch}
+                        hazardMenu={hazardMapInfo}
+                        hazardMenuDispatch={null}
+                        showHazardMenus={false}
                         onClick={handleClick}
                         selectedAssetIndex={assetIndex}
                         setSelectedAssetIndex={setAssetIndex}
