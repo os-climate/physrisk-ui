@@ -33,7 +33,7 @@ type Action =
     | {
           type: "updatePortfolio"
           newState: PortfolioState
-          portfolioJson: string
+          portfolioJson: any
       }
     | {
           type: "updateCalculationResult"
@@ -54,13 +54,23 @@ export const portfolioReducer = (state: State, action: Action) => {
                 ...state,
                 examplePortfolios: action.examplePortfolios,
             }
-        case "updatePortfolio":
+        case "updatePortfolio": {
+            const rawItems: any[] = action.portfolioJson?.items ?? []
+            const maxId = rawItems.reduce((max: number, item: any) => {
+                const n = parseInt(item.id, 10)
+                return isNaN(n) ? max : Math.max(max, n)
+            }, 0)
+            let nextId = maxId + 1
+            const items = rawItems.map((item: any) =>
+                item.id != null && item.id !== "" ? item : { ...item, id: String(nextId++) }
+            )
             return {
                 ...state,
                 status: PortfolioState.Loaded,
-                portfolioJson: action.portfolioJson,
+                portfolioJson: { ...action.portfolioJson, items },
                 calculationResult: null,
             }
+        }
         case "updateCalculationResult":
             return {
                 ...state,
@@ -128,6 +138,7 @@ export const runCalculation = async (
             include_measures: true,
             years: [2030, 2040, 2050],
             scenarios: ["ssp126", "ssp245", "ssp585"],
+            provider_max_requests: { "jba": 20 },
         }
 
         var response = await axios.post(
