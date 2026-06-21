@@ -4,7 +4,13 @@ import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
 import Grid from "@mui/material/Grid"
 import Paper from "@mui/material/Paper"
-import { Upload, List, PlayArrow, ChevronRight, Assessment } from "@mui/icons-material"
+import {
+    Upload,
+    List,
+    PlayArrow,
+    ChevronRight,
+    Assessment,
+} from "@mui/icons-material"
 import IconButton from "@mui/material/IconButton"
 import Tooltip from "@mui/material/Tooltip"
 import LoadingButton from "@mui/lab/LoadingButton"
@@ -44,6 +50,7 @@ import {
     createBarChartData,
     createDataTable,
     createHazardImpact,
+    getHazardPath,
     overallScores,
 } from "../data/CalculationResult"
 
@@ -80,6 +87,7 @@ export default function AssetViewer(props) {
     const [barChartData, setBarChartData] = useState(null)
     const [hazardImpact, setHazardImpact] = useState(null)
 
+    const [hazardMapInfo, setHazardMapInfo] = useState(null)
     const [showDetails, setShowDetails] = useState(false)
     const [impactTab, setImpactTab] = useState("1")
     const handleTabChange = (event, newValue) => {
@@ -174,6 +182,53 @@ export default function AssetViewer(props) {
     }, [portfolio, year, assetIndex])
 
     useEffect(() => {
+        if (!portfolio?.calculationResult || !hazardMenu?.inventory) {
+            setHazardMapInfo(null)
+            return
+        }
+        try {
+            const path = getHazardPath(
+                portfolio.calculationResult,
+                assetIndex,
+                hazardType,
+                scenarioId,
+                year
+            )
+            if (!path) {
+                setHazardMapInfo(null)
+                return
+            }
+            const found = hazardMenu.inventory.findModelByPath(path)
+            if (!found) {
+                setHazardMapInfo(null)
+                return
+            }
+            const mapInfo = hazardMenu.inventory.getMapInfo(
+                found.hazardTypeId,
+                path,
+                scenarioId,
+                year
+            )
+            setHazardMapInfo({
+                mapInfo,
+                mapColorbar: mapInfo.colorbar,
+                selectedModel: found.model,
+                selectedScenario: { id: scenarioId },
+                selectedYear: year,
+            })
+        } catch {
+            setHazardMapInfo(null)
+        }
+    }, [
+        portfolio?.calculationResult,
+        hazardType,
+        scenarioId,
+        year,
+        assetIndex,
+        hazardMenu?.inventory,
+    ])
+
+    useEffect(() => {
         if (portfolio?.calculationResult) {
             setHazardImpact(
                 createHazardImpact(
@@ -236,7 +291,12 @@ export default function AssetViewer(props) {
 
     return (
         <Grid container spacing={1}>
-            <Grid item xs={12} md={showDetails ? 7 : 12} lg={showDetails ? 7 : 12}>
+            <Grid
+                item
+                xs={12}
+                md={showDetails ? 7 : 12}
+                lg={showDetails ? 7 : 12}
+            >
                 <Paper
                     sx={{
                         p: 1,
@@ -316,8 +376,9 @@ export default function AssetViewer(props) {
                     </Stack>
                     <Divider light sx={{ mt: 2, mb: 1 }} />
                     <ScatterMap
-                        hazardMenu={null} // {hazardMenu}
-                        hazardMenuDispatch={null} // {hazardMenuDispatch}
+                        hazardMenu={hazardMapInfo}
+                        hazardMenuDispatch={null}
+                        showHazardMenus={false}
                         onClick={handleClick}
                         selectedAssetIndex={assetIndex}
                         setSelectedAssetIndex={setAssetIndex}
@@ -334,155 +395,170 @@ export default function AssetViewer(props) {
                 </Paper>
             </Grid>
             {showDetails && (
-            <Grid item xs={12} md={5} lg={5}>
-                <Paper
-                    sx={{
-                        p: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        m: 0,
-                    }}
-                >
-                    <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                        <Tooltip title="Collapse scores panel">
-                            <IconButton
-                                size="small"
-                                onClick={() => setShowDetails(false)}
-                            >
-                                <ChevronRight fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                    </Box>
-                    <Stack
-                        spacing={2}
-                        direction="row"
-                        alignItems="center"
-                        sx={{ justifyContent: "space-evenly", mt: 1, mb: 1 }}
+                <Grid item xs={12} md={5} lg={5}>
+                    <Paper
+                        sx={{
+                            p: 1,
+                            display: "flex",
+                            flexDirection: "column",
+                            m: 0,
+                        }}
                     >
-                        <FormControl size="small" sx={{ minWidth: 140 }}>
-                            <InputLabel>Projected year</InputLabel>
-                            <Select
-                                value={year}
-                                label="Projected year"
-                                onChange={(e) => setYear(e.target.value)}
-                            >
-                                {years.map((y) => (
-                                    <MenuItem key={y} value={y}>{y}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl size="small" sx={{ minWidth: 140 }}>
-                            <InputLabel>Scenario</InputLabel>
-                            <Select
-                                value={scenarioId}
-                                label="Scenario"
-                                onChange={(e) => setScenarioId(e.target.value)}
-                            >
-                                {scenarios.map((s) => (
-                                    <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </Stack>
-                    <SingleAssetTable
-                        title={`Risk scores (${year}) `}
-                        rows={dataTable}
-                        hazardMenu={hazardMenu}
-                        setHazardType={setHazardType}
-                        setScenarioId={setScenarioId}
-                    />
-                    {hazardType ? (
-                        <div>
-                            <SingleAssetBarChart
-                                title={hazardType + " score evolution"}
-                                data={barChartData}
-                                hazard={hazardType}
-                                scenarios={scenarios.map((s) => s.label)}
-                            />
-                            {hazardImpact ? (
-                                <Box
-                                    sx={{
-                                        width: "100%",
-                                        typography: "body1",
-                                        mt: 1,
-                                    }}
+                        <Box
+                            sx={{ display: "flex", justifyContent: "flex-end" }}
+                        >
+                            <Tooltip title="Collapse scores panel">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setShowDetails(false)}
                                 >
-                                    <TabContext value={impactTab}>
-                                        <Box
-                                            sx={{
-                                                borderBottom: 1,
-                                                borderColor: "divider",
-                                            }}
-                                        >
-                                            <TabList
-                                                onChange={handleTabChange}
-                                                aria-label="lab API tabs example"
+                                    <ChevronRight fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                        <Stack
+                            spacing={2}
+                            direction="row"
+                            alignItems="center"
+                            sx={{
+                                justifyContent: "space-evenly",
+                                mt: 1,
+                                mb: 1,
+                            }}
+                        >
+                            <FormControl size="small" sx={{ minWidth: 140 }}>
+                                <InputLabel>Projected year</InputLabel>
+                                <Select
+                                    value={year}
+                                    label="Projected year"
+                                    onChange={(e) => setYear(e.target.value)}
+                                >
+                                    {years.map((y) => (
+                                        <MenuItem key={y} value={y}>
+                                            {y}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl size="small" sx={{ minWidth: 140 }}>
+                                <InputLabel>Scenario</InputLabel>
+                                <Select
+                                    value={scenarioId}
+                                    label="Scenario"
+                                    onChange={(e) =>
+                                        setScenarioId(e.target.value)
+                                    }
+                                >
+                                    {scenarios.map((s) => (
+                                        <MenuItem key={s.id} value={s.id}>
+                                            {s.label}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Stack>
+                        <SingleAssetTable
+                            title={`Risk scores (${year}) `}
+                            rows={dataTable}
+                            hazardMenu={hazardMenu}
+                            setHazardType={setHazardType}
+                            setScenarioId={setScenarioId}
+                        />
+                        {hazardType ? (
+                            <div>
+                                <SingleAssetBarChart
+                                    title={hazardType + " score evolution"}
+                                    data={barChartData}
+                                    hazard={hazardType}
+                                    scenarios={scenarios.map((s) => s.label)}
+                                />
+                                {hazardImpact ? (
+                                    <Box
+                                        sx={{
+                                            width: "100%",
+                                            typography: "body1",
+                                            mt: 1,
+                                        }}
+                                    >
+                                        <TabContext value={impactTab}>
+                                            <Box
+                                                sx={{
+                                                    borderBottom: 1,
+                                                    borderColor: "divider",
+                                                }}
                                             >
-                                                <Tab
-                                                    label="Score details"
-                                                    value="1"
+                                                <TabList
+                                                    onChange={handleTabChange}
+                                                    aria-label="lab API tabs example"
+                                                >
+                                                    <Tab
+                                                        label="Score details"
+                                                        value="1"
+                                                    />
+                                                    <Tab
+                                                        label="Impact details"
+                                                        value="2"
+                                                    />
+                                                    <Tab
+                                                        label="Hazard details"
+                                                        value="3"
+                                                    />
+                                                </TabList>
+                                            </Box>
+                                            <TabPanel value="1">
+                                                {details ? (
+                                                    <div>
+                                                        <Typography
+                                                            sx={{ mt: 1 }}
+                                                            variant="body2"
+                                                        >
+                                                            {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${
+                                                                details?.valueText
+                                                            }'. `}
+                                                            {details?.label}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                mt: 0.5,
+                                                                fontStyle:
+                                                                    "italic",
+                                                            }}
+                                                        >
+                                                            {
+                                                                details?.description
+                                                            }
+                                                        </Typography>
+                                                    </div>
+                                                ) : (
+                                                    <></>
+                                                )}
+                                            </TabPanel>
+                                            <TabPanel value="2">
+                                                <AssetImpactSummary
+                                                    singleHazardImpact={
+                                                        hazardImpact
+                                                    }
                                                 />
-                                                <Tab
-                                                    label="Impact details"
-                                                    value="2"
+                                            </TabPanel>
+                                            <TabPanel value="3">
+                                                <AssetHazardSummary
+                                                    singleHazardImpact={
+                                                        hazardImpact
+                                                    }
                                                 />
-                                                <Tab
-                                                    label="Hazard details"
-                                                    value="3"
-                                                />
-                                            </TabList>
-                                        </Box>
-                                        <TabPanel value="1">
-                                            {details ? (
-                                                <div>
-                                                    <Typography
-                                                        sx={{ mt: 1 }}
-                                                        variant="body2"
-                                                    >
-                                                        {`For hazard type '${hazardType}' and ${scenarioId.toUpperCase()} scenario the impact is '${
-                                                            details?.valueText
-                                                        }'. `}
-                                                        {details?.label}
-                                                    </Typography>
-                                                    <Typography
-                                                        variant="body2"
-                                                        sx={{
-                                                            mt: 0.5,
-                                                            fontStyle: "italic",
-                                                        }}
-                                                    >
-                                                        {details?.description}
-                                                    </Typography>
-                                                </div>
-                                            ) : (
-                                                <></>
-                                            )}
-                                        </TabPanel>
-                                        <TabPanel value="2">
-                                            <AssetImpactSummary
-                                                singleHazardImpact={
-                                                    hazardImpact
-                                                }
-                                            />
-                                        </TabPanel>
-                                        <TabPanel value="3">
-                                            <AssetHazardSummary
-                                                singleHazardImpact={
-                                                    hazardImpact
-                                                }
-                                            />
-                                        </TabPanel>
-                                    </TabContext>
-                                </Box>
-                            ) : (
-                                <></>
-                            )}
-                        </div>
-                    ) : (
-                        <></>
-                    )}
-                </Paper>
-            </Grid>
+                                            </TabPanel>
+                                        </TabContext>
+                                    </Box>
+                                ) : (
+                                    <></>
+                                )}
+                            </div>
+                        ) : (
+                            <></>
+                        )}
+                    </Paper>
+                </Grid>
             )}
         </Grid>
     )

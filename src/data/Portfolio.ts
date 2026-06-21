@@ -62,7 +62,9 @@ export const portfolioReducer = (state: State, action: Action) => {
             }, 0)
             let nextId = maxId + 1
             const items = rawItems.map((item: any) =>
-                item.id != null && item.id !== "" ? item : { ...item, id: String(nextId++) }
+                item.id != null && item.id !== ""
+                    ? item
+                    : { ...item, id: String(nextId++) }
             )
             return {
                 ...state,
@@ -138,7 +140,7 @@ export const runCalculation = async (
             include_measures: true,
             years: [2030, 2040, 2050],
             scenarios: ["ssp126", "ssp245", "ssp585"],
-            provider_max_requests: { "jba": 20 },
+            provider_max_requests: { jba: 20 },
         }
 
         var response = await axios.post(

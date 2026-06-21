@@ -155,34 +155,112 @@ export default function AssetTable(props) {
             type: "number",
             width: 300,
             editable: true,
-            valueParser: (value) => (value === "" || value == null ? null : parseInt(value, 10)),
+            valueParser: (value) =>
+                value === "" || value == null ? null : parseInt(value, 10),
             renderCell: ({ value }) => {
-                if (value == sentinels.occupancy_code || value == null || value === "") return ""
+                if (
+                    value == sentinels.occupancy_code ||
+                    value == null ||
+                    value === ""
+                )
+                    return ""
                 const label = occupancyCodes[String(value)]
                 return label != null ? `${value} (${label})` : value
             },
         },
-        { field: "construction_code", headerName: "Construction code", type: "number", width: 150, editable: true, valueParser: (value) => (value === "" || value == null ? null : parseInt(value, 10)), ...blankIfSentinel(sentinels.construction_code) },
-        { field: "number_of_storeys", headerName: "Storeys", type: "number", width: 80, editable: true, valueParser: (value) => (value === "" || value == null ? null : parseInt(value, 10)), ...blankIfSentinel(sentinels.number_of_storeys) },
-        { field: "first_floor_height", headerName: "First floor height (metres)", type: "number", width: 190, editable: true },
-        { field: "basement", headerName: "Basement", type: "number", width: 90, editable: true, valueParser: (value) => (value === "" || value == null ? null : parseInt(value, 10)), ...blankIfSentinel(sentinels.basement) },
-        { field: "buffer", headerName: "Buffer (metres)", type: "number", width: 120, editable: true },
-        { field: "wkt_geometry", headerName: "WKT geometry", width: 180, editable: true },
+        {
+            field: "construction_code",
+            headerName: "Construction code",
+            type: "number",
+            width: 150,
+            editable: true,
+            valueParser: (value) =>
+                value === "" || value == null ? null : parseInt(value, 10),
+            ...blankIfSentinel(sentinels.construction_code),
+        },
+        {
+            field: "number_of_storeys",
+            headerName: "Storeys",
+            type: "number",
+            width: 80,
+            editable: true,
+            valueParser: (value) =>
+                value === "" || value == null ? null : parseInt(value, 10),
+            ...blankIfSentinel(sentinels.number_of_storeys),
+        },
+        {
+            field: "first_floor_height",
+            headerName: "First floor height (metres)",
+            type: "number",
+            width: 190,
+            editable: true,
+        },
+        {
+            field: "basement",
+            headerName: "Basement",
+            type: "number",
+            width: 90,
+            editable: true,
+            valueParser: (value) =>
+                value === "" || value == null ? null : parseInt(value, 10),
+            ...blankIfSentinel(sentinels.basement),
+        },
+        {
+            field: "buffer",
+            headerName: "Buffer (metres)",
+            type: "number",
+            width: 120,
+            editable: true,
+        },
+        {
+            field: "wkt_geometry",
+            headerName: "WKT geometry",
+            width: 180,
+            editable: true,
+        },
     ]
 
     const leftColumns = [
         { field: "id", headerName: "Identifier", width: 120 },
-        { field: "latitude", headerName: "Latitude", type: "number", width: 110, editable: true },
-        { field: "longitude", headerName: "Longitude", type: "number", width: 110, editable: true },
+        {
+            field: "latitude",
+            headerName: "Latitude",
+            type: "number",
+            width: 110,
+            editable: true,
+        },
+        {
+            field: "longitude",
+            headerName: "Longitude",
+            type: "number",
+            width: 110,
+            editable: true,
+        },
         { field: "address", headerName: "Address", width: 170, editable: true },
     ]
 
     const idColumn = leftColumns.shift()
 
     const rightColumns = [
-        { field: "asset_class", headerName: "Asset class", width: 150, editable: true },
-        { field: "type", headerName: "Type", width: 150, editable: true, description: "Hierarchical specification of asset type." },
-        { field: "location", headerName: "Location", width: 90, editable: true },
+        {
+            field: "asset_class",
+            headerName: "Asset class",
+            width: 150,
+            editable: true,
+        },
+        {
+            field: "type",
+            headerName: "Type",
+            width: 150,
+            editable: true,
+            description: "Hierarchical specification of asset type.",
+        },
+        {
+            field: "location",
+            headerName: "Location",
+            width: 90,
+            editable: true,
+        },
     ]
 
     const [populatedOed, unpopulatedOed] = oedColumns.reduce(
@@ -193,8 +271,13 @@ export default function AssetTable(props) {
         [[], []]
     )
 
-    const columns = [idColumn, ...populatedOed, ...leftColumns, ...unpopulatedOed, ...rightColumns]
-        .map((col) => ({ align: "left", headerAlign: "left", ...col }))
+    const columns = [
+        idColumn,
+        ...populatedOed,
+        ...leftColumns,
+        ...unpopulatedOed,
+        ...rightColumns,
+    ].map((col) => ({ align: "left", headerAlign: "left", ...col }))
 
     return (
         <Fragment>

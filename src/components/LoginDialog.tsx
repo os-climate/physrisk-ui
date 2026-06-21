@@ -35,9 +35,16 @@ const LoginDialog = ({ open, handleClose, fullScreen }: Props) => {
         } else {
             setError("")
             axios
-                .post("/auth/token", {}, { headers: { Authorization: "Bearer " + apiKey } })
+                .post(
+                    "/auth/token",
+                    {},
+                    { headers: { Authorization: "Bearer " + apiKey } }
+                )
                 .then((response) => {
-                    globals.setToken(response.data.access_token, response.data.refresh_token)
+                    globals.setToken(
+                        response.data.access_token,
+                        response.data.refresh_token
+                    )
                     setApiKey("")
                 })
                 .catch(() => {

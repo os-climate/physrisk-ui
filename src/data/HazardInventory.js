@@ -192,32 +192,40 @@ export class HazardInventory {
         return Object.keys(this.modelsOfHazardType)
     }
 
+    findModelByPath(path) {
+        for (const [hazardTypeId, models] of Object.entries(
+            this.modelsOfHazardType
+        )) {
+            const model = models.find((m) => m.path === path)
+            if (model) return { hazardTypeId, model }
+        }
+        return null
+    }
+
     getMapInfo(hazardTypeId, modelId, scenarioId, year) {
         // need some static typing here I feel (move this code to TypeScript?)
         const model = this.modelsOfHazardType[hazardTypeId].filter(
             (m) => m.path == modelId // path acts as the unique id
         )[0]
-        const scenario = model.scenarios.filter((s) => s.id == scenarioId)[0]
-        const period = scenario.periods
-            ? scenario.periods.filter((p) => p.year == year)[0]
-            : null
+        // period lookup is only needed for mapbox sources; for map_array_pyramid
+        // the API translates the requested scenario/year to what is available
+        const scenario = model.scenarios.find((s) => s.id == scenarioId)
+        const period = scenario?.periods?.find((p) => p.year == year)
 
-        const result = {
+        return {
             bounds: model.map.bounds,
             source: model.map.source,
             mapId:
-                model.map.source == "mapbox"
+                model.map.source == "mapbox" && period
                     ? "osc-mapbox." + period.map_id
                     : null,
             resource: model.path,
-            scenarioId: scenario.id,
+            scenarioId: scenarioId,
             year: year,
             colorbar: getColorbar(this.colormaps, model.map.colormap),
             minValue: model.map.colormap.min_value,
             maxValue: model.map.colormap.max_value,
         }
-
-        return result
     }
 }
 

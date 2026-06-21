@@ -62,11 +62,11 @@ const BaseAPI = window.BASE_API
 const options = [
     {
         label: "Production",
-        url: "https://physrisk-api-physrisk.apps.osc-cl1.apps.os-climate.org",
+        url: "https://physrisk.com",
     },
     {
         label: "Test",
-        url: "https://physrisk-api-uat-physrisk.apps.osc-cl1.apps.os-climate.org",
+        url: "https://physrisk.com/test",
     },
     { label: "afs", url: `${BaseAPI}` },
     { label: "Local", url: "http://127.0.0.1:5000" },

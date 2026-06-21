@@ -50,7 +50,8 @@ export const GlobalDataContextProvider = (props: any) => {
     const getStoredToken = () => {
         const userToken = localStorage.getItem("token")
         if (userToken) {
-            axios.defaults.headers.common["Authorization"] = "Bearer " + userToken
+            axios.defaults.headers.common["Authorization"] =
+                "Bearer " + userToken
         }
         return userToken ?? ""
     }
@@ -98,7 +99,8 @@ export const GlobalDataContextProvider = (props: any) => {
                     // Queue concurrent 401s to retry once the refresh completes
                     return new Promise((resolve) => {
                         refreshQueue.push((token) => {
-                            original.headers["Authorization"] = "Bearer " + token
+                            original.headers["Authorization"] =
+                                "Bearer " + token
                             resolve(axios(original))
                         })
                     })
@@ -106,15 +108,14 @@ export const GlobalDataContextProvider = (props: any) => {
 
                 isRefreshing = true
                 try {
-                    const storedRefreshToken = localStorage.getItem("refresh_token") ?? ""
-                    const { data } = await axios.post(
-                        "/auth/refresh",
-                        {},
-                        {
-                            _retry: true,
-                            headers: { Authorization: "Bearer " + storedRefreshToken },
-                        } as any
-                    )
+                    const storedRefreshToken =
+                        localStorage.getItem("refresh_token") ?? ""
+                    const { data } = await axios.post("/auth/refresh", {}, {
+                        _retry: true,
+                        headers: {
+                            Authorization: "Bearer " + storedRefreshToken,
+                        },
+                    } as any)
                     const newToken: string = data.access_token
                     const newRefreshToken: string = data.refresh_token
                     localStorage.setItem("token", newToken)
@@ -130,7 +131,11 @@ export const GlobalDataContextProvider = (props: any) => {
                     localStorage.removeItem("token")
                     localStorage.removeItem("refresh_token")
                     delete axios.defaults.headers.common["Authorization"]
-                    setState((prev) => ({ ...prev, token: "", authRequired: true }))
+                    setState((prev) => ({
+                        ...prev,
+                        token: "",
+                        authRequired: true,
+                    }))
                     refreshQueue = []
                     return Promise.reject(error)
                 } finally {
