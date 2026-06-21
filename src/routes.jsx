@@ -1,5 +1,4 @@
 import DashboardIcon from "@mui/icons-material/Dashboard"
-import BarChartIcon from "@mui/icons-material/BarChart"
 import {
     LocalFireDepartment,
     PrecisionManufacturing,
@@ -8,7 +7,6 @@ import SettingsIcon from "@mui/icons-material/Settings"
 import AboutPage from "./views/AboutPage.jsx"
 import AssetViewer from "./views/AssetViewer.jsx"
 import HazardViewer from "./views/HazardViewer.jsx"
-import RiskViewer from "./views/RiskViewer.jsx"
 import Settings from "./views/Settings.jsx"
 
 /** Provides app routes. Note factory method for component passes 'visible' property,
@@ -34,19 +32,19 @@ export const routes = [
         layout: "/standard",
         category: "primary",
     },
-    {
-        path: "/risk",
-        name: "Risk",
-        longName: "Risk",
-        icon: BarChartIcon,
-        component: () => <RiskViewer />,
-        layout: "/standard",
-        category: "primary",
-    },
+    // {
+    //     path: "/risk",
+    //     name: "Risk",
+    //     longName: "Risk",
+    //     icon: BarChartIcon,
+    //     component: () => <RiskViewer />,
+    //     layout: "/standard",
+    //     category: "primary",
+    // },
     {
         path: "/about",
         name: "About",
-        longName: "Risk",
+        longName: "About the physrisk UI",
         icon: DashboardIcon,
         component: () => <AboutPage />,
         layout: "/standard",
