@@ -1,6 +1,9 @@
-import { Fragment, useContext, useEffect, useState } from "react"
+import { Fragment, useCallback, useContext, useEffect, useState } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
+import { Draw as DrawIcon } from "@mui/icons-material"
 import {
     DataGrid,
     GridToolbarColumnsButton,
@@ -11,6 +14,7 @@ import {
 import axios from "axios"
 import { GlobalDataContext } from "../data/GlobalData"
 import { search } from "../components/Geocoder"
+import DrawShapeModal from "./DrawShapeModal"
 
 //function getRowId(row) {
 //    return row.identifier ? row.identifier : row.id;
@@ -21,6 +25,12 @@ export default function AssetTable(props) {
     const apiRef = useGridApiRef()
     const globals = useContext(GlobalDataContext)
     const [occupancyCodes, setOccupancyCodes] = useState({})
+    const [drawModal, setDrawModal] = useState({
+        open: false,
+        rowIdx: null,
+        wkt: "",
+        centerLngLat: null,
+    })
 
     useEffect(() => {
         async function fetchStaticInfo() {
@@ -148,6 +158,26 @@ export default function AssetTable(props) {
         return newRow
     }
 
+    const handleDrawModalConfirm = useCallback(
+        (wkt) => {
+            if (drawModal.rowIdx == null) return
+            const newData = {
+                items: data.items.map((item, i) =>
+                    i === drawModal.rowIdx
+                        ? { ...item, wkt_geometry: wkt ?? null }
+                        : item
+                ),
+            }
+            portfolioDispatch({ type: "updatePortfolio", portfolioJson: newData })
+        },
+        [drawModal.rowIdx, data.items, portfolioDispatch]
+    )
+
+    const handleDrawModalClose = useCallback(
+        () => setDrawModal((m) => ({ ...m, open: false })),
+        []
+    )
+
     const oedColumns = [
         {
             field: "occupancy_code",
@@ -215,8 +245,52 @@ export default function AssetTable(props) {
         {
             field: "wkt_geometry",
             headerName: "WKT geometry",
-            width: 180,
+            width: 200,
             editable: true,
+            renderCell: ({ value, row }) => (
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%",
+                        gap: 0.5,
+                    }}
+                >
+                    <Box
+                        component="span"
+                        sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            flex: 1,
+                            fontSize: "0.75rem",
+                            color: value ? "text.primary" : "text.disabled",
+                        }}
+                    >
+                        {value || "None"}
+                    </Box>
+                    <Tooltip title="Draw shape on map">
+                        <IconButton
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setDrawModal({
+                                    open: true,
+                                    rowIdx: row._rowIdx,
+                                    wkt: value ?? "",
+                                    centerLngLat:
+                                        row.longitude != null && row.latitude != null
+                                            ? [row.longitude, row.latitude]
+                                            : null,
+                                })
+                            }}
+                            sx={{ p: 0.25, flexShrink: 0 }}
+                        >
+                            <DrawIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ),
         },
     ]
 
@@ -281,6 +355,13 @@ export default function AssetTable(props) {
 
     return (
         <Fragment>
+            <DrawShapeModal
+                open={drawModal.open}
+                onClose={handleDrawModalClose}
+                onConfirm={handleDrawModalConfirm}
+                initialWkt={drawModal.wkt}
+                centerLngLat={drawModal.centerLngLat}
+            />
             <Box sx={{ width: "100%", height: 600 }}>
                 <DataGrid
                     getRowId={(row) => row._rowIdx}
