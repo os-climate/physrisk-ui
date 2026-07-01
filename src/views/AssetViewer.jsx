@@ -1,4 +1,4 @@
-import { useContext, useEffect, useReducer, useState, React } from "react"
+import { useContext, useEffect, useReducer, useRef, useState, React } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Divider from "@mui/material/Divider"
@@ -84,6 +84,7 @@ export default function AssetViewer(props) {
 
     const [assetScores, setAssetScores] = useState(null)
     const [dataTable, setDataTable] = useState(null)
+    const mapViewportRef = useRef(null)
     const [barChartData, setBarChartData] = useState(null)
     const [hazardImpact, setHazardImpact] = useState(null)
 
@@ -385,12 +386,14 @@ export default function AssetViewer(props) {
                         assetData={portfolio.portfolioJson}
                         assetScores={assetScores}
                         visible={visible}
+                        mapViewportRef={mapViewportRef}
                     />
                     <Box sx={{ mt: 2 }} />
                     <AssetTable
                         data={portfolio.portfolioJson}
                         portfolioDispatch={portfolioDispatch}
                         apiKey={mapboxAccessToken}
+                        mapViewportRef={mapViewportRef}
                     />
                 </Paper>
             </Grid>

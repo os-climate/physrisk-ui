@@ -1,4 +1,6 @@
 import * as React from "react"
+import { APIProvider } from "@vis.gl/react-google-maps"
+import { MAP_PROVIDER, GOOGLE_MAPS_API_KEY } from "../config.js"
 import { GlobalDataContext } from "../data/GlobalData"
 import { blue, grey, lime, teal } from "@mui/material/colors"
 import PropTypes from "prop-types"
@@ -305,12 +307,19 @@ function AppInner() {
 }
 
 function AppContent() {
-    return (
+    const inner = (
         <GlobalDataContextProvider>
             <ThemeProvider theme={appTheme}>
                 <AppInner />
             </ThemeProvider>
         </GlobalDataContextProvider>
+    )
+    // APIProvider must wrap the whole app so all Google Map instances share one
+    // loaded script. It is a no-op when MAP_PROVIDER is "mapbox".
+    return MAP_PROVIDER === "google" ? (
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>{inner}</APIProvider>
+    ) : (
+        inner
     )
 }
 

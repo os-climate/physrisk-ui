@@ -21,7 +21,7 @@ import DrawShapeModal from "./DrawShapeModal"
 //  }
 
 export default function AssetTable(props) {
-    const { data, portfolioDispatch, apiKey } = props // updateDataTableRow
+    const { data, portfolioDispatch, apiKey, mapViewportRef } = props // updateDataTableRow
     const apiRef = useGridApiRef()
     const globals = useContext(GlobalDataContext)
     const [occupancyCodes, setOccupancyCodes] = useState({})
@@ -30,6 +30,7 @@ export default function AssetTable(props) {
         rowIdx: null,
         wkt: "",
         centerLngLat: null,
+        initialZoom: undefined,
     })
 
     useEffect(() => {
@@ -49,12 +50,12 @@ export default function AssetTable(props) {
     const handleAddRowClick = () => {
         const items = data.items ?? []
         const maxId = items.reduce((max, item) => {
-            const n = parseInt(item.id, 10)
+            const n = parseInt(String(item.id).replace(/^asset_/, ""), 10)
             return isNaN(n) ? max : Math.max(max, n)
         }, 0)
         portfolioDispatch({
             type: "updatePortfolio",
-            portfolioJson: { items: [...items, { id: String(maxId + 1) }] },
+            portfolioJson: { items: [...items, { id: `asset_${maxId + 1}` }] },
         })
     }
 
@@ -115,7 +116,7 @@ export default function AssetTable(props) {
             <GridToolbarContainer>
                 <GridToolbarColumnsButton />
                 <GridToolbarFilterButton />
-                <Button onClick={handleAddRowClick}>Add Row</Button>
+                <Button onClick={handleAddRowClick}>Add Asset</Button>
                 <Button onClick={handleExportJson}>Export JSON</Button>
                 <Button onClick={handleGeocodeClick}>Geocode</Button>
             </GridToolbarContainer>
@@ -242,6 +243,25 @@ export default function AssetTable(props) {
             width: 120,
             editable: true,
         },
+    ]
+
+    const leftColumns = [
+        { field: "id", headerName: "Identifier", width: 120 },
+        {
+            field: "latitude",
+            headerName: "Latitude",
+            type: "number",
+            width: 110,
+            editable: true,
+        },
+        {
+            field: "longitude",
+            headerName: "Longitude",
+            type: "number",
+            width: 110,
+            editable: true,
+        },
+        { field: "address", headerName: "Address", width: 170, editable: true },
         {
             field: "wkt_geometry",
             headerName: "WKT geometry",
@@ -274,14 +294,18 @@ export default function AssetTable(props) {
                             size="small"
                             onClick={(e) => {
                                 e.stopPropagation()
+                                const hasLatLon =
+                                    row.longitude != null && row.latitude != null
                                 setDrawModal({
                                     open: true,
                                     rowIdx: row._rowIdx,
                                     wkt: value ?? "",
-                                    centerLngLat:
-                                        row.longitude != null && row.latitude != null
-                                            ? [row.longitude, row.latitude]
-                                            : null,
+                                    centerLngLat: hasLatLon
+                                        ? [row.longitude, row.latitude]
+                                        : mapViewportRef?.current?.center ?? null,
+                                    initialZoom: hasLatLon
+                                        ? 18
+                                        : mapViewportRef?.current?.zoom,
                                 })
                             }}
                             sx={{ p: 0.25, flexShrink: 0 }}
@@ -292,25 +316,6 @@ export default function AssetTable(props) {
                 </Box>
             ),
         },
-    ]
-
-    const leftColumns = [
-        { field: "id", headerName: "Identifier", width: 120 },
-        {
-            field: "latitude",
-            headerName: "Latitude",
-            type: "number",
-            width: 110,
-            editable: true,
-        },
-        {
-            field: "longitude",
-            headerName: "Longitude",
-            type: "number",
-            width: 110,
-            editable: true,
-        },
-        { field: "address", headerName: "Address", width: 170, editable: true },
     ]
 
     const idColumn = leftColumns.shift()
@@ -361,6 +366,7 @@ export default function AssetTable(props) {
                 onConfirm={handleDrawModalConfirm}
                 initialWkt={drawModal.wkt}
                 centerLngLat={drawModal.centerLngLat}
+                initialZoom={drawModal.initialZoom}
             />
             <Box sx={{ width: "100%", height: 600 }}>
                 <DataGrid
