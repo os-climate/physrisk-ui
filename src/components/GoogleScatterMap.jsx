@@ -247,6 +247,7 @@ function MapInteractions({
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: 512,
                 maxZoom: (indexValuesState.maxZoom - 1) ?? 15,
+                refinementStrategy: "no-overlap",
                 opacity,
                 renderSubLayers: (props) => {
                     const {

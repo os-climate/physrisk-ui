@@ -76,7 +76,7 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
     const startDrawing = useCallback((m, ml) => {
         drawingRef.current = true
         pathRef.current = []
-        overlayRef.current = new ml.Polygon({ paths: [], editable: false, map: m })
+        overlayRef.current = new ml.Polygon({ paths: [], editable: false, clickable: false, map: m })
     }, [])
 
     const finishDrawing = useCallback(
