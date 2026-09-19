@@ -114,3 +114,63 @@ function parseRingList(tokens, i) {
 function expect(token, expected) {
     if (token !== expected) throw new Error(`Expected '${expected}', got '${token}'`)
 }
+
+/**
+ * Return the [lng, lat] centroid of a GeoJSON geometry.
+ * Polygons use the signed-area formula; MultiPolygon is area-weighted.
+ * Returns null for unsupported or degenerate input.
+ */
+export function geojsonCentroid(geometry) {
+    if (!geometry) return null
+    switch (geometry.type) {
+        case "Point":
+            return [geometry.coordinates[0], geometry.coordinates[1]]
+        case "LineString": {
+            const c = geometry.coordinates
+            return [
+                c.reduce((s, p) => s + p[0], 0) / c.length,
+                c.reduce((s, p) => s + p[1], 0) / c.length,
+            ]
+        }
+        case "Polygon":
+            return ringCentroid(geometry.coordinates[0])
+        case "MultiPolygon": {
+            let totalArea = 0, cx = 0, cy = 0
+            for (const poly of geometry.coordinates) {
+                const [c, area] = ringCentroidAndArea(poly[0])
+                if (area > 0) { totalArea += area; cx += c[0] * area; cy += c[1] * area }
+            }
+            return totalArea > 0 ? [cx / totalArea, cy / totalArea] : null
+        }
+        default:
+            return null
+    }
+}
+
+function ringCentroid(ring) {
+    return ringCentroidAndArea(ring)[0]
+}
+
+function ringCentroidAndArea(ring) {
+    let area = 0, cx = 0, cy = 0
+    const n = ring.length
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+        const cross = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1]
+        area += cross
+        cx += (ring[j][0] + ring[i][0]) * cross
+        cy += (ring[j][1] + ring[i][1]) * cross
+    }
+    area /= 2
+    const absArea = Math.abs(area)
+    if (absArea < 1e-12) {
+        // Degenerate — fall back to vertex average
+        return [
+            [
+                ring.reduce((s, p) => s + p[0], 0) / ring.length,
+                ring.reduce((s, p) => s + p[1], 0) / ring.length,
+            ],
+            absArea,
+        ]
+    }
+    return [[cx / (6 * area), cy / (6 * area)], absArea]
+}

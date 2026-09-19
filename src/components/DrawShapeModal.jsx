@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Dialog from "@mui/material/Dialog"
@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent"
 import DialogTitle from "@mui/material/DialogTitle"
 import TextField from "@mui/material/TextField"
 import Typography from "@mui/material/Typography"
-import { MAP_PROVIDER } from "../config.js"
+import { GlobalDataContext } from "../data/GlobalData"
 import { wktToGeojson } from "../utils/wkt.js"
 import DrawMap from "./DrawMap.jsx"
 
@@ -20,6 +20,7 @@ export default function DrawShapeModal({
     initialZoom,
 }) {
     // Populated by whichever DrawMap is active; exposes { clear(), updateFromWkt(wkt) }.
+    const { mapProvider } = useContext(GlobalDataContext)
     const mapControlRef = useRef(null)
     const [wkt, setWkt] = useState("")
     const [wktError, setWktError] = useState("")
@@ -77,7 +78,7 @@ export default function DrawShapeModal({
             <DialogTitle>Draw Shape</DialogTitle>
             <DialogContent>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {MAP_PROVIDER === "google"
+                    {mapProvider === "google"
                         ? "Click on the map to add points, then press Finish to close the shape. You can also type or paste WKT directly into the field below."
                         : "Use the polygon tool (top-left of map) to draw a shape. You can also type or paste WKT directly into the field below."}
                 </Typography>
@@ -114,7 +115,7 @@ export default function DrawShapeModal({
                 <Button onClick={handleClear} color="warning">
                     Clear
                 </Button>
-                {MAP_PROVIDER === "google" && (
+                {mapProvider === "google" && (
                     <Button onClick={handleFinish} variant="outlined">
                         Finish
                     </Button>

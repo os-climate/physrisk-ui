@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef } from "react"
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps"
+import Box from "@mui/material/Box"
+import Geocoder from "./Geocoder.tsx"
+import { mapboxAccessToken } from "./ScatterMap.jsx"
 import { geojsonToWkt, wktToGeojson } from "../utils/wkt.js"
 
 // google.maps.drawing.DrawingManager is deprecated (Aug 2025) and removed,
 // so polygons are drawn manually: click to add vertices, press Finish to close.
-// SymbolPath.CIRCLE and Marker live in separate library partitions from "maps";
-// access them via the global namespace which is always populated once the API loads.
 const VERTEX_ICON = {
     fillColor: "#1976d2",
     fillOpacity: 1,
@@ -19,7 +20,15 @@ const makeVertexIcon = () => ({
     path: window.google.maps.SymbolPath.CIRCLE,
 })
 
-function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
+// Captures the map instance into a ref so the geocoder handler (outside the Map
+// context) can call panTo without needing useMap().
+function MapRefCapture({ mapRef }) {
+    const map = useMap()
+    useEffect(() => { mapRef.current = map }, [map, mapRef])
+    return null
+}
+
+function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarkerRef }) {
     const map = useMap()
     const mapsLib = useMapsLibrary("maps")
     const overlayRef = useRef(null)
@@ -27,7 +36,6 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
     const drawingRef = useRef(false)
     const markersRef = useRef([])
 
-    // Keep live refs so imperative methods always see the latest map/lib.
     const mapRef = useRef(null)
     const mapsLibRef = useRef(null)
     useEffect(() => { mapRef.current = map }, [map])
@@ -37,6 +45,13 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
         markersRef.current.forEach((m) => m.setMap(null))
         markersRef.current = []
     }, [])
+
+    const clearGeocoderMarker = useCallback(() => {
+        if (geocoderMarkerRef.current) {
+            geocoderMarkerRef.current.setMap(null)
+            geocoderMarkerRef.current = null
+        }
+    }, [geocoderMarkerRef])
 
     const addVertexMarker = useCallback((m, latLng) => {
         markersRef.current.push(
@@ -53,7 +68,7 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
         (polygon) => {
             const extractWkt = () => {
                 const coords = polygon.getPath().getArray().map((p) => [p.lng(), p.lat()])
-                coords.push(coords[0]) // close ring
+                coords.push(coords[0])
                 return geojsonToWkt({ type: "Polygon", coordinates: [coords] })
             }
             polygon.getPath().addListener("set_at", () => onWktChange(extractWkt()))
@@ -79,27 +94,25 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
         overlayRef.current = new ml.Polygon({ paths: [], editable: false, clickable: false, map: m })
     }, [])
 
-    const finishDrawing = useCallback(
-        () => {
-            if (!drawingRef.current || pathRef.current.length < 3) return
-            drawingRef.current = false
-            clearMarkers()
-            const polygon = overlayRef.current
-            if (!polygon) return
-            polygon.setOptions({ editable: true })
-            attachPathListeners(polygon)
-            const coords = polygon.getPath().getArray().map((p) => [p.lng(), p.lat()])
-            coords.push(coords[0])
-            onWktChange(geojsonToWkt({ type: "Polygon", coordinates: [coords] }))
-        },
-        [attachPathListeners, onWktChange, clearMarkers]
-    )
+    const finishDrawing = useCallback(() => {
+        if (!drawingRef.current || pathRef.current.length < 3) return
+        drawingRef.current = false
+        clearMarkers()
+        clearGeocoderMarker()
+        const polygon = overlayRef.current
+        if (!polygon) return
+        polygon.setOptions({ editable: true })
+        attachPathListeners(polygon)
+        const coords = polygon.getPath().getArray().map((p) => [p.lng(), p.lat()])
+        coords.push(coords[0])
+        onWktChange(geojsonToWkt({ type: "Polygon", coordinates: [coords] }))
+    }, [attachPathListeners, onWktChange, clearMarkers, clearGeocoderMarker])
 
-    // Expose imperative controls to the parent modal.
     useEffect(() => {
         mapControlRef.current = {
             clear: () => {
                 clearMarkers()
+                clearGeocoderMarker()
                 overlayRef.current?.setMap(null)
                 overlayRef.current = null
                 if (mapRef.current && mapsLibRef.current) {
@@ -109,31 +122,25 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef }) {
             finish: () => finishDrawing(),
             updateFromWkt: (wkt) => {
                 clearMarkers()
+                clearGeocoderMarker()
                 overlayRef.current?.setMap(null)
                 overlayRef.current = null
                 drawingRef.current = false
                 const geojson = wktToGeojson(wkt)
-                const polygon = createPolygonFromGeojson(
-                    geojson,
-                    mapRef.current,
-                    mapsLibRef.current
-                )
+                const polygon = createPolygonFromGeojson(geojson, mapRef.current, mapsLibRef.current)
                 overlayRef.current = polygon
             },
         }
-    }, [mapControlRef, createPolygonFromGeojson, startDrawing, finishDrawing, clearMarkers])
+    }, [mapControlRef, createPolygonFromGeojson, startDrawing, finishDrawing, clearMarkers, clearGeocoderMarker])
 
-    // Initialise once the map and lib are ready.
     useEffect(() => {
         if (!mapsLib || !map) return
 
-        // Pre-load any existing WKT geometry; otherwise start in draw mode.
         if (initialWkt) {
             const geojson = wktToGeojson(initialWkt)
             const polygon = createPolygonFromGeojson(geojson, map, mapsLib)
             if (polygon) {
                 overlayRef.current = polygon
-                // Zoom to fit the polygon, capped at zoom 18.
                 const bounds = new window.google.maps.LatLngBounds()
                 polygon.getPath().getArray().forEach((p) => bounds.extend(p))
                 if (!bounds.isEmpty()) {
@@ -175,20 +182,56 @@ export default function GoogleDrawMap({
     mapControlRef,
 }) {
     const [lng, lat] = centerLngLat ?? [0, 20]
+    const mapRef = useRef(null)
+    const geocoderMarkerRef = useRef(null)
+
+    const handleGeocoderSelect = (result) => {
+        if (!result || !mapRef.current) return
+        const [lng, lat] = result.feature.center
+
+        mapRef.current.panTo({ lat, lng })
+        mapRef.current.setZoom(18)
+
+        // Replace any previous geocoder pin.
+        geocoderMarkerRef.current?.setMap(null)
+        geocoderMarkerRef.current = new window.google.maps.Marker({
+            position: { lat, lng },
+            map: mapRef.current,
+        })
+    }
 
     return (
-        <Map
-            defaultCenter={{ lat, lng }}
-            defaultZoom={initialZoom ?? (centerLngLat ? 8 : 2)}
-            style={{ width: "100%", height: "100%" }}
-            gestureHandling="greedy"
-            renderingType="RASTER"
-        >
-            <DrawingControl
-                initialWkt={initialWkt}
-                onWktChange={onWktChange}
-                mapControlRef={mapControlRef}
-            />
-        </Map>
+        <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+            <Box
+                sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    zIndex: 10,
+                    width: 240,
+                    bgcolor: "background.paper",
+                    borderRadius: 1,
+                    boxShadow: 2,
+                    px: 1,
+                }}
+            >
+                <Geocoder apiKey={mapboxAccessToken} onSelect={handleGeocoderSelect} />
+            </Box>
+            <Map
+                defaultCenter={{ lat, lng }}
+                defaultZoom={initialZoom ?? (centerLngLat ? 8 : 2)}
+                style={{ width: "100%", height: "100%" }}
+                gestureHandling="greedy"
+                renderingType="RASTER"
+            >
+                <MapRefCapture mapRef={mapRef} />
+                <DrawingControl
+                    initialWkt={initialWkt}
+                    onWktChange={onWktChange}
+                    mapControlRef={mapControlRef}
+                    geocoderMarkerRef={geocoderMarkerRef}
+                />
+            </Map>
+        </Box>
     )
 }

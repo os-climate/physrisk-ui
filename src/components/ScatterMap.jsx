@@ -1,8 +1,9 @@
 // Map provider switcher.
 // All callers import { ScatterMap, mapboxAccessToken } from this file — the
-// implementation is selected via MAP_PROVIDER in src/config.js.
+// implementation is selected at runtime via the mapProvider setting in GlobalDataContext.
 
-import { MAP_PROVIDER } from "../config.js"
+import { useContext } from "react"
+import { GlobalDataContext } from "../data/GlobalData"
 import { MapboxScatterMap, mapboxAccessToken as _mapboxToken } from "./MapboxScatterMap.jsx"
 import { GoogleScatterMap } from "./GoogleScatterMap.jsx"
 
@@ -10,7 +11,8 @@ import { GoogleScatterMap } from "./GoogleScatterMap.jsx"
 export const mapboxAccessToken = _mapboxToken
 
 export function ScatterMap(props) {
-    return MAP_PROVIDER === "google" ? (
+    const { mapProvider } = useContext(GlobalDataContext)
+    return mapProvider === "google" ? (
         <GoogleScatterMap {...props} />
     ) : (
         <MapboxScatterMap {...props} />

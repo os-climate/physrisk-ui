@@ -51,6 +51,7 @@ export function MapboxScatterMap(props) {
         assetScores,
         assetSummary,
         visible,
+        mapViewportRef,
     } = props
 
     const theme = useTheme()
@@ -527,6 +528,15 @@ export function MapboxScatterMap(props) {
                                 zoom: zoom,
                             }}
                             onLoad={handleMapLoad}
+                            onMoveEnd={(e) => {
+                                if (mapViewportRef) {
+                                    const { lng, lat } = e.target.getCenter()
+                                    mapViewportRef.current = {
+                                        center: [lng, lat],
+                                        zoom: e.target.getZoom(),
+                                    }
+                                }
+                            }}
                             transformRequest={transformRequest}
                             onClick={handleClick}
                             onMouseEnter={handleAssetsMouseEnter}

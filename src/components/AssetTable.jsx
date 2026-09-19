@@ -15,6 +15,7 @@ import axios from "axios"
 import { GlobalDataContext } from "../data/GlobalData"
 import { search } from "../components/Geocoder"
 import DrawShapeModal from "./DrawShapeModal"
+import { geojsonCentroid, wktToGeojson } from "../utils/wkt.js"
 
 //function getRowId(row) {
 //    return row.identifier ? row.identifier : row.id;
@@ -162,11 +163,17 @@ export default function AssetTable(props) {
     const handleDrawModalConfirm = useCallback(
         (wkt) => {
             if (drawModal.rowIdx == null) return
+            const updates = { wkt_geometry: wkt ?? null }
+            if (wkt) {
+                const centroid = geojsonCentroid(wktToGeojson(wkt))
+                if (centroid) {
+                    updates.longitude = centroid[0]
+                    updates.latitude = centroid[1]
+                }
+            }
             const newData = {
                 items: data.items.map((item, i) =>
-                    i === drawModal.rowIdx
-                        ? { ...item, wkt_geometry: wkt ?? null }
-                        : item
+                    i === drawModal.rowIdx ? { ...item, ...updates } : item
                 ),
             }
             portfolioDispatch({ type: "updatePortfolio", portfolioJson: newData })

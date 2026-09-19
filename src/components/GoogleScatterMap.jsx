@@ -11,8 +11,9 @@ import React, {
 import { useTheme } from "@mui/material/styles"
 import { Map, useMap } from "@vis.gl/react-google-maps"
 import { GoogleMapsOverlay } from "@deck.gl/google-maps"
-import { BitmapLayer } from "@deck.gl/layers"
+import { BitmapLayer, GeoJsonLayer } from "@deck.gl/layers"
 import { TileLayer } from "@deck.gl/geo-layers"
+import { MaskExtension } from "@deck.gl/extensions"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import IconButton from "@mui/material/IconButton"
@@ -242,7 +243,7 @@ function MapInteractions({
                 id: "hazard-tiles",
                 data:
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
-                    `?minValue=${minValue}&maxValue=${maxValue}` +
+                        `?minValue=${minValue}&maxValue=${maxValue}` +
                     `&scenarioId=${scenarioId}&year=${year}${indexParam}`,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: 512,
@@ -281,6 +282,11 @@ function MapInteractions({
                 Math.max(...latitudes),
             ]
 
+            const landMask = new GeoJsonLayer({
+                id: "land-mask",
+                data: "/ne_10m_land.geojson",
+                operation: "mask",
+            })
             const bitmapLayer = new BitmapLayer({
                 id: "hazard-image",
                 image:
@@ -291,8 +297,10 @@ function MapInteractions({
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 opacity,
                 textureParameters: { minFilter: "nearest", magFilter: "nearest" },
+                extensions: [new MaskExtension()],
+                maskId: "land-mask",
             })
-            overlay.setProps({ layers: [bitmapLayer] })
+            overlay.setProps({ layers: [landMask, bitmapLayer] })
         }
     }, [map, hazardMenu, indexValuesState.indexSelectedValue, satellite])
 

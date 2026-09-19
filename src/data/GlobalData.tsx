@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import axios from "axios"
+import { MAP_PROVIDER } from "../config.js"
 
 declare global {
     interface Window {
@@ -19,9 +20,11 @@ interface Services {
 interface Globals {
     authRequired: boolean
     inventorySources: string[]
+    mapProvider: string
     removeToken(): void
     services: Services
     setApiHost(apiHost: string): void
+    setMapProvider(provider: string): void
     setToken(token: string, refreshToken: string): void
     token: string
 }
@@ -29,9 +32,11 @@ interface Globals {
 export const globals: Globals = {
     authRequired: false,
     inventorySources: [],
+    mapProvider: MAP_PROVIDER,
     removeToken: () => {},
     services: { apiHost: "" },
     setApiHost: (apiHost: string) => {},
+    setMapProvider: (_provider: string) => {},
     setToken: (token: string, refreshToken: string) => {},
     token: "",
 }
@@ -45,6 +50,11 @@ let refreshQueue: Array<(token: string) => void> = []
 export const GlobalDataContextProvider = (props: any) => {
     const setApiHost = (apiHost: string) => {
         setState({ ...state, services: { apiHost: apiHost } })
+    }
+
+    const setMapProvider = (provider: string) => {
+        localStorage.setItem("map_provider", provider)
+        setState((prev) => ({ ...prev, mapProvider: provider }))
     }
 
     const getStoredToken = () => {
@@ -74,9 +84,11 @@ export const GlobalDataContextProvider = (props: any) => {
         return {
             authRequired: false,
             inventorySources: ["embedded", "hazard"],
+            mapProvider: localStorage.getItem("map_provider") ?? MAP_PROVIDER,
             token: getStoredToken(),
             removeToken: removeToken,
             setApiHost: setApiHost,
+            setMapProvider: setMapProvider,
             setToken: setToken,
             services: { apiHost: baseUrl },
         }
