@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react"
 import axios from "axios"
-import { MAP_PROVIDER } from "../config.js"
 
 declare global {
     interface Window {
-        BASE_API: any
+        BASE_API: string
+        MAP_PROVIDER: string
+        GOOGLE_MAPS_API_KEY: string
+        GOOGLE_MAPS_MAP_ID: string
     }
 }
 
@@ -32,7 +34,7 @@ interface Globals {
 export const globals: Globals = {
     authRequired: false,
     inventorySources: [],
-    mapProvider: MAP_PROVIDER,
+    mapProvider: window.MAP_PROVIDER ?? "mapbox",
     removeToken: () => {},
     services: { apiHost: "" },
     setApiHost: (apiHost: string) => {},
@@ -84,7 +86,7 @@ export const GlobalDataContextProvider = (props: any) => {
         return {
             authRequired: false,
             inventorySources: ["embedded", "hazard"],
-            mapProvider: localStorage.getItem("map_provider") ?? MAP_PROVIDER,
+            mapProvider: localStorage.getItem("map_provider") ?? window.MAP_PROVIDER ?? "mapbox",
             token: getStoredToken(),
             removeToken: removeToken,
             setApiHost: setApiHost,

@@ -1,6 +1,5 @@
 import * as React from "react"
 import { APIProvider } from "@vis.gl/react-google-maps"
-import { GOOGLE_MAPS_API_KEY } from "../config.js"
 import { GlobalDataContext } from "../data/GlobalData"
 import { blue, grey, lime, teal } from "@mui/material/colors"
 import PropTypes from "prop-types"
@@ -127,14 +126,12 @@ function ViewPanel(props) {
 
     if (!rendered) return null
 
-    let child
-    if (!component) child = null
-    else {
-        child = component(visible)
-    }
+    const child = component ? component(visible) : null
     return (
         <Box hidden={!visible} {...other}>
-            {child}
+            <React.Suspense fallback={null}>
+                {child}
+            </React.Suspense>
         </Box>
     )
 }
@@ -316,7 +313,7 @@ function AppContent() {
     )
     // APIProvider must wrap the whole app so all Google Map instances share one
     // loaded script. Always included so the user can switch providers at runtime.
-    return <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>{inner}</APIProvider>
+    return <APIProvider apiKey={window.GOOGLE_MAPS_API_KEY}>{inner}</APIProvider>
 }
 
 export default function App() {

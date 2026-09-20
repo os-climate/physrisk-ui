@@ -32,7 +32,6 @@ import { GlobalDataContext } from "../data/GlobalData"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
-import { GOOGLE_MAPS_MAP_ID } from "../config.js"
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -504,7 +503,7 @@ export function GoogleScatterMap(props) {
                         defaultCenter={{ lat: 45, lng: 0 }}
                         defaultZoom={3}
                         mapTypeId={satellite ? "satellite" : "roadmap"}
-                        mapId={GOOGLE_MAPS_MAP_ID}
+                        mapId={window.GOOGLE_MAPS_MAP_ID}
                         style={{ width: "100%", height: "100%" }}
                         gestureHandling="greedy"
                         scaleControl={true}
