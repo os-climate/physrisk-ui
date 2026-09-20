@@ -27,11 +27,18 @@ const makeVertexIcon = () => ({
 // context) can call panTo without needing useMap().
 function MapRefCapture({ mapRef }) {
     const map = useMap()
-    useEffect(() => { mapRef.current = map }, [map, mapRef])
+    useEffect(() => {
+        mapRef.current = map
+    }, [map, mapRef])
     return null
 }
 
-function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarkerRef }) {
+function DrawingControl({
+    initialWkt,
+    onWktChange,
+    mapControlRef,
+    geocoderMarkerRef,
+}) {
     const map = useMap()
     const mapsLib = useMapsLibrary("maps")
     const overlayRef = useRef(null)
@@ -41,8 +48,12 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
 
     const mapRef = useRef(null)
     const mapsLibRef = useRef(null)
-    useEffect(() => { mapRef.current = map }, [map])
-    useEffect(() => { mapsLibRef.current = mapsLib }, [mapsLib])
+    useEffect(() => {
+        mapRef.current = map
+    }, [map])
+    useEffect(() => {
+        mapsLibRef.current = mapsLib
+    }, [mapsLib])
 
     const clearMarkers = useCallback(() => {
         markersRef.current.forEach((m) => m.setMap(null))
@@ -70,12 +81,19 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
     const attachPathListeners = useCallback(
         (polygon) => {
             const extractWkt = () => {
-                const coords = polygon.getPath().getArray().map((p) => [p.lng(), p.lat()])
+                const coords = polygon
+                    .getPath()
+                    .getArray()
+                    .map((p) => [p.lng(), p.lat()])
                 coords.push(coords[0])
                 return geojsonToWkt({ type: "Polygon", coordinates: [coords] })
             }
-            polygon.getPath().addListener("set_at", () => onWktChange(extractWkt()))
-            polygon.getPath().addListener("insert_at", () => onWktChange(extractWkt()))
+            polygon
+                .getPath()
+                .addListener("set_at", () => onWktChange(extractWkt()))
+            polygon
+                .getPath()
+                .addListener("insert_at", () => onWktChange(extractWkt()))
         },
         [onWktChange]
     )
@@ -83,7 +101,10 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
     const createPolygonFromGeojson = useCallback(
         (geojson, m, ml) => {
             if (geojson?.type !== "Polygon" || !m || !ml) return null
-            const paths = geojson.coordinates[0].map(([lng, lat]) => ({ lat, lng }))
+            const paths = geojson.coordinates[0].map(([lng, lat]) => ({
+                lat,
+                lng,
+            }))
             const polygon = new ml.Polygon({ paths, editable: true, map: m })
             attachPathListeners(polygon)
             return polygon
@@ -94,7 +115,12 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
     const startDrawing = useCallback((m, ml) => {
         drawingRef.current = true
         pathRef.current = []
-        overlayRef.current = new ml.Polygon({ paths: [], editable: false, clickable: false, map: m })
+        overlayRef.current = new ml.Polygon({
+            paths: [],
+            editable: false,
+            clickable: false,
+            map: m,
+        })
     }, [])
 
     const finishDrawing = useCallback(() => {
@@ -106,7 +132,10 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
         if (!polygon) return
         polygon.setOptions({ editable: true })
         attachPathListeners(polygon)
-        const coords = polygon.getPath().getArray().map((p) => [p.lng(), p.lat()])
+        const coords = polygon
+            .getPath()
+            .getArray()
+            .map((p) => [p.lng(), p.lat()])
         coords.push(coords[0])
         onWktChange(geojsonToWkt({ type: "Polygon", coordinates: [coords] }))
     }, [attachPathListeners, onWktChange, clearMarkers, clearGeocoderMarker])
@@ -130,11 +159,22 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
                 overlayRef.current = null
                 drawingRef.current = false
                 const geojson = wktToGeojson(wkt)
-                const polygon = createPolygonFromGeojson(geojson, mapRef.current, mapsLibRef.current)
+                const polygon = createPolygonFromGeojson(
+                    geojson,
+                    mapRef.current,
+                    mapsLibRef.current
+                )
                 overlayRef.current = polygon
             },
         }
-    }, [mapControlRef, createPolygonFromGeojson, startDrawing, finishDrawing, clearMarkers, clearGeocoderMarker])
+    }, [
+        mapControlRef,
+        createPolygonFromGeojson,
+        startDrawing,
+        finishDrawing,
+        clearMarkers,
+        clearGeocoderMarker,
+    ])
 
     useEffect(() => {
         if (!mapsLib || !map) return
@@ -145,7 +185,10 @@ function DrawingControl({ initialWkt, onWktChange, mapControlRef, geocoderMarker
             if (polygon) {
                 overlayRef.current = polygon
                 const bounds = new window.google.maps.LatLngBounds()
-                polygon.getPath().getArray().forEach((p) => bounds.extend(p))
+                polygon
+                    .getPath()
+                    .getArray()
+                    .forEach((p) => bounds.extend(p))
                 if (!bounds.isEmpty()) {
                     map.fitBounds(bounds, 60)
                     const idleListener = map.addListener("idle", () => {
@@ -204,7 +247,13 @@ export default function GoogleDrawMap({
     return (
         <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
             {/* Satellite toggle */}
-            <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+            <Tooltip
+                title={
+                    satellite
+                        ? "Switch to map view"
+                        : "Switch to satellite view"
+                }
+            >
                 <IconButton
                     onClick={() => setSatellite((s) => !s)}
                     size="small"
@@ -219,7 +268,11 @@ export default function GoogleDrawMap({
                         boxShadow: "0 0 6px rgba(0,0,0,0.25)",
                     }}
                 >
-                    {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                    {satellite ? (
+                        <MapIcon fontSize="small" />
+                    ) : (
+                        <SatelliteAlt fontSize="small" />
+                    )}
                 </IconButton>
             </Tooltip>
 
@@ -237,7 +290,10 @@ export default function GoogleDrawMap({
                     px: 1,
                 }}
             >
-                <Geocoder apiKey={mapboxAccessToken} onSelect={handleGeocoderSelect} />
+                <Geocoder
+                    apiKey={mapboxAccessToken}
+                    onSelect={handleGeocoderSelect}
+                />
             </Box>
 
             <Map

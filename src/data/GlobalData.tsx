@@ -86,7 +86,10 @@ export const GlobalDataContextProvider = (props: any) => {
         return {
             authRequired: false,
             inventorySources: ["embedded", "hazard"],
-            mapProvider: localStorage.getItem("map_provider") ?? window.MAP_PROVIDER ?? "mapbox",
+            mapProvider:
+                localStorage.getItem("map_provider") ??
+                window.MAP_PROVIDER ??
+                "mapbox",
             token: getStoredToken(),
             removeToken: removeToken,
             setApiHost: setApiHost,

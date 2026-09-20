@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from "react"
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Dialog from "@mui/material/Dialog"
@@ -74,10 +80,20 @@ export default function DrawShapeModal({
     }
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth scroll="paper">
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="md"
+            fullWidth
+            scroll="paper"
+        >
             <DialogTitle>Draw Shape</DialogTitle>
             <DialogContent>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                >
                     {mapProvider === "google"
                         ? "Click on the map to add points, then press Finish to close the shape. You can also type or paste WKT directly into the field below."
                         : "Use the polygon tool (top-left of map) to draw a shape. You can also type or paste WKT directly into the field below."}

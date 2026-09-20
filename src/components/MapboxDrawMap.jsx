@@ -55,7 +55,10 @@ function fitToGeojson(mapRef, geojson) {
     const lngs = coords.map((c) => c[0])
     const lats = coords.map((c) => c[1])
     mapRef.current.fitBounds(
-        [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+        [
+            [Math.min(...lngs), Math.min(...lats)],
+            [Math.max(...lngs), Math.max(...lats)],
+        ],
         { padding: 60, maxZoom: 18, duration: 500 }
     )
 }
@@ -83,7 +86,11 @@ export default function MapboxDrawMap({
                 const geojson = wktToGeojson(wkt)
                 if (geojson) {
                     drawRef.current.deleteAll()
-                    drawRef.current.add({ type: "Feature", geometry: geojson, properties: {} })
+                    drawRef.current.add({
+                        type: "Feature",
+                        geometry: geojson,
+                        properties: {},
+                    })
                     fitToGeojson(mapRef, geojson)
                     setGeocoderPin(null)
                 }
@@ -108,7 +115,11 @@ export default function MapboxDrawMap({
         const geojson = wktToGeojson(initialWkt)
         if (geojson) {
             drawRef.current.deleteAll()
-            drawRef.current.add({ type: "Feature", geometry: geojson, properties: {} })
+            drawRef.current.add({
+                type: "Feature",
+                geometry: geojson,
+                properties: {},
+            })
             fitToGeojson(mapRef, geojson)
         }
     }, [initialWkt])
@@ -126,7 +137,13 @@ export default function MapboxDrawMap({
         <MapProvider>
             <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
                 {/* Satellite toggle */}
-                <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+                <Tooltip
+                    title={
+                        satellite
+                            ? "Switch to map view"
+                            : "Switch to satellite view"
+                    }
+                >
                     <IconButton
                         onClick={() => setSatellite((s) => !s)}
                         size="small"
@@ -136,12 +153,18 @@ export default function MapboxDrawMap({
                             left: 10,
                             zIndex: 10,
                             backgroundColor: "rgba(255,255,255,0.9)",
-                            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                            "&:hover": {
+                                backgroundColor: "rgba(255,255,255,1)",
+                            },
                             borderRadius: "4px",
                             boxShadow: "0 0 6px rgba(0,0,0,0.25)",
                         }}
                     >
-                        {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                        {satellite ? (
+                            <MapIcon fontSize="small" />
+                        ) : (
+                            <SatelliteAlt fontSize="small" />
+                        )}
                     </IconButton>
                 </Tooltip>
 
@@ -159,7 +182,10 @@ export default function MapboxDrawMap({
                         px: 1,
                     }}
                 >
-                    <Geocoder apiKey={mapboxAccessToken} onSelect={handleGeocoderSelect} />
+                    <Geocoder
+                        apiKey={mapboxAccessToken}
+                        onSelect={handleGeocoderSelect}
+                    />
                 </Box>
 
                 <Map
@@ -178,9 +204,15 @@ export default function MapboxDrawMap({
                     style={{ width: "100%", height: "100%" }}
                     onLoad={handleMapLoad}
                 >
-                    <DrawControl drawRef={drawRef} onFeaturesChange={handleFeaturesChange} />
+                    <DrawControl
+                        drawRef={drawRef}
+                        onFeaturesChange={handleFeaturesChange}
+                    />
                     {geocoderPin && (
-                        <Marker longitude={geocoderPin.lng} latitude={geocoderPin.lat} />
+                        <Marker
+                            longitude={geocoderPin.lng}
+                            latitude={geocoderPin.lat}
+                        />
                     )}
                 </Map>
             </Box>

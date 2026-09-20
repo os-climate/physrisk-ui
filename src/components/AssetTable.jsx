@@ -176,7 +176,10 @@ export default function AssetTable(props) {
                     i === drawModal.rowIdx ? { ...item, ...updates } : item
                 ),
             }
-            portfolioDispatch({ type: "updatePortfolio", portfolioJson: newData })
+            portfolioDispatch({
+                type: "updatePortfolio",
+                portfolioJson: newData,
+            })
         },
         [drawModal.rowIdx, data.items, portfolioDispatch]
     )
@@ -302,14 +305,16 @@ export default function AssetTable(props) {
                             onClick={(e) => {
                                 e.stopPropagation()
                                 const hasLatLon =
-                                    row.longitude != null && row.latitude != null
+                                    row.longitude != null &&
+                                    row.latitude != null
                                 setDrawModal({
                                     open: true,
                                     rowIdx: row._rowIdx,
                                     wkt: value ?? "",
                                     centerLngLat: hasLatLon
                                         ? [row.longitude, row.latitude]
-                                        : mapViewportRef?.current?.center ?? null,
+                                        : mapViewportRef?.current?.center ??
+                                          null,
                                     initialZoom: hasLatLon
                                         ? 18
                                         : mapViewportRef?.current?.zoom,

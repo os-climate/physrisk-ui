@@ -129,9 +129,7 @@ function ViewPanel(props) {
     const child = component ? component(visible) : null
     return (
         <Box hidden={!visible} {...other}>
-            <React.Suspense fallback={null}>
-                {child}
-            </React.Suspense>
+            <React.Suspense fallback={null}>{child}</React.Suspense>
         </Box>
     )
 }
@@ -313,7 +311,9 @@ function AppContent() {
     )
     // APIProvider must wrap the whole app so all Google Map instances share one
     // loaded script. Always included so the user can switch providers at runtime.
-    return <APIProvider apiKey={window.GOOGLE_MAPS_API_KEY}>{inner}</APIProvider>
+    return (
+        <APIProvider apiKey={window.GOOGLE_MAPS_API_KEY}>{inner}</APIProvider>
+    )
 }
 
 export default function App() {

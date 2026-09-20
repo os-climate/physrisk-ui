@@ -4,7 +4,10 @@
 
 import { useContext } from "react"
 import { GlobalDataContext } from "../data/GlobalData"
-import { MapboxScatterMap, mapboxAccessToken as _mapboxToken } from "./MapboxScatterMap.jsx"
+import {
+    MapboxScatterMap,
+    mapboxAccessToken as _mapboxToken,
+} from "./MapboxScatterMap.jsx"
 import { GoogleScatterMap } from "./GoogleScatterMap.jsx"
 
 // Re-export so existing callers of ScatterMap.jsx keep working unchanged.

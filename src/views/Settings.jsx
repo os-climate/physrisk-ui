@@ -31,7 +31,9 @@ export default function Settings() {
                 <ToggleButtonGroup
                     value={globals.mapProvider}
                     exclusive
-                    onChange={(_, value) => { if (value) globals.setMapProvider(value) }}
+                    onChange={(_, value) => {
+                        if (value) globals.setMapProvider(value)
+                    }}
                     size="small"
                     sx={{ mt: 2 }}
                 >
@@ -39,7 +41,9 @@ export default function Settings() {
                     <ToggleButton value="mapbox">Mapbox</ToggleButton>
                 </ToggleButtonGroup>
 
-                <Divider textAlign="left" sx={{ mt: 3 }}>TESTING</Divider>
+                <Divider textAlign="left" sx={{ mt: 3 }}>
+                    TESTING
+                </Divider>
                 <Typography sx={{ mt: 3 }}>
                     The Test server can be used for testing the integration of
                     new hazard indicators.

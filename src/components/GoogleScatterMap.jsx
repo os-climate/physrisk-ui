@@ -66,7 +66,11 @@ function MapInteractions({
         if (!map || !mapViewportRef) return
         const update = () => {
             const c = map.getCenter()
-            if (c) mapViewportRef.current = { center: [c.lng(), c.lat()], zoom: map.getZoom() }
+            if (c)
+                mapViewportRef.current = {
+                    center: [c.lng(), c.lat()],
+                    zoom: map.getZoom(),
+                }
         }
         update()
         const listener = map.addListener("idle", update)
@@ -98,12 +102,17 @@ function MapInteractions({
             type: "FeatureCollection",
             features: assetData.items
                 .map((item, index) => ({ item, index }))
-                .filter(({ item }) => item.longitude != null && item.latitude != null)
+                .filter(
+                    ({ item }) =>
+                        item.longitude != null && item.latitude != null
+                )
                 .map(({ item, index }) => ({
                     type: "Feature",
                     id: index,
                     properties: {
-                        risk: assetScores ? String(assetScores[index]) : "No data",
+                        risk: assetScores
+                            ? String(assetScores[index])
+                            : "No data",
                     },
                     geometry: {
                         type: "Point",
@@ -123,11 +132,11 @@ function MapInteractions({
     useEffect(() => {
         if (!map) return
         const riskColors = {
-            "0": theme.scores[0],
-            "1": theme.scores[1],
-            "2": theme.scores[2],
-            "3": theme.scores[3],
-            "4": theme.scores[4],
+            0: theme.scores[0],
+            1: theme.scores[1],
+            2: theme.scores[2],
+            3: theme.scores[3],
+            4: theme.scores[4],
         }
         map.data.setStyle((feature) => {
             const risk = feature.getProperty("risk")
@@ -199,7 +208,10 @@ function MapInteractions({
             overlay = new GoogleMapsOverlay({ layers: [], interleaved: true })
             overlay.setMap(map)
         } catch (e) {
-            console.warn("GoogleMapsOverlay interleaved mode failed, falling back:", e)
+            console.warn(
+                "GoogleMapsOverlay interleaved mode failed, falling back:",
+                e
+            )
             overlay = new GoogleMapsOverlay({ layers: [] })
             overlay.setMap(map)
         }
@@ -242,11 +254,11 @@ function MapInteractions({
                 id: "hazard-tiles",
                 data:
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
-                        `?minValue=${minValue}&maxValue=${maxValue}` +
+                    `?minValue=${minValue}&maxValue=${maxValue}` +
                     `&scenarioId=${scenarioId}&year=${year}${indexParam}`,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: 512,
-                maxZoom: (indexValuesState.maxZoom - 1) ?? 15,
+                maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
                 refinementStrategy: "no-overlap",
                 opacity,
                 renderSubLayers: (props) => {
@@ -257,13 +269,17 @@ function MapInteractions({
                         data: null,
                         image: props.data,
                         bounds: [west, south, east, north],
-                        textureParameters: { minFilter: "nearest", magFilter: "nearest" },
+                        textureParameters: {
+                            minFilter: "nearest",
+                            magFilter: "nearest",
+                        },
                     })
                 },
             })
             overlay.setProps({ layers: [tileLayer] })
         } else if (mapInfo.source === "map_array") {
-            const { resource, minValue, maxValue, scenarioId, year, bounds } = mapInfo
+            const { resource, minValue, maxValue, scenarioId, year, bounds } =
+                mapInfo
             const defaultBounds = [
                 [-180.125, 85.125],
                 [180.125, 85.125],
@@ -295,7 +311,10 @@ function MapInteractions({
                 bounds: deckBounds,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 opacity,
-                textureParameters: { minFilter: "nearest", magFilter: "nearest" },
+                textureParameters: {
+                    minFilter: "nearest",
+                    magFilter: "nearest",
+                },
                 extensions: [new MaskExtension()],
                 maskId: "land-mask",
             })
@@ -366,10 +385,12 @@ export function GoogleScatterMap(props) {
                         ...indexValuesInitialState,
                         status: "fetched",
                         allIndexValues: action.payload.allIndexValues,
-                        availableIndexValues: action.payload.availableIndexValues,
+                        availableIndexValues:
+                            action.payload.availableIndexValues,
                         indexDisplayName: action.payload.indexDisplayName,
                         indexUnits: action.payload.indexUnits,
-                        indexSelectedValue: action.payload.availableIndexValues.at(-1),
+                        indexSelectedValue:
+                            action.payload.availableIndexValues.at(-1),
                         maxZoom: action.payload.maxZoom,
                     }
                 case "SELECTED":
@@ -402,7 +423,9 @@ export function GoogleScatterMap(props) {
                 }
                 try {
                     const config = {
-                        headers: { Authorization: "Bearer " + globals.value.token },
+                        headers: {
+                            Authorization: "Bearer " + globals.value.token,
+                        },
                     }
                     const response = await axios.post(
                         globals.value.services.apiHost + "/api/get_image_info",
@@ -413,14 +436,18 @@ export function GoogleScatterMap(props) {
                         type: "FETCHED",
                         payload: {
                             allIndexValues: response.data.all_index_values,
-                            availableIndexValues: response.data.available_index_values,
+                            availableIndexValues:
+                                response.data.available_index_values,
                             indexDisplayName: response.data.index_display_name,
                             indexUnits: response.data.index_units,
                             maxZoom: response.data.max_zoom ?? 15,
                         },
                     })
                 } catch (error) {
-                    indexValuesDispatch({ type: "FETCH_ERROR", payload: error.message })
+                    indexValuesDispatch({
+                        type: "FETCH_ERROR",
+                        payload: error.message,
+                    })
                 }
             }
         }
@@ -464,7 +491,10 @@ export function GoogleScatterMap(props) {
                         boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
                     }}
                 >
-                    <Geocoder apiKey={mapboxAccessToken} onSelect={onSelectHandler} />
+                    <Geocoder
+                        apiKey={mapboxAccessToken}
+                        onSelect={onSelectHandler}
+                    />
                 </Box>
 
                 <Box
@@ -474,7 +504,9 @@ export function GoogleScatterMap(props) {
                     {/* Satellite toggle */}
                     <Tooltip
                         title={
-                            satellite ? "Switch to map view" : "Switch to satellite view"
+                            satellite
+                                ? "Switch to map view"
+                                : "Switch to satellite view"
                         }
                     >
                         <IconButton
@@ -486,7 +518,9 @@ export function GoogleScatterMap(props) {
                                 left: 10,
                                 zIndex: 1,
                                 backgroundColor: "rgba(255,255,255,0.9)",
-                                "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                                "&:hover": {
+                                    backgroundColor: "rgba(255,255,255,1)",
+                                },
                                 borderRadius: "4px",
                                 boxShadow: "0 0 6px rgba(0,0,0,0.25)",
                             }}
@@ -562,13 +596,20 @@ export function GoogleScatterMap(props) {
                                 aria-label="info"
                                 size="small"
                             >
-                                <InfoOutlined fontSize="inherit" color="primary" />
+                                <InfoOutlined
+                                    fontSize="inherit"
+                                    color="primary"
+                                />
                             </IconButton>
                         </Tooltip>
                         <HazardIndexSelector
-                            indexSelectedValue={indexValuesState.indexSelectedValue}
+                            indexSelectedValue={
+                                indexValuesState.indexSelectedValue
+                            }
                             indexUnits={indexValuesState.indexUnits}
-                            availableIndexValues={indexValuesState.availableIndexValues}
+                            availableIndexValues={
+                                indexValuesState.availableIndexValues
+                            }
                             allIndexValues={indexValuesState.allIndexValues}
                             indexDisplayName={indexValuesState.indexDisplayName}
                             indexValuesDispatch={indexValuesDispatch}
@@ -593,8 +634,14 @@ export function GoogleScatterMap(props) {
                         open={popoverOpen}
                         anchorPosition={popoverAnchorPos}
                         anchorReference="anchorPosition"
-                        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                        transformOrigin={{ vertical: "top", horizontal: "left" }}
+                        anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "left",
+                        }}
+                        transformOrigin={{
+                            vertical: "top",
+                            horizontal: "left",
+                        }}
                         onClose={handlePopoverClose}
                     >
                         {assetSummary(selectedAssetIndex)}

@@ -82,7 +82,11 @@ function parseCoord(tokens, i) {
     const x = parseFloat(tokens[i++])
     const y = parseFloat(tokens[i++])
     // skip optional Z value
-    if (tokens[i] !== ")" && tokens[i] !== "," && /^[-\d.]/.test(tokens[i] ?? ""))
+    if (
+        tokens[i] !== ")" &&
+        tokens[i] !== "," &&
+        /^[-\d.]/.test(tokens[i] ?? "")
+    )
         i++
     return [[x, y], i]
 }
@@ -112,7 +116,8 @@ function parseRingList(tokens, i) {
 }
 
 function expect(token, expected) {
-    if (token !== expected) throw new Error(`Expected '${expected}', got '${token}'`)
+    if (token !== expected)
+        throw new Error(`Expected '${expected}', got '${token}'`)
 }
 
 /**
@@ -135,10 +140,16 @@ export function geojsonCentroid(geometry) {
         case "Polygon":
             return ringCentroid(geometry.coordinates[0])
         case "MultiPolygon": {
-            let totalArea = 0, cx = 0, cy = 0
+            let totalArea = 0,
+                cx = 0,
+                cy = 0
             for (const poly of geometry.coordinates) {
                 const [c, area] = ringCentroidAndArea(poly[0])
-                if (area > 0) { totalArea += area; cx += c[0] * area; cy += c[1] * area }
+                if (area > 0) {
+                    totalArea += area
+                    cx += c[0] * area
+                    cy += c[1] * area
+                }
             }
             return totalArea > 0 ? [cx / totalArea, cy / totalArea] : null
         }
@@ -152,7 +163,9 @@ function ringCentroid(ring) {
 }
 
 function ringCentroidAndArea(ring) {
-    let area = 0, cx = 0, cy = 0
+    let area = 0,
+        cx = 0,
+        cy = 0
     const n = ring.length
     for (let i = 0, j = n - 1; i < n; j = i++) {
         const cross = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1]
