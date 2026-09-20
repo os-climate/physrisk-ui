@@ -9,6 +9,114 @@ import Geocoder from "./Geocoder.tsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
 import { geojsonToWkt, wktToGeojson } from "../utils/wkt.js"
 
+const BLUE = "#3bb2d0"
+const ORANGE = "#fbb03b"
+const WHITE = "#fff"
+
+// Default theme with fill-opacity raised from 0.1 → 0.4 so the polygon area is visible.
+const drawStyles = [
+    {
+        id: "gl-draw-polygon-fill",
+        type: "fill",
+        filter: ["all", ["==", "$type", "Polygon"]],
+        paint: {
+            "fill-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
+            "fill-opacity": 0.4,
+        },
+    },
+    {
+        id: "gl-draw-lines",
+        type: "line",
+        filter: ["any", ["==", "$type", "LineString"], ["==", "$type", "Polygon"]],
+        layout: { "line-cap": "round", "line-join": "round" },
+        paint: {
+            "line-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
+            "line-dasharray": ["case", ["==", ["get", "active"], "true"], [0.2, 2], [2, 0]],
+            "line-width": 2,
+        },
+    },
+    {
+        id: "gl-draw-point-outer",
+        type: "circle",
+        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "feature"]],
+        paint: { "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5], "circle-color": WHITE },
+    },
+    {
+        id: "gl-draw-point-inner",
+        type: "circle",
+        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "feature"]],
+        paint: {
+            "circle-radius": ["case", ["==", ["get", "active"], "true"], 5, 3],
+            "circle-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
+        },
+    },
+    {
+        id: "gl-draw-vertex-outer",
+        type: "circle",
+        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "vertex"], ["!=", "mode", "simple_select"]],
+        paint: { "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5], "circle-color": WHITE },
+    },
+    {
+        id: "gl-draw-vertex-inner",
+        type: "circle",
+        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "vertex"], ["!=", "mode", "simple_select"]],
+        paint: {
+            "circle-radius": ["case", ["==", ["get", "active"], "true"], 5, 3],
+            "circle-color": ORANGE,
+        },
+    },
+    {
+        id: "gl-draw-midpoint",
+        type: "circle",
+        filter: ["all", ["==", "meta", "midpoint"]],
+        paint: { "circle-radius": 3, "circle-color": ORANGE },
+    },
+]
+
+// Extends draw_polygon to show ALL placed vertices as circles, not just first/last.
+// The default mode hides intermediate vertices after the 2nd click, which is confusing.
+const AllVerticesPolygonMode = {
+    ...MapboxDraw.modes.draw_polygon,
+    toDisplayFeatures(state, geojson, display) {
+        const isActivePolygon = geojson.properties.id === state.polygon.id
+        geojson.properties.active = isActivePolygon ? "true" : "false"
+        if (!isActivePolygon) return display(geojson)
+
+        if (!geojson.geometry.coordinates.length) return
+        const ring = geojson.geometry.coordinates[0]
+        const coordinateCount = ring.length
+        if (coordinateCount < 3) return
+
+        geojson.properties.meta = "feature"
+
+        // ring = [v0, v1, ..., vN, cursor, v0_closing]
+        // placed vertices are indices 0 .. coordinateCount-3
+        const placedCount = coordinateCount - 2
+        for (let i = 0; i < placedCount; i++) {
+            display({
+                type: "Feature",
+                properties: {
+                    meta: "vertex",
+                    parent: state.polygon.id,
+                    coord_path: `0.${i}`,
+                    active: "false",
+                },
+                geometry: { type: "Point", coordinates: ring[i] },
+            })
+        }
+
+        if (coordinateCount <= 4) {
+            display({
+                type: "Feature",
+                properties: geojson.properties,
+                geometry: { type: "LineString", coordinates: [ring[0], ring[1]] },
+            })
+            if (coordinateCount === 3) return
+        }
+        return display(geojson)
+    },
+}
+
 // Draw tools at bottom-left to avoid overlap with the satellite toggle at top-left.
 function DrawControl({ drawRef, onFeaturesChange }) {
     useControl(
@@ -16,6 +124,8 @@ function DrawControl({ drawRef, onFeaturesChange }) {
             const draw = new MapboxDraw({
                 displayControlsDefault: false,
                 controls: { polygon: true, trash: true },
+                modes: { ...MapboxDraw.modes, draw_polygon: AllVerticesPolygonMode },
+                styles: drawStyles,
             })
             drawRef.current = draw
             return draw

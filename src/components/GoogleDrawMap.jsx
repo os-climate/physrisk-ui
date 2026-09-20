@@ -280,13 +280,13 @@ export default function GoogleDrawMap({
             <Box
                 sx={{
                     position: "absolute",
-                    top: 8,
-                    right: 8,
+                    top: 10,
+                    right: 10,
                     zIndex: 10,
-                    width: 240,
+                    width: 250,
                     bgcolor: "background.paper",
-                    borderRadius: 1,
-                    boxShadow: 2,
+                    borderRadius: "4px",
+                    boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
                     px: 1,
                 }}
             >
@@ -303,9 +303,7 @@ export default function GoogleDrawMap({
                 style={{ width: "100%", height: "100%" }}
                 gestureHandling="greedy"
                 renderingType="RASTER"
-                mapTypeControl={false}
-                streetViewControl={false}
-                zoomControl={false}
+                disableDefaultUI={true}
                 scaleControl={true}
             >
                 <MapRefCapture mapRef={mapRef} />
