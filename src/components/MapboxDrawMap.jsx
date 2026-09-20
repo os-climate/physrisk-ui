@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Map, MapProvider, Marker, useControl } from "react-map-gl"
 import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
+import { SatelliteAlt, Map as MapIcon } from "@mui/icons-material"
 import MapboxDraw from "@mapbox/mapbox-gl-draw"
 import Geocoder from "./Geocoder.tsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
 import { geojsonToWkt, wktToGeojson } from "../utils/wkt.js"
 
-// Wraps MapboxDraw as a react-map-gl control. Must render inside <Map>.
+// Draw tools at bottom-left to avoid overlap with the satellite toggle at top-left.
 function DrawControl({ drawRef, onFeaturesChange }) {
     useControl(
         () => {
@@ -34,7 +37,7 @@ function DrawControl({ drawRef, onFeaturesChange }) {
             map.on("draw.delete", emitChange)
         },
         () => {},
-        { position: "top-left" }
+        { position: "bottom-left" }
     )
     return null
 }
@@ -67,6 +70,7 @@ export default function MapboxDrawMap({
     const drawRef = useRef(null)
     const mapRef = useRef(null)
     const [geocoderPin, setGeocoderPin] = useState(null)
+    const [satellite, setSatellite] = useState(false)
 
     useEffect(() => {
         mapControlRef.current = {
@@ -121,6 +125,27 @@ export default function MapboxDrawMap({
     return (
         <MapProvider>
             <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+                {/* Satellite toggle */}
+                <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+                    <IconButton
+                        onClick={() => setSatellite((s) => !s)}
+                        size="small"
+                        sx={{
+                            position: "absolute",
+                            top: 10,
+                            left: 10,
+                            zIndex: 10,
+                            backgroundColor: "rgba(255,255,255,0.9)",
+                            "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                            borderRadius: "4px",
+                            boxShadow: "0 0 6px rgba(0,0,0,0.25)",
+                        }}
+                    >
+                        {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                    </IconButton>
+                </Tooltip>
+
+                {/* Geocoder */}
                 <Box
                     sx={{
                         position: "absolute",
@@ -136,10 +161,15 @@ export default function MapboxDrawMap({
                 >
                     <Geocoder apiKey={mapboxAccessToken} onSelect={handleGeocoderSelect} />
                 </Box>
+
                 <Map
                     ref={mapRef}
                     mapboxAccessToken={mapboxAccessToken}
-                    mapStyle="mapbox://styles/mapbox/streets-v11"
+                    mapStyle={
+                        satellite
+                            ? "mapbox://styles/mapbox/satellite-streets-v12"
+                            : "mapbox://styles/mapbox/streets-v11"
+                    }
                     initialViewState={{
                         longitude: centerLng,
                         latitude: centerLat,

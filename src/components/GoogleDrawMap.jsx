@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Map, useMap, useMapsLibrary } from "@vis.gl/react-google-maps"
 import Box from "@mui/material/Box"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
+import { SatelliteAlt, Map as MapIcon } from "@mui/icons-material"
 import Geocoder from "./Geocoder.tsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
 import { geojsonToWkt, wktToGeojson } from "../utils/wkt.js"
@@ -184,15 +187,13 @@ export default function GoogleDrawMap({
     const [lng, lat] = centerLngLat ?? [0, 20]
     const mapRef = useRef(null)
     const geocoderMarkerRef = useRef(null)
+    const [satellite, setSatellite] = useState(false)
 
     const handleGeocoderSelect = (result) => {
         if (!result || !mapRef.current) return
         const [lng, lat] = result.feature.center
-
         mapRef.current.panTo({ lat, lng })
         mapRef.current.setZoom(18)
-
-        // Replace any previous geocoder pin.
         geocoderMarkerRef.current?.setMap(null)
         geocoderMarkerRef.current = new window.google.maps.Marker({
             position: { lat, lng },
@@ -202,6 +203,27 @@ export default function GoogleDrawMap({
 
     return (
         <Box sx={{ position: "relative", width: "100%", height: "100%" }}>
+            {/* Satellite toggle */}
+            <Tooltip title={satellite ? "Switch to map view" : "Switch to satellite view"}>
+                <IconButton
+                    onClick={() => setSatellite((s) => !s)}
+                    size="small"
+                    sx={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        zIndex: 10,
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        "&:hover": { backgroundColor: "rgba(255,255,255,1)" },
+                        borderRadius: "4px",
+                        boxShadow: "0 0 6px rgba(0,0,0,0.25)",
+                    }}
+                >
+                    {satellite ? <MapIcon fontSize="small" /> : <SatelliteAlt fontSize="small" />}
+                </IconButton>
+            </Tooltip>
+
+            {/* Geocoder */}
             <Box
                 sx={{
                     position: "absolute",
@@ -217,12 +239,18 @@ export default function GoogleDrawMap({
             >
                 <Geocoder apiKey={mapboxAccessToken} onSelect={handleGeocoderSelect} />
             </Box>
+
             <Map
                 defaultCenter={{ lat, lng }}
                 defaultZoom={initialZoom ?? (centerLngLat ? 8 : 2)}
+                mapTypeId={satellite ? "satellite" : "roadmap"}
                 style={{ width: "100%", height: "100%" }}
                 gestureHandling="greedy"
                 renderingType="RASTER"
+                mapTypeControl={false}
+                streetViewControl={false}
+                zoomControl={false}
+                scaleControl={true}
             >
                 <MapRefCapture mapRef={mapRef} />
                 <DrawingControl
