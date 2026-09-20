@@ -12,14 +12,14 @@ export const hazardMenuInitialiser = () => {
 
 export const hazardMenuReducer = (state, action) => {
     switch (action.type) {
-        case "initialise":
-            var [menuOptions, newSelectedIndices, selection] =
+        case "initialise": {
+            const [menuOptions, newSelectedIndices, selection] =
                 updateMenuOptions(
                     action.payload.inventory,
                     action.payload.selectedIndices
                 )
-            var [hazardTypeId, model, scenario, year] = selection
-            var mapInfo = action.payload.inventory.getMapInfo(
+            const [hazardTypeId, model, scenario, year] = selection
+            const mapInfo = action.payload.inventory.getMapInfo(
                 hazardTypeId,
                 model.path,
                 scenario.id,
@@ -29,23 +29,23 @@ export const hazardMenuReducer = (state, action) => {
                 inventory: action.payload.inventory,
                 selectedIndices: newSelectedIndices,
                 selectedHazardTypeId: hazardTypeId,
-                selectedModel: model, // model object
-                selectedScenario: scenario, // scenario object
+                selectedModel: model,
+                selectedScenario: scenario,
                 selectedYear: year,
                 mapInfo: mapInfo,
                 mapColorbar: mapInfo.colorbar,
                 menus: action.payload.menus,
                 menuOptions: menuOptions,
             }
-        case "update":
-            var [menuOptions, newSelectedIndices, selection] = // eslint-disable-line no-redeclare
+        }
+        case "update": {
+            const [menuOptions, newSelectedIndices, selection] =
                 updateMenuOptions(
                     state.inventory,
                     action.payload.selectedIndices
                 )
-            var [hazardTypeId, model, scenario, year] = selection // eslint-disable-line no-redeclare
-            var mapInfo = state.inventory.getMapInfo(
-                // eslint-disable-line no-redeclare
+            const [hazardTypeId, model, scenario, year] = selection
+            const mapInfo = state.inventory.getMapInfo(
                 hazardTypeId,
                 model.path,
                 scenario.id,
@@ -55,13 +55,14 @@ export const hazardMenuReducer = (state, action) => {
                 ...state,
                 selectedIndices: newSelectedIndices,
                 selectedHazardTypeId: hazardTypeId,
-                selectedModel: model, // model object
-                selectedScenario: scenario, // scenario object
+                selectedModel: model,
+                selectedScenario: scenario,
                 selectedYear: year,
                 mapInfo: mapInfo,
                 mapColorbar: mapInfo.colorbar,
                 menuOptions: menuOptions,
             }
+        }
         default:
             return state
     }

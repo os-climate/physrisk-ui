@@ -3,6 +3,8 @@ import Box from "@mui/material/Box"
 import Divider from "@mui/material/Divider"
 import Paper from "@mui/material/Paper"
 import TextField from "@mui/material/TextField"
+import ToggleButton from "@mui/material/ToggleButton"
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import Autocomplete from "@mui/material/Autocomplete"
 import { Typography } from "@mui/material"
 import { GlobalDataContext } from "../data/GlobalData"
@@ -25,7 +27,23 @@ export default function Settings() {
                     width: 900,
                 }}
             >
-                <Divider textAlign="left">TESTING</Divider>
+                <Divider textAlign="left">MAP PROVIDER</Divider>
+                <ToggleButtonGroup
+                    value={globals.mapProvider}
+                    exclusive
+                    onChange={(_, value) => {
+                        if (value) globals.setMapProvider(value)
+                    }}
+                    size="small"
+                    sx={{ mt: 2 }}
+                >
+                    <ToggleButton value="google">Google Maps</ToggleButton>
+                    <ToggleButton value="mapbox">Mapbox</ToggleButton>
+                </ToggleButtonGroup>
+
+                <Divider textAlign="left" sx={{ mt: 3 }}>
+                    TESTING
+                </Divider>
                 <Typography sx={{ mt: 3 }}>
                     The Test server can be used for testing the integration of
                     new hazard indicators.

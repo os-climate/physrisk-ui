@@ -3,7 +3,11 @@ import axios from "axios"
 
 declare global {
     interface Window {
-        BASE_API: any
+        BASE_API: string
+        MAP_PROVIDER: string
+        MAPBOX_ACCESS_TOKEN: string
+        GOOGLE_MAPS_API_KEY: string
+        GOOGLE_MAPS_MAP_ID: string
     }
 }
 
@@ -19,9 +23,11 @@ interface Services {
 interface Globals {
     authRequired: boolean
     inventorySources: string[]
+    mapProvider: string
     removeToken(): void
     services: Services
     setApiHost(apiHost: string): void
+    setMapProvider(provider: string): void
     setToken(token: string, refreshToken: string): void
     token: string
 }
@@ -29,9 +35,11 @@ interface Globals {
 export const globals: Globals = {
     authRequired: false,
     inventorySources: [],
+    mapProvider: window.MAP_PROVIDER ?? "mapbox",
     removeToken: () => {},
     services: { apiHost: "" },
     setApiHost: (apiHost: string) => {},
+    setMapProvider: (_provider: string) => {},
     setToken: (token: string, refreshToken: string) => {},
     token: "",
 }
@@ -45,6 +53,11 @@ let refreshQueue: Array<(token: string) => void> = []
 export const GlobalDataContextProvider = (props: any) => {
     const setApiHost = (apiHost: string) => {
         setState({ ...state, services: { apiHost: apiHost } })
+    }
+
+    const setMapProvider = (provider: string) => {
+        localStorage.setItem("map_provider", provider)
+        setState((prev) => ({ ...prev, mapProvider: provider }))
     }
 
     const getStoredToken = () => {
@@ -74,9 +87,14 @@ export const GlobalDataContextProvider = (props: any) => {
         return {
             authRequired: false,
             inventorySources: ["embedded", "hazard"],
+            mapProvider:
+                localStorage.getItem("map_provider") ??
+                window.MAP_PROVIDER ??
+                "mapbox",
             token: getStoredToken(),
             removeToken: removeToken,
             setApiHost: setApiHost,
+            setMapProvider: setMapProvider,
             setToken: setToken,
             services: { apiHost: baseUrl },
         }

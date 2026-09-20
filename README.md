@@ -45,6 +45,17 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+### `npm run format`
+
+Formats all source files with Prettier and auto-fixes ESLint issues in one step.
+Run this before committing to keep code style consistent.
+
+Additional formatting/linting scripts (run individually if needed):
+- `npm run prettier` — check formatting without writing changes
+- `npm run prettier:fix` — apply Prettier formatting
+- `npm run lint` — report ESLint issues
+- `npm run lint:fix` — auto-fix ESLint issues
+
 ### `npm run eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can’t go back!**

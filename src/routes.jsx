@@ -1,13 +1,15 @@
+import { lazy } from "react"
 import DashboardIcon from "@mui/icons-material/Dashboard"
 import {
     LocalFireDepartment,
     PrecisionManufacturing,
 } from "@mui/icons-material"
 import SettingsIcon from "@mui/icons-material/Settings"
-import AboutPage from "./views/AboutPage.jsx"
-import AssetViewer from "./views/AssetViewer.jsx"
-import HazardViewer from "./views/HazardViewer.jsx"
-import Settings from "./views/Settings.jsx"
+
+const AboutPage = lazy(() => import("./views/AboutPage.jsx"))
+const AssetViewer = lazy(() => import("./views/AssetViewer.jsx"))
+const HazardViewer = lazy(() => import("./views/HazardViewer.jsx"))
+const Settings = lazy(() => import("./views/Settings.jsx"))
 
 /** Provides app routes. Note factory method for component passes 'visible' property,
  * Can be used for transitions from hidden to visible etc and needed for mapbox-gl components
@@ -32,15 +34,6 @@ export const routes = [
         layout: "/standard",
         category: "primary",
     },
-    // {
-    //     path: "/risk",
-    //     name: "Risk",
-    //     longName: "Risk",
-    //     icon: BarChartIcon,
-    //     component: () => <RiskViewer />,
-    //     layout: "/standard",
-    //     category: "primary",
-    // },
     {
         path: "/about",
         name: "About",
@@ -53,8 +46,8 @@ export const routes = [
     {
         path: "/settings",
         name: "Settings",
-        icon: SettingsIcon, //AssignmentIcon,
-        component: () => <Settings />, // change to its on page!
+        icon: SettingsIcon,
+        component: () => <Settings />,
         layout: "/standard",
         category: "secondary",
     },

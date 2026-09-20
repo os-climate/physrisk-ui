@@ -1,6 +1,9 @@
-import { Fragment, useContext, useEffect, useState } from "react"
+import { Fragment, useCallback, useContext, useEffect, useState } from "react"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
+import { Draw as DrawIcon } from "@mui/icons-material"
 import {
     DataGrid,
     GridToolbarColumnsButton,
@@ -11,16 +14,25 @@ import {
 import axios from "axios"
 import { GlobalDataContext } from "../data/GlobalData"
 import { search } from "../components/Geocoder"
+import DrawShapeModal from "./DrawShapeModal"
+import { geojsonCentroid, wktToGeojson } from "../utils/wkt.js"
 
 //function getRowId(row) {
 //    return row.identifier ? row.identifier : row.id;
 //  }
 
 export default function AssetTable(props) {
-    const { data, portfolioDispatch, apiKey } = props // updateDataTableRow
+    const { data, portfolioDispatch, apiKey, mapViewportRef } = props // updateDataTableRow
     const apiRef = useGridApiRef()
     const globals = useContext(GlobalDataContext)
     const [occupancyCodes, setOccupancyCodes] = useState({})
+    const [drawModal, setDrawModal] = useState({
+        open: false,
+        rowIdx: null,
+        wkt: "",
+        centerLngLat: null,
+        initialZoom: undefined,
+    })
 
     useEffect(() => {
         async function fetchStaticInfo() {
@@ -39,12 +51,12 @@ export default function AssetTable(props) {
     const handleAddRowClick = () => {
         const items = data.items ?? []
         const maxId = items.reduce((max, item) => {
-            const n = parseInt(item.id, 10)
+            const n = parseInt(String(item.id).replace(/^asset_/, ""), 10)
             return isNaN(n) ? max : Math.max(max, n)
         }, 0)
         portfolioDispatch({
             type: "updatePortfolio",
-            portfolioJson: { items: [...items, { id: String(maxId + 1) }] },
+            portfolioJson: { items: [...items, { id: `asset_${maxId + 1}` }] },
         })
     }
 
@@ -105,7 +117,7 @@ export default function AssetTable(props) {
             <GridToolbarContainer>
                 <GridToolbarColumnsButton />
                 <GridToolbarFilterButton />
-                <Button onClick={handleAddRowClick}>Add Row</Button>
+                <Button onClick={handleAddRowClick}>Add Asset</Button>
                 <Button onClick={handleExportJson}>Export JSON</Button>
                 <Button onClick={handleGeocodeClick}>Geocode</Button>
             </GridToolbarContainer>
@@ -147,6 +159,35 @@ export default function AssetTable(props) {
         portfolioDispatch({ type: "updatePortfolio", portfolioJson: newData })
         return newRow
     }
+
+    const handleDrawModalConfirm = useCallback(
+        (wkt) => {
+            if (drawModal.rowIdx == null) return
+            const updates = { wkt_geometry: wkt ?? null }
+            if (wkt) {
+                const centroid = geojsonCentroid(wktToGeojson(wkt))
+                if (centroid) {
+                    updates.longitude = centroid[0]
+                    updates.latitude = centroid[1]
+                }
+            }
+            const newData = {
+                items: data.items.map((item, i) =>
+                    i === drawModal.rowIdx ? { ...item, ...updates } : item
+                ),
+            }
+            portfolioDispatch({
+                type: "updatePortfolio",
+                portfolioJson: newData,
+            })
+        },
+        [drawModal.rowIdx, data.items, portfolioDispatch]
+    )
+
+    const handleDrawModalClose = useCallback(
+        () => setDrawModal((m) => ({ ...m, open: false })),
+        []
+    )
 
     const oedColumns = [
         {
@@ -212,12 +253,6 @@ export default function AssetTable(props) {
             width: 120,
             editable: true,
         },
-        {
-            field: "wkt_geometry",
-            headerName: "WKT geometry",
-            width: 180,
-            editable: true,
-        },
     ]
 
     const leftColumns = [
@@ -237,6 +272,62 @@ export default function AssetTable(props) {
             editable: true,
         },
         { field: "address", headerName: "Address", width: 170, editable: true },
+        {
+            field: "wkt_geometry",
+            headerName: "WKT geometry",
+            width: 200,
+            editable: true,
+            renderCell: ({ value, row }) => (
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        width: "100%",
+                        gap: 0.5,
+                    }}
+                >
+                    <Box
+                        component="span"
+                        sx={{
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            flex: 1,
+                            fontSize: "0.75rem",
+                            color: value ? "text.primary" : "text.disabled",
+                        }}
+                    >
+                        {value || "None"}
+                    </Box>
+                    <Tooltip title="Draw shape on map">
+                        <IconButton
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                const hasLatLon =
+                                    row.longitude != null &&
+                                    row.latitude != null
+                                setDrawModal({
+                                    open: true,
+                                    rowIdx: row._rowIdx,
+                                    wkt: value ?? "",
+                                    centerLngLat: hasLatLon
+                                        ? [row.longitude, row.latitude]
+                                        : mapViewportRef?.current?.center ??
+                                          null,
+                                    initialZoom: hasLatLon
+                                        ? 18
+                                        : mapViewportRef?.current?.zoom,
+                                })
+                            }}
+                            sx={{ p: 0.25, flexShrink: 0 }}
+                        >
+                            <DrawIcon fontSize="small" />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ),
+        },
     ]
 
     const idColumn = leftColumns.shift()
@@ -281,6 +372,14 @@ export default function AssetTable(props) {
 
     return (
         <Fragment>
+            <DrawShapeModal
+                open={drawModal.open}
+                onClose={handleDrawModalClose}
+                onConfirm={handleDrawModalConfirm}
+                initialWkt={drawModal.wkt}
+                centerLngLat={drawModal.centerLngLat}
+                initialZoom={drawModal.initialZoom}
+            />
             <Box sx={{ width: "100%", height: 600 }}>
                 <DataGrid
                     getRowId={(row) => row._rowIdx}
