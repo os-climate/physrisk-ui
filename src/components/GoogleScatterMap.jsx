@@ -481,7 +481,7 @@ export function GoogleScatterMap(props) {
                 {/* Geocoder */}
                 <Box
                     sx={{
-                        width: 240,
+                        width: 250,
                         backgroundColor: "rgba(255, 255, 255, 1.0)",
                         position: "absolute",
                         top: 10,
@@ -540,10 +540,8 @@ export function GoogleScatterMap(props) {
                         mapId={window.GOOGLE_MAPS_MAP_ID}
                         style={{ width: "100%", height: "100%" }}
                         gestureHandling="greedy"
+                        disableDefaultUI={true}
                         scaleControl={true}
-                        mapTypeControl={false}
-                        zoomControl={false}
-                        streetViewControl={false}
                     >
                         {/* Markers for HazardViewer pin */}
                         {markers.map((m, i) => (
@@ -574,7 +572,7 @@ export function GoogleScatterMap(props) {
                             width: 175,
                             backgroundColor: "rgba(255, 255, 255, 1.0)",
                             position: "absolute",
-                            bottom: 10,
+                            bottom: 16,
                             right: 10,
                             zIndex: 1,
                             borderRadius: "4px",
