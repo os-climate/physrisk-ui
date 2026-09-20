@@ -20,18 +20,37 @@ const drawStyles = [
         type: "fill",
         filter: ["all", ["==", "$type", "Polygon"]],
         paint: {
-            "fill-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
+            "fill-color": [
+                "case",
+                ["==", ["get", "active"], "true"],
+                ORANGE,
+                BLUE,
+            ],
             "fill-opacity": 0.4,
         },
     },
     {
         id: "gl-draw-lines",
         type: "line",
-        filter: ["any", ["==", "$type", "LineString"], ["==", "$type", "Polygon"]],
+        filter: [
+            "any",
+            ["==", "$type", "LineString"],
+            ["==", "$type", "Polygon"],
+        ],
         layout: { "line-cap": "round", "line-join": "round" },
         paint: {
-            "line-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
-            "line-dasharray": ["case", ["==", ["get", "active"], "true"], [0.2, 2], [2, 0]],
+            "line-color": [
+                "case",
+                ["==", ["get", "active"], "true"],
+                ORANGE,
+                BLUE,
+            ],
+            "line-dasharray": [
+                "case",
+                ["==", ["get", "active"], "true"],
+                [0.2, 2],
+                [2, 0],
+            ],
             "line-width": 2,
         },
     },
@@ -39,7 +58,10 @@ const drawStyles = [
         id: "gl-draw-point-outer",
         type: "circle",
         filter: ["all", ["==", "$type", "Point"], ["==", "meta", "feature"]],
-        paint: { "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5], "circle-color": WHITE },
+        paint: {
+            "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5],
+            "circle-color": WHITE,
+        },
     },
     {
         id: "gl-draw-point-inner",
@@ -47,19 +69,37 @@ const drawStyles = [
         filter: ["all", ["==", "$type", "Point"], ["==", "meta", "feature"]],
         paint: {
             "circle-radius": ["case", ["==", ["get", "active"], "true"], 5, 3],
-            "circle-color": ["case", ["==", ["get", "active"], "true"], ORANGE, BLUE],
+            "circle-color": [
+                "case",
+                ["==", ["get", "active"], "true"],
+                ORANGE,
+                BLUE,
+            ],
         },
     },
     {
         id: "gl-draw-vertex-outer",
         type: "circle",
-        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "vertex"], ["!=", "mode", "simple_select"]],
-        paint: { "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5], "circle-color": WHITE },
+        filter: [
+            "all",
+            ["==", "$type", "Point"],
+            ["==", "meta", "vertex"],
+            ["!=", "mode", "simple_select"],
+        ],
+        paint: {
+            "circle-radius": ["case", ["==", ["get", "active"], "true"], 7, 5],
+            "circle-color": WHITE,
+        },
     },
     {
         id: "gl-draw-vertex-inner",
         type: "circle",
-        filter: ["all", ["==", "$type", "Point"], ["==", "meta", "vertex"], ["!=", "mode", "simple_select"]],
+        filter: [
+            "all",
+            ["==", "$type", "Point"],
+            ["==", "meta", "vertex"],
+            ["!=", "mode", "simple_select"],
+        ],
         paint: {
             "circle-radius": ["case", ["==", ["get", "active"], "true"], 5, 3],
             "circle-color": ORANGE,
@@ -109,7 +149,10 @@ const AllVerticesPolygonMode = {
             display({
                 type: "Feature",
                 properties: geojson.properties,
-                geometry: { type: "LineString", coordinates: [ring[0], ring[1]] },
+                geometry: {
+                    type: "LineString",
+                    coordinates: [ring[0], ring[1]],
+                },
             })
             if (coordinateCount === 3) return
         }
@@ -124,7 +167,10 @@ function DrawControl({ drawRef, onFeaturesChange }) {
             const draw = new MapboxDraw({
                 displayControlsDefault: false,
                 controls: { polygon: true, trash: true },
-                modes: { ...MapboxDraw.modes, draw_polygon: AllVerticesPolygonMode },
+                modes: {
+                    ...MapboxDraw.modes,
+                    draw_polygon: AllVerticesPolygonMode,
+                },
                 styles: drawStyles,
             })
             drawRef.current = draw
