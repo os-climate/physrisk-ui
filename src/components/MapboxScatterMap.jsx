@@ -34,10 +34,7 @@ import Stack from "@mui/material/Stack"
 import Tooltip from "@mui/material/Tooltip"
 import axios from "axios"
 
-// note *public* access token
-// committing into code-base; public token is available on client
-export const mapboxAccessToken =
-    "pk.eyJ1Ijoib3NjLW1hcGJveCIsImEiOiJjbG5hc2hqNnowMjliMmtsZHdiY3RnbzlxIn0.gboGNn4x1erl7O9Q3NrQDQ"
+export const mapboxAccessToken = window.MAPBOX_ACCESS_TOKEN
 
 export function MapboxScatterMap(props) {
     const {

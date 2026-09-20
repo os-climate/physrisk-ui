@@ -5,6 +5,7 @@ declare global {
     interface Window {
         BASE_API: string
         MAP_PROVIDER: string
+        MAPBOX_ACCESS_TOKEN: string
         GOOGLE_MAPS_API_KEY: string
         GOOGLE_MAPS_MAP_ID: string
     }
