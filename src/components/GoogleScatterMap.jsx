@@ -4,6 +4,7 @@ import React, {
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useReducer,
     useRef,
     useState,
@@ -32,6 +33,7 @@ import { GlobalDataContext } from "../data/GlobalData"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
+import { withColorbarOverride } from "../data/HazardInventory"
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -44,7 +46,7 @@ function MapInteractions({
     setSelectedAssetIndex,
     assetData,
     assetScores,
-    satellite,
+    opacity,
     indexValuesState,
     googleMapRef,
     mapViewportRef,
@@ -235,7 +237,6 @@ function MapInteractions({
         const mapInfo = hazardMenu.mapInfo
         const apiHost = globals.value.services.apiHost
         const token = globals.value.token
-        const opacity = satellite ? 0.8 : 1.0
         const fetchHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
         if (mapInfo.source === "mapbox") {
@@ -250,12 +251,15 @@ function MapInteractions({
                     ? `&indexValue=${indexValuesState.indexSelectedValue}`
                     : ""
 
+            const colormapParam = mapInfo.colormapName
+                ? `&colormap=${mapInfo.colormapName}`
+                : ""
             const tileLayer = new TileLayer({
                 id: "hazard-tiles",
                 data:
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${indexParam}`,
+                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${indexParam}`,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: 512,
                 maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
@@ -302,12 +306,15 @@ function MapInteractions({
                 data: "/ne_10m_land.geojson",
                 operation: "mask",
             })
+            const colormapParam = mapInfo.colormapName
+                ? `&colormap=${mapInfo.colormapName}`
+                : ""
             const bitmapLayer = new BitmapLayer({
                 id: "hazard-image",
                 image:
                     `${apiHost}/api/images/${resource}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}`,
+                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}`,
                 bounds: deckBounds,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 opacity,
@@ -320,7 +327,7 @@ function MapInteractions({
             })
             overlay.setProps({ layers: [landMask, bitmapLayer] })
         }
-    }, [map, hazardMenu, indexValuesState.indexSelectedValue, satellite])
+    }, [map, hazardMenu, indexValuesState.indexSelectedValue, opacity])
 
     return null
 }
@@ -358,11 +365,32 @@ export function GoogleScatterMap(props) {
     const mapContainerRef = useRef(null)
 
     // Colour bar data
+    const [colorbarOverride, setColorbarOverride] = useState(null)
+    useEffect(() => {
+        setColorbarOverride(null)
+    }, [
+        hazardMenu?.mapInfo?.resource,
+        hazardMenu?.selectedScenario?.id,
+        hazardMenu?.selectedYear,
+    ])
+
+    const effectiveMapInfo = useMemo(
+        () => withColorbarOverride(hazardMenu?.mapInfo, colorbarOverride),
+        [hazardMenu?.mapInfo, colorbarOverride]
+    )
     const colorbarData = [
-        { xValue: 0, value: 1 },
-        { xValue: hazardMenu?.mapColorbar?.maxValue ?? 1, value: 1 },
+        { xValue: effectiveMapInfo?.minValue ?? 0, value: 1 },
+        { xValue: effectiveMapInfo?.maxValue ?? 1, value: 1 },
     ]
-    const colorbarStops = hazardMenu?.mapColorbar?.stops ?? []
+    const colorbarStops = effectiveMapInfo?.colorbar?.stops ?? []
+    const effectiveOpacity =
+        colorbarOverride?.opacity ?? (satellite ? 0.8 : 1.0)
+
+    const mapInteractionsHazardMenu = useMemo(
+        () =>
+            hazardMenu ? { ...hazardMenu, mapInfo: effectiveMapInfo } : hazardMenu,
+        [hazardMenu, effectiveMapInfo]
+    )
 
     // Hazard index values (same logic as MapboxScatterMap)
     const indexValuesInitialState = {
@@ -549,13 +577,13 @@ export function GoogleScatterMap(props) {
                         ))}
 
                         <MapInteractions
-                            hazardMenu={hazardMenu}
+                            hazardMenu={mapInteractionsHazardMenu}
                             onClick={onClick}
                             selectedAssetIndex={selectedAssetIndex}
                             setSelectedAssetIndex={setSelectedAssetIndex}
                             assetData={assetData}
                             assetScores={assetScores}
-                            satellite={satellite}
+                            opacity={effectiveOpacity}
                             indexValuesState={indexValuesState}
                             googleMapRef={googleMapRef}
                             mapViewportRef={mapViewportRef}
@@ -582,7 +610,7 @@ export function GoogleScatterMap(props) {
                         }}
                         spacing={0}
                     >
-                        <Tooltip title="For acute hazards, the map overlay may be limited to the maximum return period. Note: Google Maps tile auth requires token in URL query parameter.">
+                        <Tooltip title="Click on return/threshold for available options or colourbar to customise display.">
                             <IconButton
                                 sx={{
                                     p: 0.5,
@@ -616,7 +644,23 @@ export function GoogleScatterMap(props) {
                             <ColourBar
                                 colorbarData={colorbarData}
                                 colorbarStops={colorbarStops}
-                                units={hazardMenu?.mapColorbar?.units}
+                                units={effectiveMapInfo?.colorbar?.units}
+                                colormapName={effectiveMapInfo?.colormapName}
+                                minValue={effectiveMapInfo?.minValue}
+                                maxValue={effectiveMapInfo?.maxValue}
+                                colormaps={effectiveMapInfo?.colormaps}
+                                colormapMinIndex={
+                                    effectiveMapInfo?.colormapMinIndex
+                                }
+                                colormapMaxIndex={
+                                    effectiveMapInfo?.colormapMaxIndex
+                                }
+                                opacity={effectiveOpacity}
+                                editable={
+                                    effectiveMapInfo?.source !== "mapbox"
+                                }
+                                isOverridden={!!colorbarOverride}
+                                onChange={setColorbarOverride}
                             />
                         </Box>
                     </Stack>

@@ -21,6 +21,7 @@ import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
+import { withColorbarOverride } from "../data/HazardInventory"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
@@ -112,11 +113,24 @@ export function MapboxScatterMap(props) {
     }
 
     // colour bar
+    const [colorbarOverride, setColorbarOverride] = useState(null)
+    useEffect(() => {
+        setColorbarOverride(null)
+    }, [
+        hazardMenu?.mapInfo?.resource,
+        hazardMenu?.selectedScenario?.id,
+        hazardMenu?.selectedYear,
+    ])
+
+    const effectiveMapInfo = withColorbarOverride(
+        hazardMenu?.mapInfo,
+        colorbarOverride
+    )
     const colorbarData = [
-        { xValue: 0, value: 1 },
-        { xValue: hazardMenu?.mapColorbar?.maxValue ?? 1, value: 1 },
+        { xValue: effectiveMapInfo?.minValue ?? 0, value: 1 },
+        { xValue: effectiveMapInfo?.maxValue ?? 1, value: 1 },
     ]
-    const colorbarStops = hazardMenu?.mapColorbar?.stops ?? []
+    const colorbarStops = effectiveMapInfo?.colorbar?.stops ?? []
 
     // map
     const globals = useRef({}).current
@@ -127,6 +141,8 @@ export function MapboxScatterMap(props) {
     const [lat] = useState(45)
     const [zoom] = useState(3)
     const [satellite, setSatellite] = useState(false)
+    const effectiveOpacity =
+        colorbarOverride?.opacity ?? (satellite ? 0.8 : 1.0)
 
     const indexValuesInitialState = {
         status: "idle",
@@ -308,6 +324,9 @@ export function MapboxScatterMap(props) {
                       mapInfo.scenarioId +
                       "&year=" +
                       mapInfo.year +
+                      (mapInfo.colormapName
+                          ? "&colormap=" + mapInfo.colormapName
+                          : "") +
                       (indexValuesState.indexSelectedValue !== null
                           ? "&indexValue=" + indexValuesState.indexSelectedValue
                           : "")
@@ -342,7 +361,10 @@ export function MapboxScatterMap(props) {
                     "&scenarioId=" +
                     mapInfo.scenarioId +
                     "&year=" +
-                    mapInfo.year,
+                    mapInfo.year +
+                    (mapInfo.colormapName
+                        ? "&colormap=" + mapInfo.colormapName
+                        : ""),
                 key:
                     apiHost +
                     "/api/images/" +
@@ -354,13 +376,16 @@ export function MapboxScatterMap(props) {
                     "&scenarioId=" +
                     mapInfo.scenarioId +
                     "&year=" +
-                    mapInfo.year,
+                    mapInfo.year +
+                    (mapInfo.colormapName
+                        ? "&colormap=" + mapInfo.colormapName
+                        : ""),
                 coordinates: coords,
             }
         }
     }
 
-    const sourceStyle = hazardMenu ? getSourceStyle(hazardMenu.mapInfo) : null
+    const sourceStyle = hazardMenu ? getSourceStyle(effectiveMapInfo) : null
 
     const layerStyle = hazardMenu
         ? {
@@ -373,7 +398,7 @@ export function MapboxScatterMap(props) {
               },
               paint: {
                   "raster-resampling": "nearest",
-                  "raster-opacity": satellite ? 0.8 : 1.0,
+                  "raster-opacity": effectiveOpacity,
               },
           }
         : null
@@ -638,7 +663,23 @@ export function MapboxScatterMap(props) {
                                 <ColourBar
                                     colorbarData={colorbarData}
                                     colorbarStops={colorbarStops}
-                                    units={hazardMenu?.mapColorbar?.units}
+                                    units={effectiveMapInfo?.colorbar?.units}
+                                    colormapName={effectiveMapInfo?.colormapName}
+                                    minValue={effectiveMapInfo?.minValue}
+                                    maxValue={effectiveMapInfo?.maxValue}
+                                    colormaps={effectiveMapInfo?.colormaps}
+                                    colormapMinIndex={
+                                        effectiveMapInfo?.colormapMinIndex
+                                    }
+                                    colormapMaxIndex={
+                                        effectiveMapInfo?.colormapMaxIndex
+                                    }
+                                    opacity={effectiveOpacity}
+                                    editable={
+                                        effectiveMapInfo?.source !== "mapbox"
+                                    }
+                                    isOverridden={!!colorbarOverride}
+                                    onChange={setColorbarOverride}
                                 />
                             </Box>
                         </Stack>
