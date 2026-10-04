@@ -21,7 +21,7 @@ import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
-import { withColorbarOverride } from "../data/HazardInventory"
+import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
@@ -152,6 +152,7 @@ export function MapboxScatterMap(props) {
         indexUnits: null,
         indexSelectedValue: null,
         maxZoom: null,
+        tileSize: null,
     }
 
     const [indexValuesState, indexValuesDispatch] = useReducer(
@@ -171,6 +172,7 @@ export function MapboxScatterMap(props) {
                         indexSelectedValue:
                             action.payload.availableIndexValues.at(-1),
                         maxZoom: action.payload.maxZoom,
+                        tileSize: action.payload.tileSize,
                     }
                 case "SELECTED":
                     return {
@@ -201,6 +203,9 @@ export function MapboxScatterMap(props) {
                     resource: hazardMenu.selectedModel.path,
                     scenario_id: hazardMenu.selectedScenario.id,
                     year: hazardMenu.selectedYear,
+                    tile_size: isJbaResource(hazardMenu.selectedModel.path)
+                        ? 256
+                        : undefined,
                 }
                 try {
                     const config = {
@@ -223,6 +228,7 @@ export function MapboxScatterMap(props) {
                             indexDisplayName: response.data.index_display_name,
                             indexUnits: index_units,
                             maxZoom: response.data.max_zoom ?? 15,
+                            tileSize: response.data.tile_size ?? 512,
                         },
                     })
                 } catch (error) {
@@ -302,6 +308,7 @@ export function MapboxScatterMap(props) {
         if (!mapInfo) return ""
 
         var maxzoom = indexValuesState.maxZoom ?? 15
+        var tileSize = indexValuesState.tileSize ?? 512
 
         if (
             mapInfo.source == "mapbox" ||
@@ -330,6 +337,8 @@ export function MapboxScatterMap(props) {
                       (mapInfo.scaling
                           ? "&scaling=" + mapInfo.scaling
                           : "") +
+                      "&tileSize=" +
+                      tileSize +
                       (indexValuesState.indexSelectedValue !== null
                           ? "&indexValue=" + indexValuesState.indexSelectedValue
                           : "")
@@ -338,7 +347,8 @@ export function MapboxScatterMap(props) {
                 type: "raster",
                 key: url,
                 tiles: [url],
-                tileSize: 512,
+                tileSize:
+                    mapInfo.source == "map_array_pyramid" ? tileSize : 512,
                 maxzoom: maxzoom,
             }
         } else if (mapInfo.source == "map_array") {

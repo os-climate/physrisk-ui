@@ -1,5 +1,12 @@
 import axios from "axios"
 
+/** JBA-backed resources natively serve 256px tiles; requesting the default
+ *  512px size composites four of these per output tile, which is slower.
+ *  Mirrors the "jba_" resource-path convention used server-side. */
+export function isJbaResource(resourcePath) {
+    return !!resourcePath && resourcePath.startsWith("jba_")
+}
+
 export const hazardMenuInitialiser = () => {
     return {
         inventory: null,

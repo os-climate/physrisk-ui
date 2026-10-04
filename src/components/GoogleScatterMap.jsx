@@ -33,7 +33,7 @@ import { GlobalDataContext } from "../data/GlobalData"
 import HazardIndexSelector from "./HazardIndexSelector.tsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
-import { withColorbarOverride } from "../data/HazardInventory"
+import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -257,14 +257,16 @@ function MapInteractions({
             const scalingParam = mapInfo.scaling
                 ? `&scaling=${mapInfo.scaling}`
                 : ""
+            const tileSize = indexValuesState.tileSize ?? 512
             const tileLayer = new TileLayer({
                 id: "hazard-tiles",
                 data:
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}${indexParam}`,
+                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}` +
+                    `&tileSize=${tileSize}${indexParam}`,
                 loadOptions: { fetch: { headers: fetchHeaders } },
-                tileSize: 512,
+                tileSize: tileSize,
                 maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
                 refinementStrategy: "no-overlap",
                 opacity,
@@ -407,6 +409,7 @@ export function GoogleScatterMap(props) {
         indexUnits: null,
         indexSelectedValue: null,
         maxZoom: null,
+        tileSize: null,
     }
 
     const [indexValuesState, indexValuesDispatch] = useReducer(
@@ -426,6 +429,7 @@ export function GoogleScatterMap(props) {
                         indexSelectedValue:
                             action.payload.availableIndexValues.at(-1),
                         maxZoom: action.payload.maxZoom,
+                        tileSize: action.payload.tileSize,
                     }
                 case "SELECTED":
                     return {
@@ -454,6 +458,9 @@ export function GoogleScatterMap(props) {
                     resource: hazardMenu.selectedModel.path,
                     scenario_id: hazardMenu.selectedScenario.id,
                     year: hazardMenu.selectedYear,
+                    tile_size: isJbaResource(hazardMenu.selectedModel.path)
+                        ? 256
+                        : undefined,
                 }
                 try {
                     const config = {
@@ -475,6 +482,7 @@ export function GoogleScatterMap(props) {
                             indexDisplayName: response.data.index_display_name,
                             indexUnits: response.data.index_units,
                             maxZoom: response.data.max_zoom ?? 15,
+                            tileSize: response.data.tile_size ?? 512,
                         },
                     })
                 } catch (error) {
