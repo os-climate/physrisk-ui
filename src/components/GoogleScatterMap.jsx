@@ -254,12 +254,15 @@ function MapInteractions({
             const colormapParam = mapInfo.colormapName
                 ? `&colormap=${mapInfo.colormapName}`
                 : ""
+            const scalingParam = mapInfo.scaling
+                ? `&scaling=${mapInfo.scaling}`
+                : ""
             const tileLayer = new TileLayer({
                 id: "hazard-tiles",
                 data:
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${indexParam}`,
+                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}${indexParam}`,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: 512,
                 maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
@@ -309,12 +312,15 @@ function MapInteractions({
             const colormapParam = mapInfo.colormapName
                 ? `&colormap=${mapInfo.colormapName}`
                 : ""
+            const scalingParam = mapInfo.scaling
+                ? `&scaling=${mapInfo.scaling}`
+                : ""
             const bitmapLayer = new BitmapLayer({
                 id: "hazard-image",
                 image:
                     `${apiHost}/api/images/${resource}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}`,
+                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}`,
                 bounds: deckBounds,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 opacity,
@@ -597,7 +603,7 @@ export function GoogleScatterMap(props) {
                 {hazardMenu ? (
                     <Stack
                         sx={{
-                            width: 175,
+                            width: 210,
                             backgroundColor: "rgba(255, 255, 255, 1.0)",
                             position: "absolute",
                             bottom: 16,
@@ -640,7 +646,7 @@ export function GoogleScatterMap(props) {
                             indexDisplayName={indexValuesState.indexDisplayName}
                             indexValuesDispatch={indexValuesDispatch}
                         />
-                        <Box sx={{ height: 45, width: 175, p: 0, m: 0.5 }}>
+                        <Box sx={{ height: 45, width: 210, p: 0, m: 0.5 }}>
                             <ColourBar
                                 colorbarData={colorbarData}
                                 colorbarStops={colorbarStops}
@@ -656,6 +662,7 @@ export function GoogleScatterMap(props) {
                                     effectiveMapInfo?.colormapMaxIndex
                                 }
                                 opacity={effectiveOpacity}
+                                scaling={effectiveMapInfo?.scaling}
                                 editable={
                                     effectiveMapInfo?.source !== "mapbox"
                                 }

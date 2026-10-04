@@ -327,6 +327,9 @@ export function MapboxScatterMap(props) {
                       (mapInfo.colormapName
                           ? "&colormap=" + mapInfo.colormapName
                           : "") +
+                      (mapInfo.scaling
+                          ? "&scaling=" + mapInfo.scaling
+                          : "") +
                       (indexValuesState.indexSelectedValue !== null
                           ? "&indexValue=" + indexValuesState.indexSelectedValue
                           : "")
@@ -364,7 +367,8 @@ export function MapboxScatterMap(props) {
                     mapInfo.year +
                     (mapInfo.colormapName
                         ? "&colormap=" + mapInfo.colormapName
-                        : ""),
+                        : "") +
+                    (mapInfo.scaling ? "&scaling=" + mapInfo.scaling : ""),
                 key:
                     apiHost +
                     "/api/images/" +
@@ -379,7 +383,8 @@ export function MapboxScatterMap(props) {
                     mapInfo.year +
                     (mapInfo.colormapName
                         ? "&colormap=" + mapInfo.colormapName
-                        : ""),
+                        : "") +
+                    (mapInfo.scaling ? "&scaling=" + mapInfo.scaling : ""),
                 coordinates: coords,
             }
         }
@@ -600,7 +605,7 @@ export function MapboxScatterMap(props) {
                         <Stack
                             sx={{
                                 // height: 70,
-                                width: 175,
+                                width: 210,
                                 backgroundColor: "rgba(255, 255, 255, 1.0)",
                                 position: "absolute",
                                 bottom: 10,
@@ -655,7 +660,7 @@ export function MapboxScatterMap(props) {
                             <Box
                                 sx={{
                                     height: 45,
-                                    width: 175,
+                                    width: 210,
                                     p: 0,
                                     m: 0.5,
                                 }}
@@ -675,6 +680,7 @@ export function MapboxScatterMap(props) {
                                         effectiveMapInfo?.colormapMaxIndex
                                     }
                                     opacity={effectiveOpacity}
+                                    scaling={effectiveMapInfo?.scaling}
                                     editable={
                                         effectiveMapInfo?.source !== "mapbox"
                                     }

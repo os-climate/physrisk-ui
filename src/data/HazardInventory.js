@@ -230,6 +230,7 @@ export class HazardInventory {
             colormaps: this.colormaps,
             minValue: model.map.colormap.min_value,
             maxValue: model.map.colormap.max_value,
+            scaling: model.map.colormap.scaling ?? "linear",
         }
     }
 }
@@ -244,18 +245,20 @@ export const availableColormapNames = [
     "turbo",
 ]
 
-/** Re-derive mapInfo's colorbar (and the name/min/max it was built from) after a user
- *  override, so map tiles and the legend stay in sync. `override` may be null/undefined
- *  (no override), or any subset of { name, minValue, maxValue }. */
+/** Re-derive mapInfo's colorbar (and the name/min/max/scaling it was built from) after a
+ *  user override, so map tiles and the legend stay in sync. `override` may be null/undefined
+ *  (no override), or any subset of { name, minValue, maxValue, scaling }. */
 export function withColorbarOverride(mapInfo, override) {
     if (!mapInfo) return mapInfo
     const name = override?.name ?? mapInfo.colormapName
     const minValue = override?.minValue ?? mapInfo.minValue
     const maxValue = override?.maxValue ?? mapInfo.maxValue
+    const scaling = override?.scaling ?? mapInfo.scaling
     if (
         name === mapInfo.colormapName &&
         minValue === mapInfo.minValue &&
-        maxValue === mapInfo.maxValue
+        maxValue === mapInfo.maxValue &&
+        scaling === mapInfo.scaling
     ) {
         return mapInfo
     }
@@ -272,6 +275,7 @@ export function withColorbarOverride(mapInfo, override) {
         colormapName: name,
         minValue: minValue,
         maxValue: maxValue,
+        scaling: scaling,
         colorbar: colorbar,
     }
 }

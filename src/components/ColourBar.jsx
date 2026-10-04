@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react"
-import { useTheme } from "@mui/material/styles"
 import {
     Area,
     AreaChart,
@@ -19,9 +18,43 @@ import Select from "@mui/material/Select"
 import Slider from "@mui/material/Slider"
 import Stack from "@mui/material/Stack"
 import TextField from "@mui/material/TextField"
+import ToggleButton from "@mui/material/ToggleButton"
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
 import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import { availableColormapNames, getColorbar } from "../data/HazardInventory"
+
+// Keep axis labels compact: plain decimal for everyday magnitudes, standard
+// form (mantissa x10 with a true superscript exponent) once a number gets too
+// wide to read comfortably.
+const TICK_FILL = "rgb(117,117,117)"
+const TICK_FONT_SIZE = 10.5
+
+function renderTickLabel({ x, y, payload }) {
+    const value = payload.value
+    const abs = Math.abs(value)
+    const textProps = {
+        x,
+        y: y + 9,
+        textAnchor: "middle",
+        fontSize: TICK_FONT_SIZE,
+        fill: TICK_FILL,
+    }
+    if (value === 0 || (abs >= 0.001 && abs <= 1000)) {
+        return <text {...textProps}>{value}</text>
+    }
+    const [mantissaRaw, exponentRaw] = value.toExponential(1).split("e")
+    const mantissa = mantissaRaw.replace(/\.0$/, "")
+    const exponent = exponentRaw.replace("+", "")
+    return (
+        <text {...textProps}>
+            <tspan>{mantissa === "1" ? "10" : `${mantissa}×10`}</tspan>
+            <tspan dy={-5} fontSize={TICK_FONT_SIZE * 0.7}>
+                {exponent}
+            </tspan>
+        </text>
+    )
+}
 
 export function ColourBar(props) {
     const {
@@ -35,11 +68,11 @@ export function ColourBar(props) {
         colormapMinIndex,
         colormapMaxIndex,
         opacity,
+        scaling,
         editable,
         isOverridden,
         onChange,
     } = props
-    const theme = useTheme()
 
     const previewGradients = useMemo(() => {
         if (!colormaps || colormapMinIndex == null || colormapMaxIndex == null)
@@ -63,11 +96,58 @@ export function ColourBar(props) {
         )
     }, [colormaps, colormapMinIndex, colormapMaxIndex])
 
+    // d3's log-scale tick generator only returns "nice" powers of ten, which
+    // can collapse to a single tick (or none) when min/max span less than a
+    // decade. Always anchor on the actual min/max, and add a middle tick only
+    // if a power of ten actually falls inside the range (picking the one
+    // closest to the log-midpoint) rather than an arbitrary interpolated value.
+    const logTicks = useMemo(() => {
+        if (scaling !== "log" || !(minValue > 0) || !(maxValue > minValue))
+            return undefined
+        const logMin = Math.log10(minValue)
+        const logMax = Math.log10(maxValue)
+        const candidates = []
+        for (let e = Math.ceil(logMin); e <= Math.floor(logMax); e++) {
+            const v = 10 ** e
+            if (v > minValue && v < maxValue) candidates.push(v)
+        }
+        if (candidates.length === 0) return [minValue, maxValue]
+        const targetLog = (logMin + logMax) / 2
+        const middle = candidates.reduce((best, v) =>
+            Math.abs(Math.log10(v) - targetLog) <
+            Math.abs(Math.log10(best) - targetLog)
+                ? v
+                : best
+        )
+        return [minValue, middle, maxValue]
+    }, [scaling, minValue, maxValue])
+
+    // Recharts' own "nice tick" heuristic only rounds nicely when the domain
+    // starts at 0; for an arbitrary min (e.g. 0.01) it falls back to naive
+    // even spacing, producing odd values like 2.01. Compute our own "nice"
+    // middle tick (a 1/2/5 x 10^n step closest to the midpoint) instead.
+    const linearTicks = useMemo(() => {
+        if (scaling === "log" || !(maxValue > minValue)) return undefined
+        const mid = (minValue + maxValue) / 2
+        const roughStep = (maxValue - minValue) / 4
+        const magnitude = 10 ** Math.floor(Math.log10(roughStep))
+        const residual = roughStep / magnitude
+        const niceResidual = residual >= 5 ? 10 : residual >= 2 ? 5 : residual >= 1 ? 2 : 1
+        const step = niceResidual * magnitude
+        const snapped = Number((Math.round(mid / step) * step).toPrecision(10))
+        return snapped > minValue && snapped < maxValue
+            ? [minValue, snapped, maxValue]
+            : [minValue, maxValue]
+    }, [scaling, minValue, maxValue])
+
+    const axisTicks = scaling === "log" ? logTicks : linearTicks
+
     const [anchorEl, setAnchorEl] = useState(null)
     const [draftName, setDraftName] = useState(colormapName)
     const [draftMin, setDraftMin] = useState(minValue)
     const [draftMax, setDraftMax] = useState(maxValue)
     const [draftOpacity, setDraftOpacity] = useState(opacity ?? 1)
+    const [draftScaling, setDraftScaling] = useState(scaling ?? "linear")
 
     const handleOpen = (event) => {
         if (!editable) return
@@ -75,6 +155,7 @@ export function ColourBar(props) {
         setDraftMin(minValue)
         setDraftMax(maxValue)
         setDraftOpacity(opacity ?? 1)
+        setDraftScaling(scaling ?? "linear")
         setAnchorEl(event.currentTarget)
     }
     const handleClose = () => setAnchorEl(null)
@@ -84,7 +165,8 @@ export function ColourBar(props) {
         draftMax !== "" &&
         !isNaN(Number(draftMin)) &&
         !isNaN(Number(draftMax)) &&
-        Number(draftMin) < Number(draftMax)
+        Number(draftMin) < Number(draftMax) &&
+        (draftScaling !== "log" || Number(draftMin) > 0)
 
     const handleApply = () => {
         if (!isValid) return
@@ -93,6 +175,7 @@ export function ColourBar(props) {
             minValue: Number(draftMin),
             maxValue: Number(draftMax),
             opacity: draftOpacity,
+            scaling: draftScaling,
         })
         handleClose()
     }
@@ -112,7 +195,7 @@ export function ColourBar(props) {
                     <ResponsiveContainer width={"100%"} height={50}>
                         <AreaChart
                             data={colorbarData}
-                            margin={{ top: 0, right: 7, left: 7, bottom: 6 }}
+                            margin={{ top: 0, right: 18, left: 18, bottom: 6 }}
                             backgroundColor="white"
                         >
                             <defs>
@@ -143,13 +226,14 @@ export function ColourBar(props) {
                             />
                             <XAxis
                                 dataKey="xValue"
-                                tickCount="5"
-                                interval="preserveStart"
                                 domain={["dataMin", "dataMax"]}
                                 type="number"
-                                style={theme.typography.caption}
-                                fontSize="9"
-                                //fontFamily="Arial"
+                                ticks={axisTicks}
+                                interval={0}
+                                tick={renderTickLabel}
+                                {...(scaling === "log"
+                                    ? { scale: "log" }
+                                    : {})}
                                 stroke="rgb(117,117,117"
                                 label={{
                                     value:
@@ -254,6 +338,37 @@ export function ColourBar(props) {
                             }
                             onChange={(e) => setDraftMax(e.target.value)}
                         />
+                        <Box>
+                            <Typography
+                                variant="caption"
+                                color="text.secondary"
+                            >
+                                Scale
+                            </Typography>
+                            <ToggleButtonGroup
+                                size="small"
+                                exclusive
+                                fullWidth
+                                value={draftScaling}
+                                onChange={(_event, value) =>
+                                    value && setDraftScaling(value)
+                                }
+                            >
+                                <ToggleButton value="linear">
+                                    Linear
+                                </ToggleButton>
+                                <ToggleButton value="log">Log</ToggleButton>
+                            </ToggleButtonGroup>
+                            {draftScaling === "log" &&
+                                Number(draftMin) <= 0 && (
+                                    <Typography
+                                        variant="caption"
+                                        color="error"
+                                    >
+                                        Log scale requires min value &gt; 0
+                                    </Typography>
+                                )}
+                        </Box>
                         <Box>
                             <Typography
                                 variant="caption"
