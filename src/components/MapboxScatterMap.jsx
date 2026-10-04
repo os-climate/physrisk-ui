@@ -334,9 +334,7 @@ export function MapboxScatterMap(props) {
                       (mapInfo.colormapName
                           ? "&colormap=" + mapInfo.colormapName
                           : "") +
-                      (mapInfo.scaling
-                          ? "&scaling=" + mapInfo.scaling
-                          : "") +
+                      (mapInfo.scaling ? "&scaling=" + mapInfo.scaling : "") +
                       "&tileSize=" +
                       tileSize +
                       (indexValuesState.indexSelectedValue !== null
@@ -680,7 +678,9 @@ export function MapboxScatterMap(props) {
                                     colorbarData={colorbarData}
                                     colorbarStops={colorbarStops}
                                     units={effectiveMapInfo?.colorbar?.units}
-                                    colormapName={effectiveMapInfo?.colormapName}
+                                    colormapName={
+                                        effectiveMapInfo?.colormapName
+                                    }
                                     minValue={effectiveMapInfo?.minValue}
                                     maxValue={effectiveMapInfo?.maxValue}
                                     colormaps={effectiveMapInfo?.colormaps}

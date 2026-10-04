@@ -396,7 +396,9 @@ export function GoogleScatterMap(props) {
 
     const mapInteractionsHazardMenu = useMemo(
         () =>
-            hazardMenu ? { ...hazardMenu, mapInfo: effectiveMapInfo } : hazardMenu,
+            hazardMenu
+                ? { ...hazardMenu, mapInfo: effectiveMapInfo }
+                : hazardMenu,
         [hazardMenu, effectiveMapInfo]
     )
 
@@ -672,9 +674,7 @@ export function GoogleScatterMap(props) {
                                 }
                                 opacity={effectiveOpacity}
                                 scaling={effectiveMapInfo?.scaling}
-                                editable={
-                                    effectiveMapInfo?.source !== "mapbox"
-                                }
+                                editable={effectiveMapInfo?.source !== "mapbox"}
                                 isOverridden={!!colorbarOverride}
                                 onChange={setColorbarOverride}
                             />

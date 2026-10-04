@@ -44,7 +44,8 @@ function estimateLabelWidth(value) {
         const [mantissaRaw, exponentRaw] = value.toExponential(1).split("e")
         const mantissa = mantissaRaw.replace(/\.0$/, "")
         const exponent = exponentRaw.replace("+", "")
-        const chars = (mantissa === "1" ? 0 : mantissa.length + 1) + 2 + exponent.length
+        const chars =
+            (mantissa === "1" ? 0 : mantissa.length + 1) + 2 + exponent.length
         return chars * CHAR_WIDTH_PX
     }
     return `${value}`.length * CHAR_WIDTH_PX
@@ -59,7 +60,8 @@ function ticksFit(ticks) {
 function pickEvenlySpaced(candidates, count) {
     if (count <= 0) return []
     if (candidates.length <= count) return candidates
-    if (count === 1) return [candidates[Math.floor((candidates.length - 1) / 2)]]
+    if (count === 1)
+        return [candidates[Math.floor((candidates.length - 1) / 2)]]
     const picked = []
     for (let i = 0; i < count; i++) {
         const idx = Math.round((i * (candidates.length - 1)) / (count - 1))
@@ -79,10 +81,10 @@ function niceStep(roughStep) {
         residual < Math.SQRT2
             ? 1
             : residual < Math.sqrt(10)
-              ? 2
-              : residual < Math.sqrt(50)
-                ? 5
-                : 10
+            ? 2
+            : residual < Math.sqrt(50)
+            ? 5
+            : 10
     return niceResidual * magnitude
 }
 
@@ -182,7 +184,11 @@ export function ColourBar(props) {
             if (v > minValue && v < maxValue) candidates.push(v)
         }
         if (candidates.length === 0) return [minValue, maxValue]
-        for (let interiorCount = candidates.length; interiorCount >= 1; interiorCount--) {
+        for (
+            let interiorCount = candidates.length;
+            interiorCount >= 1;
+            interiorCount--
+        ) {
             const chosen = pickEvenlySpaced(candidates, interiorCount)
             const result = [minValue, ...chosen, maxValue]
             if (ticksFit(result)) return result
@@ -298,9 +304,7 @@ export function ColourBar(props) {
                                 ticks={axisTicks}
                                 interval={0}
                                 tick={renderTickLabel}
-                                {...(scaling === "log"
-                                    ? { scale: "log" }
-                                    : {})}
+                                {...(scaling === "log" ? { scale: "log" } : {})}
                                 stroke="rgb(117,117,117"
                                 label={{
                                     value:
@@ -428,10 +432,7 @@ export function ColourBar(props) {
                             </ToggleButtonGroup>
                             {draftScaling === "log" &&
                                 Number(draftMin) <= 0 && (
-                                    <Typography
-                                        variant="caption"
-                                        color="error"
-                                    >
+                                    <Typography variant="caption" color="error">
                                         Log scale requires min value &gt; 0
                                     </Typography>
                                 )}
