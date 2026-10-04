@@ -1,5 +1,12 @@
 import axios from "axios"
 
+/** JBA-backed resources natively serve 256px tiles; requesting the default
+ *  512px size composites four of these per output tile, which is slower.
+ *  Mirrors the "jba_" resource-path convention used server-side. */
+export function isJbaResource(resourcePath) {
+    return !!resourcePath && resourcePath.startsWith("jba_")
+}
+
 export const hazardMenuInitialiser = () => {
     return {
         inventory: null,
@@ -224,9 +231,59 @@ export class HazardInventory {
             scenarioId: scenarioId,
             year: year,
             colorbar: getColorbar(this.colormaps, model.map.colormap),
+            colormapName: model.map.colormap.name,
+            colormapMinIndex: model.map.colormap.min_index,
+            colormapMaxIndex: model.map.colormap.max_index,
+            colormaps: this.colormaps,
             minValue: model.map.colormap.min_value,
             maxValue: model.map.colormap.max_value,
+            scaling: model.map.colormap.scaling ?? "linear",
         }
+    }
+}
+
+/** Available colour map names a user may pick between when editing the map legend. */
+export const availableColormapNames = [
+    "flare",
+    "heating",
+    "viridis",
+    "magma",
+    "batlow",
+    "turbo",
+]
+
+/** Re-derive mapInfo's colorbar (and the name/min/max/scaling it was built from) after a
+ *  user override, so map tiles and the legend stay in sync. `override` may be null/undefined
+ *  (no override), or any subset of { name, minValue, maxValue, scaling }. */
+export function withColorbarOverride(mapInfo, override) {
+    if (!mapInfo) return mapInfo
+    const name = override?.name ?? mapInfo.colormapName
+    const minValue = override?.minValue ?? mapInfo.minValue
+    const maxValue = override?.maxValue ?? mapInfo.maxValue
+    const scaling = override?.scaling ?? mapInfo.scaling
+    if (
+        name === mapInfo.colormapName &&
+        minValue === mapInfo.minValue &&
+        maxValue === mapInfo.maxValue &&
+        scaling === mapInfo.scaling
+    ) {
+        return mapInfo
+    }
+    const colorbar = getColorbar(mapInfo.colormaps, {
+        name: name,
+        min_index: mapInfo.colormapMinIndex,
+        max_index: mapInfo.colormapMaxIndex,
+        min_value: minValue,
+        max_value: maxValue,
+        units: mapInfo.colorbar?.units,
+    })
+    return {
+        ...mapInfo,
+        colormapName: name,
+        minValue: minValue,
+        maxValue: maxValue,
+        scaling: scaling,
+        colorbar: colorbar,
     }
 }
 
@@ -269,7 +326,7 @@ function prettifyGCM(text) {
 // This includes inventory, map IDs, and map color bars.
 // Added here as temporary measure pending update of API.
 
-function getColorbar(colormaps, mapColormap) {
+export function getColorbar(colormaps, mapColormap) {
     const minIndex = mapColormap["min_index"]
     const maxIndex = mapColormap["max_index"]
     const n = maxIndex - minIndex + 1

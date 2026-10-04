@@ -45,13 +45,19 @@ export default function HazardIndexSelector(props: {
                 onClick={handleClick}
                 // endIcon={props.buttonIcon}
                 size="small"
+                color="primary"
                 sx={{
                     overflow: "auto",
                     flexShrink: 0,
-                    fontSize: 11,
-                    fontWeight: 400,
+                    fontSize: 12,
+                    fontWeight: 500,
                     m: 0,
                     p: 0,
+                    minWidth: 0,
+                    "&:hover": {
+                        backgroundColor: "transparent",
+                        textDecoration: "underline",
+                    },
                     display:
                         props.allIndexValues?.length > 1 ? undefined : "none",
                 }}
