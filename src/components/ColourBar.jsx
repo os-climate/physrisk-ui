@@ -30,6 +30,76 @@ import { availableColormapNames, getColorbar } from "../data/HazardInventory"
 const TICK_FILL = "rgb(117,117,117)"
 const TICK_FONT_SIZE = 10.5
 
+// Rough budget for fitting a variable number of tick labels: this component is
+// always rendered at a fixed ~210px width (see Mapbox/GoogleScatterMap) with
+// 18px chart margins either side, so ~170px is available for the tick row.
+const AXIS_AVAILABLE_WIDTH = 160
+const MIN_TICK_GAP_PX = 10
+const CHAR_WIDTH_PX = 6.3
+
+function estimateLabelWidth(value) {
+    if (value === 0) return CHAR_WIDTH_PX
+    const abs = Math.abs(value)
+    if (abs < 0.001 || abs >= 100000) {
+        const [mantissaRaw, exponentRaw] = value.toExponential(1).split("e")
+        const mantissa = mantissaRaw.replace(/\.0$/, "")
+        const exponent = exponentRaw.replace("+", "")
+        const chars = (mantissa === "1" ? 0 : mantissa.length + 1) + 2 + exponent.length
+        return chars * CHAR_WIDTH_PX
+    }
+    return `${value}`.length * CHAR_WIDTH_PX
+}
+
+function ticksFit(ticks) {
+    const labelsWidth = ticks.reduce((sum, v) => sum + estimateLabelWidth(v), 0)
+    const gapsWidth = MIN_TICK_GAP_PX * Math.max(ticks.length - 1, 0)
+    return labelsWidth + gapsWidth <= AXIS_AVAILABLE_WIDTH
+}
+
+function pickEvenlySpaced(candidates, count) {
+    if (count <= 0) return []
+    if (candidates.length <= count) return candidates
+    if (count === 1) return [candidates[Math.floor((candidates.length - 1) / 2)]]
+    const picked = []
+    for (let i = 0; i < count; i++) {
+        const idx = Math.round((i * (candidates.length - 1)) / (count - 1))
+        picked.push(candidates[idx])
+    }
+    return [...new Set(picked)]
+}
+
+// Standard "nice number" step selection (same geometric-mean breakpoints d3's
+// tick generators use: sqrt(2), sqrt(10), sqrt(50)) rather than ad-hoc
+// thresholds, so e.g. a rough step of 1.25 rounds down to 1 (giving
+// 0,1,2,3,4,5) instead of jumping up to 2 (giving 0,2,4,5).
+function niceStep(roughStep) {
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep))
+    const residual = roughStep / magnitude
+    const niceResidual =
+        residual < Math.SQRT2
+            ? 1
+            : residual < Math.sqrt(10)
+              ? 2
+              : residual < Math.sqrt(50)
+                ? 5
+                : 10
+    return niceResidual * magnitude
+}
+
+function niceLinearTicksForCount(minValue, maxValue, targetCount) {
+    const step = niceStep((maxValue - minValue) / Math.max(targetCount - 1, 1))
+    const epsilon = step * 1e-9
+    const interior = []
+    for (
+        let v = Math.ceil((minValue + epsilon) / step) * step;
+        v < maxValue - epsilon;
+        v += step
+    ) {
+        interior.push(Number(v.toPrecision(10)))
+    }
+    return [minValue, ...interior, maxValue]
+}
+
 function renderTickLabel({ x, y, payload }) {
     const value = payload.value
     const abs = Math.abs(value)
@@ -40,7 +110,7 @@ function renderTickLabel({ x, y, payload }) {
         fontSize: TICK_FONT_SIZE,
         fill: TICK_FILL,
     }
-    if (value === 0 || (abs >= 0.001 && abs <= 1000)) {
+    if (value === 0 || (abs >= 0.001 && abs < 100000)) {
         return <text {...textProps}>{value}</text>
     }
     const [mantissaRaw, exponentRaw] = value.toExponential(1).split("e")
@@ -98,9 +168,9 @@ export function ColourBar(props) {
 
     // d3's log-scale tick generator only returns "nice" powers of ten, which
     // can collapse to a single tick (or none) when min/max span less than a
-    // decade. Always anchor on the actual min/max, and add a middle tick only
-    // if a power of ten actually falls inside the range (picking the one
-    // closest to the log-midpoint) rather than an arbitrary interpolated value.
+    // decade. Always anchor on the actual min/max, and include as many of the
+    // power-of-ten candidates inside the range as comfortably fit, starting
+    // from the richest set and evenly thinning the candidate list until it does.
     const logTicks = useMemo(() => {
         if (scaling !== "log" || !(minValue > 0) || !(maxValue > minValue))
             return undefined
@@ -112,32 +182,29 @@ export function ColourBar(props) {
             if (v > minValue && v < maxValue) candidates.push(v)
         }
         if (candidates.length === 0) return [minValue, maxValue]
-        const targetLog = (logMin + logMax) / 2
-        const middle = candidates.reduce((best, v) =>
-            Math.abs(Math.log10(v) - targetLog) <
-            Math.abs(Math.log10(best) - targetLog)
-                ? v
-                : best
-        )
-        return [minValue, middle, maxValue]
+        for (let interiorCount = candidates.length; interiorCount >= 1; interiorCount--) {
+            const chosen = pickEvenlySpaced(candidates, interiorCount)
+            const result = [minValue, ...chosen, maxValue]
+            if (ticksFit(result)) return result
+        }
+        return [minValue, maxValue]
     }, [scaling, minValue, maxValue])
 
     // Recharts' own "nice tick" heuristic only rounds nicely when the domain
     // starts at 0; for an arbitrary min (e.g. 0.01) it falls back to naive
     // even spacing, producing odd values like 2.01. Compute our own "nice"
-    // middle tick (a 1/2/5 x 10^n step closest to the midpoint) instead.
+    // ticks (1/2/5 x 10^n steps, anchored on the exact min/max) instead,
+    // starting from the richest reasonable count and backing off until the
+    // result comfortably fits the available width.
     const linearTicks = useMemo(() => {
         if (scaling === "log" || !(maxValue > minValue)) return undefined
-        const mid = (minValue + maxValue) / 2
-        const roughStep = (maxValue - minValue) / 4
-        const magnitude = 10 ** Math.floor(Math.log10(roughStep))
-        const residual = roughStep / magnitude
-        const niceResidual = residual >= 5 ? 10 : residual >= 2 ? 5 : residual >= 1 ? 2 : 1
-        const step = niceResidual * magnitude
-        const snapped = Number((Math.round(mid / step) * step).toPrecision(10))
-        return snapped > minValue && snapped < maxValue
-            ? [minValue, snapped, maxValue]
-            : [minValue, maxValue]
+        for (const count of [7, 6, 5, 4, 3]) {
+            const candidate = niceLinearTicksForCount(minValue, maxValue, count)
+            if (candidate.length >= 3 && ticksFit(candidate)) {
+                return candidate
+            }
+        }
+        return [minValue, maxValue]
     }, [scaling, minValue, maxValue])
 
     const axisTicks = scaling === "log" ? logTicks : linearTicks
@@ -192,10 +259,10 @@ export function ColourBar(props) {
                     onClick={handleOpen}
                     sx={{ cursor: editable ? "pointer" : "default" }}
                 >
-                    <ResponsiveContainer width={"100%"} height={50}>
+                    <ResponsiveContainer width={"100%"} height={54}>
                         <AreaChart
                             data={colorbarData}
-                            margin={{ top: 0, right: 18, left: 18, bottom: 6 }}
+                            margin={{ top: 0, right: 18, left: 18, bottom: 10 }}
                             backgroundColor="white"
                         >
                             <defs>

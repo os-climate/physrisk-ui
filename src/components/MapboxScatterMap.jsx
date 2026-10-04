@@ -625,6 +625,7 @@ export function MapboxScatterMap(props) {
                                 boxShadow: "0 0 10px 2px rgba(0,0,0,.2)",
                                 justifyContent: "center",
                                 alignItems: "center",
+                                pt: 1,
                             }}
                             spacing={0}
                         >
@@ -669,7 +670,7 @@ export function MapboxScatterMap(props) {
                             />
                             <Box
                                 sx={{
-                                    height: 45,
+                                    height: 49,
                                     width: 210,
                                     p: 0,
                                     m: 0.5,
