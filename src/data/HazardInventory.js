@@ -79,6 +79,29 @@ const emptyIfUndefined = (item) => {
     return item ? item : ""
 }
 
+/** Index value meaning "no explicit choice yet for this menu" (as opposed to
+ *  a real index like 0), so a fresh menu can resolve its own default rather
+ *  than inheriting the literal position 0 used by an unrelated prior menu. */
+export const UNSET_INDEX = -1
+
+/** Preferred default model per hazard type, applied only when the model menu
+ *  is UNSET_INDEX (e.g. right after switching hazard type). Falls back to the
+ *  top of the sorted list if no model matches. */
+const defaultModelHints = {
+    RiverineInundation: (model) => model.path.includes("river_tudelft"),
+}
+
+function resolveModelIndex(hazardTypeId, sortedModels, requestedIndex) {
+    if (requestedIndex !== UNSET_INDEX) {
+        return Math.min(requestedIndex, sortedModels.length - 1)
+    }
+    const hint = defaultModelHints[hazardTypeId]
+    const hintedIndex = hint
+        ? sortedModels.findIndex((m) => hint(m.value))
+        : -1
+    return hintedIndex >= 0 ? hintedIndex : 0
+}
+
 /** Update options as necessary and get current selection, adjusting indices as needed. */
 export function updateMenuOptions(inventory, selectedIndices) {
     // menu order: hazard types, models, scenarios, years
@@ -88,41 +111,43 @@ export function updateMenuOptions(inventory, selectedIndices) {
 
     var sortedModels = models.map((m) => {
         return {
-            group: emptyIfUndefined(
-                m.display_groups.filter((group) =>
-                    m.display_name.includes(group)
-                )[0]
-            ),
+            group: emptyIfUndefined(m.display_groups[0]),
             value: m,
         }
     })
-    sortedModels = sortedModels.sort((a, b) =>
-        a.group > b.group ||
-        (a.group == b.group &&
-            (b.value.indicator_model_gcm.includes("multi_model_0") ||
-                a.value.display_name > b.value.display_name))
+    // ungrouped models ("") sort after named groups, so a standalone model
+    // doesn't preempt the multi-model entry of a named group as the default
+    sortedModels = sortedModels.sort((a, b) => {
+        if (a.group != b.group) {
+            if (a.group == "") return 1
+            if (b.group == "") return -1
+            return a.group > b.group ? 1 : -1
+        }
+        return b.value.indicator_model_gcm.includes("multi_model_0") ||
+            a.value.display_name > b.value.display_name
             ? 1
             : -1
-    )
+    })
 
     var sortedModelNames = sortedModels.map((m) => {
         return { group: m.group, value: prettifyGCM(m.value.display_name) }
     })
 
-    newSelectedIndices[1] = Math.min(
-        selectedIndices[1],
-        sortedModels.length - 1
+    newSelectedIndices[1] = resolveModelIndex(
+        hazardTypeId,
+        sortedModels,
+        selectedIndices[1]
     )
     var model = sortedModels[newSelectedIndices[1]].value
-    newSelectedIndices[2] = Math.min(
-        selectedIndices[2],
-        model.scenarios.length - 1
-    )
+    newSelectedIndices[2] =
+        selectedIndices[2] === UNSET_INDEX
+            ? 0
+            : Math.min(selectedIndices[2], model.scenarios.length - 1)
     var scenario = model.scenarios[newSelectedIndices[2]]
-    newSelectedIndices[3] = Math.min(
-        selectedIndices[3],
-        scenario.years.length - 1
-    )
+    newSelectedIndices[3] =
+        selectedIndices[3] === UNSET_INDEX
+            ? 0
+            : Math.min(selectedIndices[3], scenario.years.length - 1)
     var year = scenario.years[newSelectedIndices[3]]
 
     return [
@@ -176,7 +201,7 @@ export const loadHazardMenuData = async (globals) => {
         return {
             inventory: inventory,
             menus: menus,
-            selectedIndices: [0, 0, 0, 0],
+            selectedIndices: [0, UNSET_INDEX, UNSET_INDEX, UNSET_INDEX],
         }
     } catch (error) {
         console.log(error)
@@ -295,8 +320,12 @@ function addItemToDict(dict, key, item) {
 
 function prettifyScenarioId(id) {
     switch (id) {
+        case "rcp2p6":
+            return "RCP 2.6"
         case "rcp4p5":
             return "RCP 4.5"
+        case "rcp6p0":
+            return "RCP 6.0"
         case "rcp8p5":
             return "RCP 8.5"
         case "ssp119":
@@ -305,6 +334,8 @@ function prettifyScenarioId(id) {
             return "SSP126"
         case "ssp245":
             return "SSP245"
+        case "ssp370":
+            return "SSP370"
         case "ssp585":
             return "SSP585"
         case "historical":

@@ -17,6 +17,9 @@ import axios from "axios"
 import { GlobalDataContext } from "../data/GlobalData"
 import { Typography } from "@mui/material"
 
+const formatIndicatorValue = (value) =>
+    Number.isInteger(value) ? value.toString() : value.toPrecision(5)
+
 export default function HazardViewer(props) {
     const { visible } = props
 
@@ -231,11 +234,18 @@ export default function HazardViewer(props) {
                         : "Indicator ") +
                         "value is " +
                         (hazardPointState.data.length == 1
-                            ? hazardPointState.data[0].y
-                                ? hazardPointState.data[0].y.toPrecision(5)
+                            ? hazardPointState.data[0].y != null
+                                ? formatIndicatorValue(
+                                      hazardPointState.data[0].y
+                                  )
                                 : "none"
                             : hazardPointState.data
-                                  .map((d) => d.x + ": " + d.y.toPrecision(5))
+                                  .map(
+                                      (d) =>
+                                          d.x +
+                                          ": " +
+                                          formatIndicatorValue(d.y)
+                                  )
                                   .join(", ")) +
                         (hazardMenu1.selectedModel.units &&
                         hazardMenu1.selectedModel.units != "none"
