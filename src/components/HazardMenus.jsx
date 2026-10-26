@@ -11,6 +11,7 @@ import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import { Autocomplete } from "@mui/material"
 import { useTheme } from "@mui/material/styles"
+import { UNSET_INDEX } from "../data/HazardInventory"
 
 function Group(props) {
     const { header, children } = props
@@ -58,6 +59,11 @@ export default function HazardMenus(props) {
     function setSelectedIndex(menuIndex, selectedIndex) {
         var newSelectedIndices = [...hazardMenu.selectedIndices]
         newSelectedIndices[menuIndex] = selectedIndex
+        // changing a menu invalidates the option lists of later menus, so
+        // their previous indices no longer point at a meaningful choice
+        for (let i = menuIndex + 1; i < newSelectedIndices.length; i++) {
+            newSelectedIndices[i] = UNSET_INDEX
+        }
         hazardMenuDispatch({
             type: "update",
             payload: { selectedIndices: newSelectedIndices },

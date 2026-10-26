@@ -17,6 +17,18 @@ The latest snapshot of the UI is pushed here:
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). Javascript and Typescript are currently supported, but this may change.
 
+## Configuration
+
+The app reads its runtime configuration from `public/config.js`, which is not committed to the repository (it's deployment-specific and listed in `.gitignore`). Before running the app, copy the template and fill in your own values:
+
+```
+cp public/config_template.js public/config.js
+```
+
+Then edit `public/config.js` to set `BASE_API`, `MAP_PROVIDER`, and the Mapbox or Google Maps credentials required for your chosen map provider (see the comments in `config_template.js` for details).
+
+Because `config.js` is loaded at runtime rather than bundled at build time, it can also be overwritten after deployment (e.g. in a container image) without needing to rebuild the app.
+
 ## Available Scripts
 
 In the project directory, you can run:
