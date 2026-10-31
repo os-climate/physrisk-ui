@@ -82,6 +82,19 @@ export const themeOptions = {
         3: "#fc8d59",
         4: "#d73027",
     },
+    // ordered by forcing; RCPs share the colour of the equivalent SSP
+    scenarios: {
+        historical: grey[600],
+        ssp119: "#d1c4e9",
+        ssp126: "#b39ddb",
+        rcp2p6: "#b39ddb",
+        ssp245: "#7e57c2",
+        rcp4p5: "#7e57c2",
+        ssp370: "#5e35b1",
+        rcp6p0: "#5e35b1",
+        ssp585: "#4527a0",
+        rcp8p5: "#4527a0",
+    },
     graphs: {
         0: "#b39ddb", // SSP126 — lavender
         1: "#7e57c2", // SSP245 — medium violet

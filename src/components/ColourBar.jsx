@@ -356,33 +356,37 @@ export function ColourBar(props) {
                                 value={draftName ?? ""}
                                 onChange={(e) => setDraftName(e.target.value)}
                             >
-                                {availableColormapNames.map((name) => (
-                                    <MenuItem key={name} value={name}>
-                                        <Stack
-                                            direction="row"
-                                            alignItems="center"
-                                            justifyContent="space-between"
-                                            sx={{ width: "100%" }}
-                                        >
-                                            <span>{name}</span>
-                                            {previewGradients[name] && (
-                                                <Box
-                                                    sx={{
-                                                        width: 48,
-                                                        height: 14,
-                                                        ml: 1.5,
-                                                        borderRadius: 0.5,
-                                                        border: "1px solid rgba(0,0,0,0.2)",
-                                                        background:
-                                                            previewGradients[
-                                                                name
-                                                            ],
-                                                    }}
-                                                />
-                                            )}
-                                        </Stack>
-                                    </MenuItem>
-                                ))}
+                                {availableColormapNames
+                                    .filter(
+                                        (name) => !colormaps || colormaps[name]
+                                    )
+                                    .map((name) => (
+                                        <MenuItem key={name} value={name}>
+                                            <Stack
+                                                direction="row"
+                                                alignItems="center"
+                                                justifyContent="space-between"
+                                                sx={{ width: "100%" }}
+                                            >
+                                                <span>{name}</span>
+                                                {previewGradients[name] && (
+                                                    <Box
+                                                        sx={{
+                                                            width: 48,
+                                                            height: 14,
+                                                            ml: 1.5,
+                                                            borderRadius: 0.5,
+                                                            border: "1px solid rgba(0,0,0,0.2)",
+                                                            background:
+                                                                previewGradients[
+                                                                    name
+                                                                ],
+                                                        }}
+                                                    />
+                                                )}
+                                            </Stack>
+                                        </MenuItem>
+                                    ))}
                             </Select>
                         </FormControl>
                         <TextField

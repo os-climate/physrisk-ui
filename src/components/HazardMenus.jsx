@@ -4,13 +4,15 @@ import Box from "@mui/material/Box"
 import ListSubheader from "@mui/material/ListSubheader"
 import MenuItem from "@mui/material/MenuItem"
 import Select from "@mui/material/Select"
+import Switch from "@mui/material/Switch"
 import TextField from "@mui/material/TextField"
 import ToggleButton from "@mui/material/ToggleButton"
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup"
+import Tooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import ExpandLess from "@mui/icons-material/ExpandLess"
 import ExpandMore from "@mui/icons-material/ExpandMore"
-import { prettifyScenarioId } from "../data/HazardInventory"
+import { defaultCompare, prettifyScenarioId } from "../data/HazardInventory"
 import { capitalise } from "../data/HazardIndexValues"
 
 export default function HazardMenus(props) {
@@ -22,6 +24,8 @@ export default function HazardMenus(props) {
         hazardMenuDispatch({ type: "update", payload: selection })
     const model = hazardMenu.selectedModel
     const scenario = hazardMenu.selectedScenario
+    const compare = hazardMenu.selectedCompare
+    const supportsDifference = hazardMenu.inventory.supportsDifference(model)
 
     return (
         <Box
@@ -111,7 +115,92 @@ export default function HazardMenus(props) {
                     </Select>
                 </Labelled>
             ) : null}
+            <DifferenceSwitch
+                checked={Boolean(compare)}
+                disabled={!supportsDifference}
+                onChange={(checked) =>
+                    update({ compare: checked ? defaultCompare(model) : null })
+                }
+            />
+            {compare ? (
+                // second row: what the selection is compared with
+                <Box
+                    sx={{
+                        flexBasis: "100%",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        columnGap: 2,
+                        rowGap: 1,
+                    }}
+                >
+                    <Labelled
+                        id="compare-scenario-label"
+                        label="Minus scenario"
+                    >
+                        <OptionToggles
+                            labelId="compare-scenario-label"
+                            value={compare.scenario.id}
+                            options={model.scenarios.map((s) => ({
+                                value: s.id,
+                                label: prettifyScenarioId(s.id),
+                            }))}
+                            onChange={(scenarioId) =>
+                                update({
+                                    compare: { scenarioId, year: compare.year },
+                                })
+                            }
+                        />
+                    </Labelled>
+                    <Labelled id="compare-year-label" label="Minus year">
+                        <OptionToggles
+                            labelId="compare-year-label"
+                            value={compare.year}
+                            options={compare.scenario.years.map((y) => ({
+                                value: y,
+                                label: y.toString(),
+                            }))}
+                            onChange={(year) =>
+                                update({
+                                    compare: {
+                                        scenarioId: compare.scenario.id,
+                                        year,
+                                    },
+                                })
+                            }
+                        />
+                    </Labelled>
+                </Box>
+            ) : null}
         </Box>
+    )
+}
+
+function DifferenceSwitch(props) {
+    const { checked, disabled, onChange } = props
+    const control = (
+        <Labelled id="hazard-difference-label" label="Difference">
+            <Box sx={{ height: 40, display: "flex", alignItems: "center" }}>
+                <Switch
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={(event) => onChange(event.target.checked)}
+                    inputProps={{
+                        "aria-labelledby": "hazard-difference-label",
+                    }}
+                />
+            </Box>
+        </Labelled>
+    )
+    return (
+        <Tooltip
+            title={
+                disabled
+                    ? "Differences are not available for this indicator."
+                    : "Show the difference from another scenario or year on the map."
+            }
+        >
+            <span>{control}</span>
+        </Tooltip>
     )
 }
 

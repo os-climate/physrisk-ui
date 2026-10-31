@@ -16,9 +16,10 @@ export const hazardMenuInitialiser = () => {
 }
 
 /** Menu state is held as a selection by value: { hazardTypeId, modelPath,
- *  scenarioId, year }. An "update" merges a partial selection into the current
- *  one, so e.g. changing indicator keeps the chosen scenario and year where the
- *  new indicator offers them. */
+ *  scenarioId, year, compare }. An "update" merges a partial selection into the
+ *  current one, so e.g. changing indicator keeps the chosen scenario and year
+ *  where the new indicator offers them. compare is null, or { scenarioId, year }
+ *  of the same indicator to show the difference from on the map. */
 export const hazardMenuReducer = (state, action) => {
     switch (action.type) {
         case "initialise": {
@@ -35,6 +36,12 @@ export const hazardMenuReducer = (state, action) => {
                 modelPath: state.selectedModel.path,
                 scenarioId: state.selectedScenario.id,
                 year: state.selectedYear,
+                compare: state.selectedCompare
+                    ? {
+                          scenarioId: state.selectedCompare.scenario.id,
+                          year: state.selectedCompare.year,
+                      }
+                    : null,
             }
             return {
                 ...state,
@@ -104,26 +111,105 @@ function resolveSelection(inventory, selection) {
     const model =
         sortedModels.find((m) => m.path === selection.modelPath) ||
         defaultModel(hazardTypeId, sortedModels)
-    const scenario =
-        model.scenarios.find((s) => s.id === selection.scenarioId) ||
-        model.scenarios.find(
-            (s) => s.id === equivalentScenarios[selection.scenarioId]
-        ) ||
-        model.scenarios[0]
-    const year = nearestYear(scenario.years, selection.year)
-    const mapInfo = inventory.getMapInfo(
+    const { scenario, year } = resolveScenarioYear(
+        model,
+        selection.scenarioId,
+        selection.year
+    )
+    const compare =
+        selection.compare && inventory.supportsDifference(model)
+            ? resolveScenarioYear(
+                  model,
+                  selection.compare.scenarioId,
+                  selection.compare.year
+              )
+            : null
+    var mapInfo = inventory.getMapInfo(
         hazardTypeId,
         model.path,
         scenario.id,
         year
     )
+    if (compare) {
+        mapInfo = withDifference(mapInfo, compare, inventory.colormaps)
+    }
     return {
         selectedHazardTypeId: hazardTypeId,
         selectedModel: model,
         selectedScenario: scenario,
         selectedYear: year,
+        selectedCompare: compare,
         mapInfo: mapInfo,
         mapColorbar: mapInfo.colorbar,
+    }
+}
+
+function resolveScenarioYear(model, scenarioId, year) {
+    const scenario =
+        model.scenarios.find((s) => s.id === scenarioId) ||
+        model.scenarios.find((s) => s.id === equivalentScenarios[scenarioId]) ||
+        model.scenarios[0]
+    return { scenario, year: nearestYear(scenario.years, year) }
+}
+
+/** Tile request query parameters for a difference map, or "" if none. */
+export function differenceQueryParams(mapInfo) {
+    return mapInfo?.compareScenarioId
+        ? "&compareScenarioId=" +
+              mapInfo.compareScenarioId +
+              "&compareYear=" +
+              mapInfo.compareYear
+        : ""
+}
+
+/** e.g. "Difference: SSP585 2050 minus Historical 2005" */
+export function differenceCaption(mapInfo) {
+    return mapInfo?.compareScenarioId
+        ? "Difference: " +
+              prettifyScenarioId(mapInfo.scenarioId) +
+              " " +
+              mapInfo.year +
+              " minus " +
+              prettifyScenarioId(mapInfo.compareScenarioId) +
+              " " +
+              mapInfo.compareYear
+        : ""
+}
+
+/** Default scenario and year to compare with: historical if available. */
+export function defaultCompare(model) {
+    const scenario =
+        model.scenarios.find((s) => s.id == "historical") || model.scenarios[0]
+    return { scenarioId: scenario.id, year: scenario.years[0] }
+}
+
+/** Colour map used for differences: diverging, centred on no change. */
+export const differenceColormapName = "coolwarm"
+
+/** Map info for the difference between the selection and compare: a diverging
+ *  colour map, symmetric about zero, spanning half the range of the indicator
+ *  (a starting point; the range can be edited via the colour bar). */
+function withDifference(mapInfo, compare, colormaps) {
+    const range = (mapInfo.maxValue - mapInfo.minValue) / 2 || 1
+    const colormap = {
+        name: differenceColormapName,
+        min_index: 1,
+        max_index: 255,
+        min_value: -range,
+        max_value: range,
+        units: mapInfo.colorbar?.units,
+    }
+    return {
+        ...mapInfo,
+        compareScenarioId: compare.scenario.id,
+        compareYear: compare.year,
+        colorbar: getColorbar(colormaps, colormap),
+        colormapName: differenceColormapName,
+        colormapMinIndex: 1,
+        colormapMaxIndex: 255,
+        minValue: -range,
+        maxValue: range,
+        scaling: "linear",
     }
 }
 
@@ -225,6 +311,17 @@ export class HazardInventory {
         return options
     }
 
+    /** Whether the map can show differences between scenarios/years of the
+     *  model: only for array pyramids served by the API (not JBA), and only if
+     *  the API provides the diverging colour map, i.e. supports differences. */
+    supportsDifference(model) {
+        return (
+            model.map.source == "map_array_pyramid" &&
+            !isJbaResource(model.path) &&
+            differenceColormapName in this.colormaps
+        )
+    }
+
     findModelByPath(path) {
         for (const [hazardTypeId, models] of Object.entries(
             this.modelsOfHazardType
@@ -275,6 +372,7 @@ export const availableColormapNames = [
     "magma",
     "batlow",
     "turbo",
+    "coolwarm", // diverging, for differences
 ]
 
 /** Re-derive mapInfo's colorbar (and the name/min/max/scaling it was built from) after a

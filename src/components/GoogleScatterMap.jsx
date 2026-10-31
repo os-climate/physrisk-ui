@@ -39,7 +39,12 @@ import {
 } from "../data/HazardIndexValues"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
-import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
+import {
+    differenceCaption,
+    differenceQueryParams,
+    isJbaResource,
+    withColorbarOverride,
+} from "../data/HazardInventory"
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -270,7 +275,8 @@ function MapInteractions({
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
                     `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}` +
-                    `&tileSize=${tileSize}${indexParam}`,
+                    `&tileSize=${tileSize}${indexParam}` +
+                    differenceQueryParams(mapInfo),
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: tileSize,
                 maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
@@ -356,6 +362,7 @@ export function GoogleScatterMap(props) {
         hazardMenuDispatch,
         showHazardMenus = true,
         onClick,
+        onIndexValuesChange,
         selectedAssetIndex,
         setSelectedAssetIndex,
         assetData,
@@ -386,6 +393,8 @@ export function GoogleScatterMap(props) {
         hazardMenu?.mapInfo?.resource,
         hazardMenu?.selectedScenario?.id,
         hazardMenu?.selectedYear,
+        hazardMenu?.mapInfo?.compareScenarioId,
+        hazardMenu?.mapInfo?.compareYear,
     ])
 
     const effectiveMapInfo = useMemo(
@@ -413,6 +422,9 @@ export function GoogleScatterMap(props) {
         indexValuesReducer,
         indexValuesInitialState
     )
+    useEffect(() => {
+        onIndexValuesChange?.(indexValuesState)
+    }, [indexValuesState])
 
     useEffect(() => {
         async function fetchMapAvailableLayers() {
@@ -609,8 +621,25 @@ export function GoogleScatterMap(props) {
                                 />
                             </IconButton>
                         </Tooltip>
+                        {hazardMenu?.mapInfo?.compareScenarioId ? (
+                            <Typography
+                                sx={{
+                                    fontSize: 12,
+                                    textAlign: "center",
+                                    px: 1,
+                                }}
+                            >
+                                {differenceCaption(hazardMenu.mapInfo)}
+                            </Typography>
+                        ) : null}
                         {indexValuesState.allIndexValues?.length > 1 ? (
-                            <Typography sx={{ fontSize: 12 }}>
+                            <Typography
+                                sx={{
+                                    fontSize: 12,
+                                    textAlign: "center",
+                                    px: 1,
+                                }}
+                            >
                                 {indexValueCaption(indexValuesState)}
                             </Typography>
                         ) : null}

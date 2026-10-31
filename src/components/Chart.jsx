@@ -18,15 +18,50 @@ import {
     Tooltip,
 } from "recharts"
 import Title from "./Title"
+import { prettifyScenarioId } from "../data/HazardInventory"
 
 function graphDataPoint(x, y) {
     return { x, y }
 }
 
+/** Names of series hidden by clicking their legend entries; recharts shows
+ *  hidden series greyed out in the legend, so they can be clicked back. */
+function useHiddenSeries(initiallyHidden) {
+    const [hidden, setHidden] = React.useState(
+        () => new Set(initiallyHidden ?? [])
+    )
+    const toggle = (entry) =>
+        setHidden((current) => {
+            const updated = new Set(current)
+            updated.has(entry.value)
+                ? updated.delete(entry.value)
+                : updated.add(entry.value)
+            return updated
+        })
+    return [hidden, toggle]
+}
+
+/** Chart height, allowing room for extra legend rows when there are many
+ *  curves (a single row, up to around 5 curves, fits in the default). */
+function chartHeight(dataSets) {
+    const n = dataSets ? Object.keys(dataSets).length : 0
+    return 240 + 22 * Math.max(0, Math.ceil(n / 5) - 1)
+}
+
 export function ExceedancePlot(props) {
-    const { title, data, dataSets, quantity, units, graphType } = props
+    const {
+        title,
+        data,
+        dataSets,
+        colours,
+        initiallyHidden,
+        quantity,
+        units,
+        graphType,
+    } = props
 
     const theme = useTheme()
+    const [hidden, toggleSeries] = useHiddenSeries(initiallyHidden)
 
     var ticks, tickFormat, domain, scale, tickFormatAll
     const dataPointsSet = {}
@@ -34,11 +69,12 @@ export function ExceedancePlot(props) {
         dataSets ? dataSets : { data: data }
     )) {
         if (graphType == "exceedance") {
-            dataPointsSet[key] = value.map((item) =>
-                graphDataPoint(1.0 / item.x, item.y)
-            )
+            dataPointsSet[key] = value.map((item) => ({
+                ...graphDataPoint(1.0 / item.x, item.y),
+                series: key,
+            }))
         } else {
-            dataPointsSet[key] = value
+            dataPointsSet[key] = value.map((item) => ({ ...item, series: key }))
         }
     }
     var dataPoints = Object.entries(dataPointsSet).map(([, v]) => v)[0]
@@ -92,7 +128,11 @@ export function ExceedancePlot(props) {
                 <Item elevation={4}>
                     <Typography sx={{ m: 1, fontSize: 14 }}>
                         <pre style={{ fontFamily: "inherit" }}>
-                            {`${xAxisLabelShort}: ${
+                            {`${
+                                dataSets
+                                    ? payload[0].payload.series + " \n "
+                                    : ""
+                            }${xAxisLabelShort}: ${
                                 payload[0].value.toPrecision(4) / 1
                             }${xAxisLabelUnits} \n ${prettify(
                                 quantity
@@ -125,7 +165,7 @@ export function ExceedancePlot(props) {
                 >
                     <ContentCopy fontSize="inherit" color="primary" />
                 </IconButton>
-                <ResponsiveContainer height={240}>
+                <ResponsiveContainer height={chartHeight(dataSets)}>
                     <ScatterChart
                         margin={{
                             top: 0,
@@ -201,16 +241,25 @@ export function ExceedancePlot(props) {
                             <Scatter
                                 key={k}
                                 name={k}
+                                hide={hidden.has(k)}
                                 isAnimationActive={false}
                                 data={v}
-                                fill={theme.graphs[i]}
+                                fill={colours?.[k] ?? theme.graphs[i]}
                                 line
                                 shape="dot"
                             />
                         ))}
                         {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
                         <Tooltip content={<CustomTooltip />} />
-                        {dataSets ? <Legend verticalAlign="top" /> : <></>}
+                        {dataSets ? (
+                            <Legend
+                                verticalAlign="top"
+                                onClick={toggleSeries}
+                                wrapperStyle={{ cursor: "pointer" }}
+                            />
+                        ) : (
+                            <></>
+                        )}
                         {/* <Line
                             isAnimationActive={false}
                             type="monotone"
@@ -226,14 +275,16 @@ export function ExceedancePlot(props) {
 }
 
 export function ThresholdPlot(props) {
-    const { title, data, dataSets, quantity, units } = props
+    const { title, data, dataSets, colours, initiallyHidden, quantity, units } =
+        props
 
     const theme = useTheme()
+    const [hidden, toggleSeries] = useHiddenSeries(initiallyHidden)
     const dataPointsSet = {}
     for (const [key, value] of Object.entries(
         dataSets ? dataSets : { data: data }
     )) {
-        dataPointsSet[key] = value
+        dataPointsSet[key] = value.map((item) => ({ ...item, series: key }))
     }
     var dataPoints = Object.entries(dataPointsSet).map(([, v]) => v)[0]
     if (!dataPoints) return <></>
@@ -279,7 +330,11 @@ export function ThresholdPlot(props) {
                 <Item elevation={4}>
                     <Typography sx={{ m: 1, fontSize: 14 }}>
                         <pre style={{ fontFamily: "inherit" }}>
-                            {`${xAxisLabelShort}: ${
+                            {`${
+                                dataSets
+                                    ? payload[0].payload.series + " \n "
+                                    : ""
+                            }${xAxisLabelShort}: ${
                                 payload[0].value.toPrecision(4) / 1
                             }${xAxisLabelUnits} \n ${prettify(
                                 quantity
@@ -310,7 +365,7 @@ export function ThresholdPlot(props) {
                 >
                     <ContentCopy fontSize="inherit" color="primary" />
                 </IconButton>
-                <ResponsiveContainer height={240}>
+                <ResponsiveContainer height={chartHeight(dataSets)}>
                     <ScatterChart
                         margin={{
                             top: 5,
@@ -382,19 +437,157 @@ export function ThresholdPlot(props) {
                             <Scatter
                                 key={k}
                                 name={k}
+                                hide={hidden.has(k)}
                                 isAnimationActive={false}
                                 data={v}
-                                fill={theme.graphs[i]}
+                                fill={colours?.[k] ?? theme.graphs[i]}
                                 line
                                 shape="dot"
                             />
                         ))}
                         <Tooltip content={<CustomTooltip />} />
-                        {dataSets ? <Legend verticalAlign="top" /> : <></>}
+                        {dataSets ? (
+                            <Legend
+                                verticalAlign="top"
+                                onClick={toggleSeries}
+                                wrapperStyle={{ cursor: "pointer" }}
+                            />
+                        ) : (
+                            <></>
+                        )}
                     </ScatterChart>
                 </ResponsiveContainer>
             </Box>
         </React.Fragment>
+    )
+}
+
+/** Indicator value against year, one line per scenario. */
+export function ScenarioTimeSeriesPlot(props) {
+    const { historical, series, initiallyHidden, quantity, units } = props
+    const theme = useTheme()
+    const [hidden, toggleSeries] = useHiddenSeries(initiallyHidden)
+    const allPoints = [...historical, ...series.flatMap((s) => s.points)]
+    if (allPoints.length == 0) return <></>
+    const years = [...new Set(allPoints.map((p) => p.x))].sort((a, b) => a - b)
+    const colour = (scenarioId) =>
+        theme.scenarios[scenarioId] ?? theme.palette.primary.main
+
+    const Item = styled(Paper)(({ theme }) => ({
+        ...theme.typography.body2,
+        textAlign: "center",
+        color: theme.palette.text.secondary,
+        lineHeight: "60px",
+    }))
+
+    const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            const point = payload[0].payload
+            return (
+                <Item elevation={4}>
+                    <Typography sx={{ m: 1, fontSize: 14 }}>
+                        <pre style={{ fontFamily: "inherit" }}>
+                            {`${prettifyScenarioId(point.scenarioId)}, ${
+                                point.x
+                            } \n ${prettify(quantity)}: ${point.y.toPrecision(
+                                4
+                            )} ${units}`}
+                        </pre>
+                    </Typography>
+                </Item>
+            )
+        }
+        return null
+    }
+
+    return (
+        <ResponsiveContainer height={260}>
+            <ScatterChart margin={{ top: 5, right: 20, bottom: 15, left: 50 }}>
+                <CartesianGrid />
+                <XAxis
+                    dataKey="x"
+                    type="number"
+                    domain={["dataMin", "dataMax"]}
+                    ticks={years}
+                    interval={0}
+                    stroke={theme.palette.text.secondary}
+                    style={theme.typography.body2}
+                >
+                    <Label
+                        position="bottom"
+                        offset={0}
+                        style={{
+                            textAnchor: "middle",
+                            fill: theme.palette.text.primary,
+                            ...theme.typography.body1,
+                        }}
+                    >
+                        Year
+                    </Label>
+                </XAxis>
+                <YAxis
+                    dataKey="y"
+                    type="number"
+                    stroke={theme.palette.text.secondary}
+                    style={theme.typography.body2}
+                >
+                    <Label
+                        angle={270}
+                        offset={32}
+                        position="left"
+                        style={{
+                            textAnchor: "middle",
+                            fill: theme.palette.text.primary,
+                            ...theme.typography.body1,
+                        }}
+                    >
+                        {prettify(quantity)}
+                    </Label>
+                    {units && units != "none" ? (
+                        <Label
+                            angle={270}
+                            offset={14}
+                            position="left"
+                            style={{
+                                textAnchor: "middle",
+                                fill: theme.palette.text.primary,
+                                ...theme.typography.body1,
+                            }}
+                        >
+                            {"(" + units + ")"}
+                        </Label>
+                    ) : null}
+                </YAxis>
+                {series.map((s) => (
+                    <Scatter
+                        key={s.scenarioId}
+                        name={prettifyScenarioId(s.scenarioId)}
+                        hide={hidden.has(prettifyScenarioId(s.scenarioId))}
+                        isAnimationActive={false}
+                        data={s.points}
+                        fill={colour(s.scenarioId)}
+                        line
+                        shape="dot"
+                    />
+                ))}
+                {historical.length > 0 ? (
+                    <Scatter
+                        name="Historical"
+                        hide={hidden.has("Historical")}
+                        isAnimationActive={false}
+                        data={historical}
+                        fill={colour("historical")}
+                        shape="diamond"
+                    />
+                ) : null}
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                    verticalAlign="top"
+                    onClick={toggleSeries}
+                    wrapperStyle={{ cursor: "pointer" }}
+                />
+            </ScatterChart>
+        </ResponsiveContainer>
     )
 }
 

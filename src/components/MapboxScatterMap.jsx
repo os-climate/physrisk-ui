@@ -21,7 +21,12 @@ import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
-import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
+import {
+    differenceCaption,
+    differenceQueryParams,
+    isJbaResource,
+    withColorbarOverride,
+} from "../data/HazardInventory"
 import {
     indexValueCaption,
     indexValuesInitialState,
@@ -49,6 +54,7 @@ export function MapboxScatterMap(props) {
         hazardMenuDispatch,
         showHazardMenus = true,
         onClick,
+        onIndexValuesChange,
         selectedAssetIndex,
         setSelectedAssetIndex,
         assetData,
@@ -126,6 +132,8 @@ export function MapboxScatterMap(props) {
         hazardMenu?.mapInfo?.resource,
         hazardMenu?.selectedScenario?.id,
         hazardMenu?.selectedYear,
+        hazardMenu?.mapInfo?.compareScenarioId,
+        hazardMenu?.mapInfo?.compareYear,
     ])
 
     const effectiveMapInfo = withColorbarOverride(
@@ -154,6 +162,9 @@ export function MapboxScatterMap(props) {
         indexValuesReducer,
         indexValuesInitialState
     )
+    useEffect(() => {
+        onIndexValuesChange?.(indexValuesState)
+    }, [indexValuesState])
 
     // hazard index values
     useEffect(() => {
@@ -302,7 +313,8 @@ export function MapboxScatterMap(props) {
                       tileSize +
                       (tileIndex.indexSelectedValue != null
                           ? "&indexValue=" + tileIndex.indexSelectedValue
-                          : "")
+                          : "") +
+                      differenceQueryParams(mapInfo)
             return {
                 id: "hazard",
                 type: "raster",
@@ -617,8 +629,25 @@ export function MapboxScatterMap(props) {
                                 </IconButton>
                             </Tooltip>
 
+                            {hazardMenu?.mapInfo?.compareScenarioId ? (
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        textAlign: "center",
+                                        px: 1,
+                                    }}
+                                >
+                                    {differenceCaption(hazardMenu.mapInfo)}
+                                </Typography>
+                            ) : null}
                             {indexValuesState.allIndexValues?.length > 1 ? (
-                                <Typography sx={{ fontSize: 12 }}>
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        textAlign: "center",
+                                        px: 1,
+                                    }}
+                                >
                                     {indexValueCaption(indexValuesState)}
                                 </Typography>
                             ) : null}
