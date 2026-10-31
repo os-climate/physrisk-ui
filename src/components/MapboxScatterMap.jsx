@@ -28,11 +28,11 @@ import {
     withColorbarOverride,
 } from "../data/HazardInventory"
 import {
-    indexValueCaption,
     indexValuesInitialState,
     indexValuesReducer,
     tileIndexValues,
 } from "../data/HazardIndexValues"
+import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
 import InputLabel from "@mui/material/InputLabel"
@@ -461,8 +461,6 @@ export function MapboxScatterMap(props) {
                     <HazardMenusCompare
                         hazardMenu1={hazardMenu}
                         hazardMenuDispatch1={hazardMenuDispatch}
-                        indexValues1={indexValuesState}
-                        indexValuesDispatch1={indexValuesDispatch}
                     />
                 ) : (
                     <></>
@@ -640,17 +638,10 @@ export function MapboxScatterMap(props) {
                                     {differenceCaption(hazardMenu.mapInfo)}
                                 </Typography>
                             ) : null}
-                            {indexValuesState.allIndexValues?.length > 1 ? (
-                                <Typography
-                                    sx={{
-                                        fontSize: 12,
-                                        textAlign: "center",
-                                        px: 1,
-                                    }}
-                                >
-                                    {indexValueCaption(indexValuesState)}
-                                </Typography>
-                            ) : null}
+                            <HazardIndexSelector
+                                indexValues={indexValuesState}
+                                indexValuesDispatch={indexValuesDispatch}
+                            />
                             <Box
                                 sx={{
                                     height: 49,

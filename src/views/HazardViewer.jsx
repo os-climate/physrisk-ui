@@ -216,6 +216,13 @@ export default function HazardViewer(props) {
         }
     }, [chartView, lngLat, selectedPath])
 
+    // index value (e.g. return period) shown on the map, marked on the curves
+    const mapIndexValue =
+        indexValues?.status == "fetched" &&
+        indexValues.allIndexValues?.length > 1
+            ? indexValues.indexSelectedValue
+            : null
+
     var chart
     var title = hazardMenu1.selectedModel
         ? hazardMenu1.selectedModel.display_name
@@ -273,6 +280,7 @@ export default function HazardViewer(props) {
                                     }
                                     units={hazardMenu1.selectedModel.units}
                                     graphType={graphType}
+                                    mapIndexValue={mapIndexValue}
                                 />
                             ) : (
                                 <ThresholdPlot
@@ -282,6 +290,7 @@ export default function HazardViewer(props) {
                                     }
                                     units={hazardMenu1.selectedModel.units}
                                     graphType={graphType}
+                                    mapIndexValue={mapIndexValue}
                                 />
                             )}
                         </Box>
@@ -385,6 +394,7 @@ export default function HazardViewer(props) {
                                 quantity={model.indicator_id}
                                 units={model.units}
                                 graphType={graphType}
+                                mapIndexValue={mapIndexValue}
                             />
                         ) : (
                             <ThresholdPlot
@@ -394,6 +404,7 @@ export default function HazardViewer(props) {
                                 initiallyHidden={initiallyHidden}
                                 quantity={model.indicator_id}
                                 units={model.units}
+                                mapIndexValue={mapIndexValue}
                             />
                         )}
                     </Box>

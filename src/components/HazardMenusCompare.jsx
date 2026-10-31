@@ -13,20 +13,13 @@ import ExpandMore from "@mui/icons-material/ExpandMore"
 feature is complete.
  */
 export default function HazardMenusCompare(props) {
-    const {
-        hazardMenu1,
-        hazardMenuDispatch1,
-        indexValues1,
-        indexValuesDispatch1,
-    } = props
+    const { hazardMenu1, hazardMenuDispatch1 } = props
 
     return (
         <React.Fragment>
             <HazardMenus
                 hazardMenu={hazardMenu1}
                 hazardMenuDispatch={hazardMenuDispatch1}
-                indexValues={indexValues1}
-                indexValuesDispatch={indexValuesDispatch1}
             />
         </React.Fragment>
     )

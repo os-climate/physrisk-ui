@@ -14,6 +14,7 @@ import {
     YAxis,
     Label,
     Legend,
+    ReferenceLine,
     ResponsiveContainer,
     Tooltip,
 } from "recharts"
@@ -41,6 +42,31 @@ function useHiddenSeries(initiallyHidden) {
     return [hidden, toggle]
 }
 
+/** Dashed vertical line marking the index value (e.g. return period or
+ *  threshold) shown on the map, which is one point of the curve. The label
+ *  goes on the side of the line facing the middle of the chart, so that it is
+ *  not cut off at the edge. */
+function mapIndexLine(x, xValues, reversed, theme) {
+    if (typeof x != "number" || xValues.length == 0) return null
+    const sorted = [...xValues].sort((a, b) => a - b)
+    const middle = sorted[Math.floor(sorted.length / 2)]
+    const onRight = reversed ? x < middle : x >= middle
+    return (
+        <ReferenceLine
+            x={x}
+            stroke={theme.palette.text.secondary}
+            strokeDasharray="4 4"
+            ifOverflow="discard"
+            label={{
+                value: "Map",
+                position: onRight ? "insideTopRight" : "insideTopLeft",
+                fill: theme.palette.text.secondary,
+                fontSize: 12,
+            }}
+        />
+    )
+}
+
 /** Chart height, allowing room for extra legend rows when there are many
  *  curves (a single row, up to around 5 curves, fits in the default). */
 function chartHeight(dataSets) {
@@ -58,6 +84,7 @@ export function ExceedancePlot(props) {
         quantity,
         units,
         graphType,
+        mapIndexValue,
     } = props
 
     const theme = useTheme()
@@ -155,7 +182,7 @@ export function ExceedancePlot(props) {
                         position: "absolute",
                         //top: 40,
                         right: 0,
-                        bottom: dataSets ? 35 : 0,
+                        bottom: 0,
                         //top: 0,
                         zIndex: 1,
                     }}
@@ -250,6 +277,14 @@ export function ExceedancePlot(props) {
                             />
                         ))}
                         {/* <Scatter name="" isAnimationActive={false} data={dataPoints} fill={theme.palette.primary.main} line shape="dot" /> */}
+                        {mapIndexLine(
+                            graphType == "exceedance" && mapIndexValue
+                                ? 1.0 / mapIndexValue
+                                : mapIndexValue,
+                            dataPoints.map((d) => d.x),
+                            graphType == "exceedance",
+                            theme
+                        )}
                         <Tooltip content={<CustomTooltip />} />
                         {dataSets ? (
                             <Legend
@@ -275,8 +310,16 @@ export function ExceedancePlot(props) {
 }
 
 export function ThresholdPlot(props) {
-    const { title, data, dataSets, colours, initiallyHidden, quantity, units } =
-        props
+    const {
+        title,
+        data,
+        dataSets,
+        colours,
+        initiallyHidden,
+        quantity,
+        units,
+        mapIndexValue,
+    } = props
 
     const theme = useTheme()
     const [hidden, toggleSeries] = useHiddenSeries(initiallyHidden)
@@ -356,7 +399,7 @@ export function ThresholdPlot(props) {
                     sx={{
                         position: "absolute",
                         right: 0,
-                        bottom: dataSets ? 35 : 0,
+                        bottom: 0,
                         zIndex: 1,
                     }}
                     aria-label="info"
@@ -445,6 +488,12 @@ export function ThresholdPlot(props) {
                                 shape="dot"
                             />
                         ))}
+                        {mapIndexLine(
+                            mapIndexValue,
+                            dataPoints.map((d) => d.x),
+                            false,
+                            theme
+                        )}
                         <Tooltip content={<CustomTooltip />} />
                         {dataSets ? (
                             <Legend

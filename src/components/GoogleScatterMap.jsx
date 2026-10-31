@@ -32,11 +32,11 @@ import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
 import {
-    indexValueCaption,
     indexValuesInitialState,
     indexValuesReducer,
     tileIndexValues,
 } from "../data/HazardIndexValues"
+import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
 import {
@@ -490,8 +490,6 @@ export function GoogleScatterMap(props) {
                     <HazardMenusCompare
                         hazardMenu1={hazardMenu}
                         hazardMenuDispatch1={hazardMenuDispatch}
-                        indexValues1={indexValuesState}
-                        indexValuesDispatch1={indexValuesDispatch}
                     />
                 ) : (
                     <></>
@@ -603,7 +601,7 @@ export function GoogleScatterMap(props) {
                         }}
                         spacing={0}
                     >
-                        <Tooltip title="Click on colourbar to customise display.">
+                        <Tooltip title="Click on return period/threshold for the options shown on the map, or on the colourbar to customise display. Click a point on the map to view all values.">
                             <IconButton
                                 sx={{
                                     p: 0.5,
@@ -632,17 +630,10 @@ export function GoogleScatterMap(props) {
                                 {differenceCaption(hazardMenu.mapInfo)}
                             </Typography>
                         ) : null}
-                        {indexValuesState.allIndexValues?.length > 1 ? (
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-                                    textAlign: "center",
-                                    px: 1,
-                                }}
-                            >
-                                {indexValueCaption(indexValuesState)}
-                            </Typography>
-                        ) : null}
+                        <HazardIndexSelector
+                            indexValues={indexValuesState}
+                            indexValuesDispatch={indexValuesDispatch}
+                        />
                         <Box sx={{ height: 49, width: 210, p: 0, m: 0.5 }}>
                             <ColourBar
                                 colorbarData={colorbarData}
