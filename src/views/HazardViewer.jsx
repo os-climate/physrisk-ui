@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useReducer, useState } from "react"
+import React, {
+    useContext,
+    useEffect,
+    useReducer,
+    useRef,
+    useState,
+} from "react"
 import Box from "@mui/material/Box"
 import LinearProgress from "@mui/material/LinearProgress"
 import {
@@ -16,6 +22,7 @@ import {
     hazardMenuInitialiser,
     loadHazardMenuData,
     prettifyScenarioId,
+    quantityName,
 } from "../data/HazardInventory.js"
 import { indexValueCaption } from "../data/HazardIndexValues"
 import {
@@ -176,11 +183,20 @@ export default function HazardViewer(props) {
         status: "idle",
         curves: {},
     })
+    // location and model of the values held, so that switching chart view
+    // back and forth does not fetch them again
+    const timeSeriesKey = useRef(null)
     const selectedPath = hazardMenu1.selectedModel?.path
+    const currentTimeSeriesKey = lngLat
+        ? [selectedPath, lngLat.lng, lngLat.lat].join("|")
+        : null
     useEffect(() => {
         if (chartView != "overTime" || !lngLat || !selectedPath) return
+        const key = currentTimeSeriesKey
+        if (timeSeriesKey.current == key) return
         let cancelled = false
         async function fetchTimeSeries() {
+            timeSeriesKey.current = null
             setTimeSeriesState({ status: "fetching", curves: {} })
             const payload = {
                 items: timeSeriesRequestItems(
@@ -201,8 +217,10 @@ export default function HazardViewer(props) {
                     globals.token == "" ? null : config
                 )
                 if (cancelled) return
+                timeSeriesKey.current = key
                 setTimeSeriesState({
                     status: "fetched",
+                    key,
                     curves: curvesByRequestItemId(response.data.items),
                 })
             } catch (error) {
@@ -275,9 +293,9 @@ export default function HazardViewer(props) {
                             {hazardPointState.indexName == "return period" ? (
                                 <ExceedancePlot
                                     data={hazardPointState.data}
-                                    quantity={
-                                        hazardMenu1.selectedModel.indicator_id
-                                    }
+                                    heading={quantityName(
+                                        hazardMenu1.selectedModel
+                                    )}
                                     units={hazardMenu1.selectedModel.units}
                                     graphType={graphType}
                                     mapIndexValue={mapIndexValue}
@@ -285,9 +303,9 @@ export default function HazardViewer(props) {
                             ) : (
                                 <ThresholdPlot
                                     data={hazardPointState.data}
-                                    quantity={
-                                        hazardMenu1.selectedModel.indicator_id
-                                    }
+                                    heading={quantityName(
+                                        hazardMenu1.selectedModel
+                                    )}
                                     units={hazardMenu1.selectedModel.units}
                                     graphType={graphType}
                                     mapIndexValue={mapIndexValue}
@@ -339,9 +357,21 @@ export default function HazardViewer(props) {
     const hasTimeSeries =
         model && model.scenarios.flatMap((s) => s.years).length > 1
     const showTimeSeries = lngLat && hasTimeSeries && chartView == "overTime"
-    if (showTimeSeries && hasNumericCurves(timeSeriesState.curves)) {
+    // values held may be for the previous model or location until the new
+    // ones are fetched
+    const timeSeriesCurves =
+        timeSeriesState.key == currentTimeSeriesKey
+            ? timeSeriesState.curves
+            : {}
+    const curves = showTimeSeries
+        ? scenarioYearCurves(model, timeSeriesCurves)
+        : []
+    if (
+        showTimeSeries &&
+        hasNumericCurves(timeSeriesCurves) &&
+        curves.length > 0
+    ) {
         // one curve (e.g. against return period) per scenario and year
-        const curves = scenarioYearCurves(model, timeSeriesState.curves)
         const dataSets = {}
         const colours = {}
         const initiallyHidden = []
@@ -391,7 +421,7 @@ export default function HazardViewer(props) {
                                 dataSets={dataSets}
                                 colours={colours}
                                 initiallyHidden={initiallyHidden}
-                                quantity={model.indicator_id}
+                                heading={quantityName(model)}
                                 units={model.units}
                                 graphType={graphType}
                                 mapIndexValue={mapIndexValue}
@@ -402,7 +432,7 @@ export default function HazardViewer(props) {
                                 dataSets={dataSets}
                                 colours={colours}
                                 initiallyHidden={initiallyHidden}
-                                quantity={model.indicator_id}
+                                heading={quantityName(model)}
                                 units={model.units}
                                 mapIndexValue={mapIndexValue}
                             />
@@ -415,7 +445,7 @@ export default function HazardViewer(props) {
         // single value per scenario and year: plot against year
         const { historical, series } = scenarioTimeSeries(
             model,
-            timeSeriesState.curves,
+            timeSeriesCurves,
             indexValues?.indexSelectedValue
         )
         const caption =
@@ -454,7 +484,7 @@ export default function HazardViewer(props) {
                                     .map((s) =>
                                         prettifyScenarioId(s.scenarioId)
                                     )}
-                                quantity={model.indicator_id}
+                                heading={quantityName(model)}
                                 units={model.units}
                             />
                         </Box>

@@ -4,6 +4,7 @@ import Box from "@mui/material/Box"
 import { ContentCopy } from "@mui/icons-material"
 import IconButton from "@mui/material/IconButton"
 import { Paper, styled } from "@mui/material"
+import MuiTooltip from "@mui/material/Tooltip"
 import Typography from "@mui/material/Typography"
 import { scaleLog as d3ScaleLog } from "d3-scale" // scaleLinear as d3ScaleLinear,
 import {
@@ -67,6 +68,31 @@ function mapIndexLine(x, xValues, reversed, theme) {
     )
 }
 
+/** Copies curves to the clipboard as arrays, e.g. "returns = array(...)" and
+ *  "intensity = array(...)"; several curves are each headed by their name. */
+function copyCurves(dataPointsSet, xName, labelled) {
+    const array = (name, values) =>
+        name + " = array(" + values.map((v) => v.toPrecision(8)).join(",") + ")"
+    const text = Object.entries(dataPointsSet)
+        .map(([key, points]) => {
+            const ordered = points.toReversed()
+            return (
+                (labelled ? "# " + key + "\n" : "") +
+                array(
+                    xName,
+                    ordered.map((d) => d.x)
+                ) +
+                "\n" +
+                array(
+                    "intensity",
+                    ordered.map((d) => d.y)
+                )
+            )
+        })
+        .join("\n\n")
+    window.navigator.clipboard.writeText(text)
+}
+
 /** Chart height, allowing room for extra legend rows when there are many
  *  curves (a single row, up to around 5 curves, fits in the default). */
 function chartHeight(dataSets) {
@@ -85,6 +111,7 @@ export function ExceedancePlot(props) {
         units,
         graphType,
         mapIndexValue,
+        heading,
     } = props
 
     const theme = useTheme()
@@ -124,23 +151,7 @@ export function ExceedancePlot(props) {
         graphType == "returnPeriod" ? "Return period" : "Exceedance prob"
     const xAxisLabelUnits = graphType == "returnPeriod" ? " years" : ""
 
-    function copyData() {
-        const returns =
-            "returns = array(" +
-            dataPoints
-                .toReversed()
-                .map((d) => d.x.toPrecision(8))
-                .join(",") +
-            ")"
-        const intensity =
-            "intensity = array(" +
-            dataPoints
-                .toReversed()
-                .map((d) => d.y.toPrecision(8))
-                .join(",") +
-            ")"
-        window.navigator.clipboard.writeText(returns + "\n" + intensity)
-    }
+    const copyData = () => copyCurves(dataPointsSet, "returns", dataSets)
 
     const Item = styled(Paper)(({ theme }) => ({
         ...theme.typography.body2,
@@ -161,7 +172,7 @@ export function ExceedancePlot(props) {
                                     : ""
                             }${xAxisLabelShort}: ${
                                 payload[0].value.toPrecision(4) / 1
-                            }${xAxisLabelUnits} \n ${prettify(
+                            }${xAxisLabelUnits} \n ${quantityLabel(
                                 quantity
                             )}: ${payload[1].value.toPrecision(4)} ${units}`}
                         </pre>
@@ -176,29 +187,15 @@ export function ExceedancePlot(props) {
     return (
         <React.Fragment>
             <Title>{title}</Title>
+            <ChartHeading onCopy={copyData}>{heading}</ChartHeading>
             <Box sx={{ width: "100%", height: "100%", position: "relative" }}>
-                <IconButton
-                    sx={{
-                        position: "absolute",
-                        //top: 40,
-                        right: 0,
-                        bottom: 0,
-                        //top: 0,
-                        zIndex: 1,
-                    }}
-                    aria-label="info"
-                    size="small"
-                    onClick={copyData}
-                >
-                    <ContentCopy fontSize="inherit" color="primary" />
-                </IconButton>
                 <ResponsiveContainer height={chartHeight(dataSets)}>
                     <ScatterChart
                         margin={{
                             top: 0,
                             right: 20,
                             bottom: 15,
-                            left: 50,
+                            left: yAxisMargin(quantity),
                         }}
                     >
                         <CartesianGrid />
@@ -239,30 +236,7 @@ export function ExceedancePlot(props) {
                             stroke={theme.palette.text.secondary}
                             style={theme.typography.body2}
                         >
-                            <Label
-                                angle={270}
-                                offset={32}
-                                position="left"
-                                style={{
-                                    textAnchor: "middle",
-                                    fill: theme.palette.text.primary,
-                                    ...theme.typography.body1,
-                                }}
-                            >
-                                {prettify(quantity)}
-                            </Label>
-                            <Label
-                                angle={270}
-                                offset={14}
-                                position="left"
-                                style={{
-                                    textAnchor: "middle",
-                                    fill: theme.palette.text.primary,
-                                    ...theme.typography.body1,
-                                }}
-                            >
-                                {"(" + units + ")"}
-                            </Label>
+                            {yAxisLabels(quantity, units, theme)}
                         </YAxis>
                         {Object.entries(dataPointsSet).map(([k, v], i) => (
                             <Scatter
@@ -319,6 +293,7 @@ export function ThresholdPlot(props) {
         quantity,
         units,
         mapIndexValue,
+        heading,
     } = props
 
     const theme = useTheme()
@@ -342,23 +317,7 @@ export function ThresholdPlot(props) {
     const xAxisLabelShort = "Threshold"
     const xAxisLabelUnits = ""
 
-    function copyData() {
-        const returns =
-            "thresholds = array(" +
-            dataPoints
-                .toReversed()
-                .map((d) => d.x.toPrecision(8))
-                .join(",") +
-            ")"
-        const intensity =
-            "intensity = array(" +
-            dataPoints
-                .toReversed()
-                .map((d) => d.y.toPrecision(8))
-                .join(",") +
-            ")"
-        window.navigator.clipboard.writeText(returns + "\n" + intensity)
-    }
+    const copyData = () => copyCurves(dataPointsSet, "thresholds", dataSets)
 
     const Item = styled(Paper)(({ theme }) => ({
         ...theme.typography.body2,
@@ -379,7 +338,7 @@ export function ThresholdPlot(props) {
                                     : ""
                             }${xAxisLabelShort}: ${
                                 payload[0].value.toPrecision(4) / 1
-                            }${xAxisLabelUnits} \n ${prettify(
+                            }${xAxisLabelUnits} \n ${quantityLabel(
                                 quantity
                             )}: ${payload[1].value.toPrecision(4)} ${units}`}
                         </pre>
@@ -394,27 +353,15 @@ export function ThresholdPlot(props) {
     return (
         <React.Fragment>
             <Title>{title}</Title>
+            <ChartHeading onCopy={copyData}>{heading}</ChartHeading>
             <Box sx={{ width: "100%", height: "100%", position: "relative" }}>
-                <IconButton
-                    sx={{
-                        position: "absolute",
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 1,
-                    }}
-                    aria-label="info"
-                    size="small"
-                    onClick={copyData}
-                >
-                    <ContentCopy fontSize="inherit" color="primary" />
-                </IconButton>
                 <ResponsiveContainer height={chartHeight(dataSets)}>
                     <ScatterChart
                         margin={{
                             top: 5,
                             right: 20,
                             bottom: 15,
-                            left: 50,
+                            left: yAxisMargin(quantity),
                         }}
                     >
                         <CartesianGrid />
@@ -451,30 +398,7 @@ export function ThresholdPlot(props) {
                             stroke={theme.palette.text.secondary}
                             style={theme.typography.body2}
                         >
-                            <Label
-                                angle={270}
-                                offset={32}
-                                position="left"
-                                style={{
-                                    textAnchor: "middle",
-                                    fill: theme.palette.text.primary,
-                                    ...theme.typography.body1,
-                                }}
-                            >
-                                {prettify(quantity)}
-                            </Label>
-                            <Label
-                                angle={270}
-                                offset={14}
-                                position="left"
-                                style={{
-                                    textAnchor: "middle",
-                                    fill: theme.palette.text.primary,
-                                    ...theme.typography.body1,
-                                }}
-                            >
-                                {"(" + units + ")"}
-                            </Label>
+                            {yAxisLabels(quantity, units, theme)}
                         </YAxis>
                         {Object.entries(dataPointsSet).map(([k, v], i) => (
                             <Scatter
@@ -513,7 +437,8 @@ export function ThresholdPlot(props) {
 
 /** Indicator value against year, one line per scenario. */
 export function ScenarioTimeSeriesPlot(props) {
-    const { historical, series, initiallyHidden, quantity, units } = props
+    const { historical, series, initiallyHidden, quantity, units, heading } =
+        props
     const theme = useTheme()
     const [hidden, toggleSeries] = useHiddenSeries(initiallyHidden)
     const allPoints = [...historical, ...series.flatMap((s) => s.points)]
@@ -538,9 +463,9 @@ export function ScenarioTimeSeriesPlot(props) {
                         <pre style={{ fontFamily: "inherit" }}>
                             {`${prettifyScenarioId(point.scenarioId)}, ${
                                 point.x
-                            } \n ${prettify(quantity)}: ${point.y.toPrecision(
-                                4
-                            )} ${units}`}
+                            } \n ${quantityLabel(
+                                quantity
+                            )}: ${point.y.toPrecision(4)} ${units}`}
                         </pre>
                     </Typography>
                 </Item>
@@ -550,95 +475,150 @@ export function ScenarioTimeSeriesPlot(props) {
     }
 
     return (
-        <ResponsiveContainer height={260}>
-            <ScatterChart margin={{ top: 5, right: 20, bottom: 15, left: 50 }}>
-                <CartesianGrid />
-                <XAxis
-                    dataKey="x"
-                    type="number"
-                    domain={["dataMin", "dataMax"]}
-                    ticks={years}
-                    interval={0}
-                    stroke={theme.palette.text.secondary}
-                    style={theme.typography.body2}
+        <>
+            <ChartHeading>{heading}</ChartHeading>
+            <ResponsiveContainer height={260}>
+                <ScatterChart
+                    margin={{
+                        top: 5,
+                        right: 20,
+                        bottom: 15,
+                        left: yAxisMargin(quantity),
+                    }}
                 >
-                    <Label
-                        position="bottom"
-                        offset={0}
-                        style={{
-                            textAnchor: "middle",
-                            fill: theme.palette.text.primary,
-                            ...theme.typography.body1,
-                        }}
+                    <CartesianGrid />
+                    <XAxis
+                        dataKey="x"
+                        type="number"
+                        domain={["dataMin", "dataMax"]}
+                        ticks={years}
+                        interval={0}
+                        stroke={theme.palette.text.secondary}
+                        style={theme.typography.body2}
                     >
-                        Year
-                    </Label>
-                </XAxis>
-                <YAxis
-                    dataKey="y"
-                    type="number"
-                    stroke={theme.palette.text.secondary}
-                    style={theme.typography.body2}
-                >
-                    <Label
-                        angle={270}
-                        offset={32}
-                        position="left"
-                        style={{
-                            textAnchor: "middle",
-                            fill: theme.palette.text.primary,
-                            ...theme.typography.body1,
-                        }}
-                    >
-                        {prettify(quantity)}
-                    </Label>
-                    {units && units != "none" ? (
                         <Label
-                            angle={270}
-                            offset={14}
-                            position="left"
+                            position="bottom"
+                            offset={0}
                             style={{
                                 textAnchor: "middle",
                                 fill: theme.palette.text.primary,
                                 ...theme.typography.body1,
                             }}
                         >
-                            {"(" + units + ")"}
+                            Year
                         </Label>
+                    </XAxis>
+                    <YAxis
+                        dataKey="y"
+                        type="number"
+                        stroke={theme.palette.text.secondary}
+                        style={theme.typography.body2}
+                    >
+                        {yAxisLabels(quantity, units, theme)}
+                    </YAxis>
+                    {series.map((s) => (
+                        <Scatter
+                            key={s.scenarioId}
+                            name={prettifyScenarioId(s.scenarioId)}
+                            hide={hidden.has(prettifyScenarioId(s.scenarioId))}
+                            isAnimationActive={false}
+                            data={s.points}
+                            fill={colour(s.scenarioId)}
+                            line
+                            shape="dot"
+                        />
+                    ))}
+                    {historical.length > 0 ? (
+                        <Scatter
+                            name="Historical"
+                            hide={hidden.has("Historical")}
+                            isAnimationActive={false}
+                            data={historical}
+                            fill={colour("historical")}
+                            shape="diamond"
+                        />
                     ) : null}
-                </YAxis>
-                {series.map((s) => (
-                    <Scatter
-                        key={s.scenarioId}
-                        name={prettifyScenarioId(s.scenarioId)}
-                        hide={hidden.has(prettifyScenarioId(s.scenarioId))}
-                        isAnimationActive={false}
-                        data={s.points}
-                        fill={colour(s.scenarioId)}
-                        line
-                        shape="dot"
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend
+                        verticalAlign="top"
+                        onClick={toggleSeries}
+                        wrapperStyle={{ cursor: "pointer" }}
                     />
-                ))}
-                {historical.length > 0 ? (
-                    <Scatter
-                        name="Historical"
-                        hide={hidden.has("Historical")}
-                        isAnimationActive={false}
-                        data={historical}
-                        fill={colour("historical")}
-                        shape="diamond"
-                    />
-                ) : null}
-                <Tooltip content={<CustomTooltip />} />
-                <Legend
-                    verticalAlign="top"
-                    onClick={toggleSeries}
-                    wrapperStyle={{ cursor: "pointer" }}
-                />
-            </ScatterChart>
-        </ResponsiveContainer>
+                </ScatterChart>
+            </ResponsiveContainer>
+        </>
     )
 }
+
+const hasUnits = (units) => units && units != "none"
+
+/** Y-axis label: the quantity, then the units on a second line; or, where the
+ *  quantity is given as a heading instead, just the units. */
+function yAxisLabels(quantity, units, theme) {
+    const unitsLines = hasUnits(units) ? ["(" + units + ")"] : []
+    const lines = quantity
+        ? [quantityLabel(quantity), ...unitsLines]
+        : unitsLines
+    return lines.map((line, i) => (
+        <Label
+            key={i}
+            angle={270}
+            offset={14 + 18 * (lines.length - 1 - i)}
+            position="left"
+            style={{
+                textAnchor: "middle",
+                fill: theme.palette.text.primary,
+                ...theme.typography.body1,
+            }}
+        >
+            {line}
+        </Label>
+    ))
+}
+
+/** Left margin of a chart, allowing for the lines of its y-axis label. */
+function yAxisMargin(quantity) {
+    return quantity ? 50 : 32
+}
+
+/** Name of what is plotted, above the chart, where long names have room,
+ *  with a button to copy the chart data on the right. */
+function ChartHeading(props) {
+    const { children, onCopy } = props
+    if (!children && !onCopy) return null
+    const buttonWidth = 28
+    return (
+        <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+            {/* balances the copy button, so that the heading is centred */}
+            <Box sx={{ width: buttonWidth, flexShrink: 0 }} />
+            <Typography
+                sx={{
+                    flexGrow: 1,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    textAlign: "center",
+                }}
+            >
+                {children}
+            </Typography>
+            <Box sx={{ width: buttonWidth, flexShrink: 0 }}>
+                {onCopy ? (
+                    <MuiTooltip title="Copy data">
+                        <IconButton
+                            aria-label="copy data"
+                            size="small"
+                            onClick={onCopy}
+                        >
+                            <ContentCopy fontSize="inherit" color="primary" />
+                        </IconButton>
+                    </MuiTooltip>
+                ) : null}
+            </Box>
+        </Box>
+    )
+}
+
+const quantityLabel = (quantity) => (quantity ? prettify(quantity) : "Value")
 
 function prettify(text) {
     var pretty = text.replaceAll("_", " ")

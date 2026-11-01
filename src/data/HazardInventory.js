@@ -416,6 +416,12 @@ function addItemToDict(dict, key, item) {
     dict[key].push(item)
 }
 
+/** Name of the quantity a model gives, for axis labels: its display name
+ *  without the source in brackets, e.g. "Flood depth" for "Flood depth (JRC)". */
+export function quantityName(model) {
+    return model.display_name.replace(/\s*\([^()]*\)\s*$/, "")
+}
+
 export function prettifyScenarioId(id) {
     switch (id) {
         case "rcp2p6":
