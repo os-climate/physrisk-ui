@@ -33,9 +33,11 @@ import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
 import {
     indexValuesInitialState,
+    indexValuesKey,
     indexValuesReducer,
     tileIndexValues,
 } from "../data/HazardIndexValues"
+import { hashCode } from "../utils/hash"
 import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
@@ -45,6 +47,62 @@ import {
     isJbaResource,
     withColorbarOverride,
 } from "../data/HazardInventory"
+
+/** The hazard layer to show on the map, as tiles or a single image, or null
+ *  if none. */
+function hazardLayerSpec(mapInfo, indexValuesState, apiHost) {
+    if (!mapInfo) return null
+    const { resource, minValue, maxValue, scenarioId, year } = mapInfo
+    const colormapParam = mapInfo.colormapName
+        ? `&colormap=${mapInfo.colormapName}`
+        : ""
+    const scalingParam = mapInfo.scaling ? `&scaling=${mapInfo.scaling}` : ""
+    const query =
+        `?minValue=${minValue}&maxValue=${maxValue}` +
+        `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}`
+
+    if (mapInfo.source === "map_array_pyramid") {
+        const indexParam =
+            indexValuesState.indexSelectedValue != null
+                ? `&indexValue=${indexValuesState.indexSelectedValue}`
+                : ""
+        const tileSize = indexValuesState.tileSize ?? 512
+        return {
+            type: "tiles",
+            url:
+                `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
+                query +
+                `&tileSize=${tileSize}${indexParam}` +
+                differenceQueryParams(mapInfo),
+            tileSize,
+            maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
+        }
+    }
+    if (mapInfo.source === "map_array") {
+        const defaultBounds = [
+            [-180.125, 85.125],
+            [180.125, 85.125],
+            [180.125, -85.125],
+            [-180.125, -85.125],
+        ]
+        const b = mapInfo.bounds ?? defaultBounds
+        const longitudes = b.map((c) => c[0])
+        const latitudes = b.map((c) => c[1])
+        return {
+            type: "image",
+            url: `${apiHost}/api/images/${resource}.png` + query,
+            // deck.gl BitmapLayer bounds: [west, south, east, north]
+            bounds: [
+                Math.min(...longitudes),
+                Math.min(...latitudes),
+                Math.max(...longitudes),
+                Math.max(...latitudes),
+            ],
+        }
+    }
+    // e.g. "mapbox" sources, which cannot be shown on Google maps
+    return null
+}
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -235,51 +293,36 @@ function MapInteractions({
         }
     }, [map])
 
-    // Rebuild the deck.gl layers whenever the hazard selection changes.
+    // Rebuild the deck.gl layers whenever the hazard layer changes. The layer
+    // is described in full first, so that the effect runs on any change to it
+    // (e.g. of tile URL, tile size or maximum zoom).
+    const hazardLayer = hazardLayerSpec(
+        hazardMenu?.mapInfo,
+        indexValuesState,
+        globals.value.services.apiHost
+    )
+    const hazardLayerKey = JSON.stringify(hazardLayer)
     useEffect(() => {
         const overlay = deckOverlayRef.current
         if (!overlay) return
 
-        if (!hazardMenu?.mapInfo) {
+        if (!hazardLayer) {
             overlay.setProps({ layers: [] })
             return
         }
 
-        const mapInfo = hazardMenu.mapInfo
-        const apiHost = globals.value.services.apiHost
         const token = globals.value.token
         const fetchHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
-        if (mapInfo.source === "mapbox") {
-            overlay.setProps({ layers: [] })
-            return
-        }
-
-        if (mapInfo.source === "map_array_pyramid") {
-            const { resource, minValue, maxValue, scenarioId, year } = mapInfo
-            const indexParam =
-                indexValuesState.indexSelectedValue != null
-                    ? `&indexValue=${indexValuesState.indexSelectedValue}`
-                    : ""
-
-            const colormapParam = mapInfo.colormapName
-                ? `&colormap=${mapInfo.colormapName}`
-                : ""
-            const scalingParam = mapInfo.scaling
-                ? `&scaling=${mapInfo.scaling}`
-                : ""
-            const tileSize = indexValuesState.tileSize ?? 512
+        if (hazardLayer.type === "tiles") {
             const tileLayer = new TileLayer({
-                id: "hazard-tiles",
-                data:
-                    `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
-                    `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}` +
-                    `&tileSize=${tileSize}${indexParam}` +
-                    differenceQueryParams(mapInfo),
+                // a layer of its own for each set of tiles, so that deck.gl
+                // loads them afresh rather than reloading those of the last one
+                id: "hazard-tiles-" + hashCode(hazardLayer.url),
+                data: hazardLayer.url,
                 loadOptions: { fetch: { headers: fetchHeaders } },
-                tileSize: tileSize,
-                maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
+                tileSize: hazardLayer.tileSize,
+                maxZoom: hazardLayer.maxZoom,
                 refinementStrategy: "no-overlap",
                 opacity,
                 renderSubLayers: (props) => {
@@ -298,44 +341,16 @@ function MapInteractions({
                 },
             })
             overlay.setProps({ layers: [tileLayer] })
-        } else if (mapInfo.source === "map_array") {
-            const { resource, minValue, maxValue, scenarioId, year, bounds } =
-                mapInfo
-            const defaultBounds = [
-                [-180.125, 85.125],
-                [180.125, 85.125],
-                [180.125, -85.125],
-                [-180.125, -85.125],
-            ]
-            const b = bounds ?? defaultBounds
-            const longitudes = b.map((c) => c[0])
-            const latitudes = b.map((c) => c[1])
-            // deck.gl BitmapLayer bounds: [west, south, east, north]
-            const deckBounds = [
-                Math.min(...longitudes),
-                Math.min(...latitudes),
-                Math.max(...longitudes),
-                Math.max(...latitudes),
-            ]
-
+        } else {
             const landMask = new GeoJsonLayer({
                 id: "land-mask",
                 data: "/ne_10m_land.geojson",
                 operation: "mask",
             })
-            const colormapParam = mapInfo.colormapName
-                ? `&colormap=${mapInfo.colormapName}`
-                : ""
-            const scalingParam = mapInfo.scaling
-                ? `&scaling=${mapInfo.scaling}`
-                : ""
             const bitmapLayer = new BitmapLayer({
                 id: "hazard-image",
-                image:
-                    `${apiHost}/api/images/${resource}.png` +
-                    `?minValue=${minValue}&maxValue=${maxValue}` +
-                    `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}`,
-                bounds: deckBounds,
+                image: hazardLayer.url,
+                bounds: hazardLayer.bounds,
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 opacity,
                 textureParameters: {
@@ -347,7 +362,7 @@ function MapInteractions({
             })
             overlay.setProps({ layers: [landMask, bitmapLayer] })
         }
-    }, [map, hazardMenu, indexValuesState.indexSelectedValue, opacity])
+    }, [map, hazardLayerKey, opacity])
 
     return null
 }
@@ -432,6 +447,7 @@ export function GoogleScatterMap(props) {
         let cancelled = false
         async function fetchMapAvailableLayers() {
             if (hazardMenu && hazardMenu.selectedModel) {
+                const key = indexValuesKey(hazardMenu)
                 indexValuesDispatch({ type: "FETCHING" })
                 const payload = {
                     resource: hazardMenu.selectedModel.path,
@@ -456,6 +472,7 @@ export function GoogleScatterMap(props) {
                     indexValuesDispatch({
                         type: "FETCHED",
                         payload: {
+                            key,
                             allIndexValues: response.data.all_index_values,
                             availableIndexValues:
                                 response.data.available_index_values,
@@ -586,7 +603,10 @@ export function GoogleScatterMap(props) {
                             assetData={assetData}
                             assetScores={assetScores}
                             opacity={effectiveOpacity}
-                            indexValuesState={tileIndexValues(indexValuesState)}
+                            indexValuesState={tileIndexValues(
+                                indexValuesState,
+                                indexValuesKey(hazardMenu)
+                            )}
                             googleMapRef={googleMapRef}
                             mapViewportRef={mapViewportRef}
                             setPopoverAnchorPos={setPopoverAnchorPos}

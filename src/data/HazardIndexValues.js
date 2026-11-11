@@ -3,6 +3,8 @@
  *  selected model, scenario and year. */
 export const indexValuesInitialState = {
     status: "idle",
+    // the selection the values are for (see indexValuesKey)
+    key: null,
     error: null,
     allIndexValues: [],
     availableIndexValues: [],
@@ -24,6 +26,7 @@ export const indexValuesReducer = (state, action) => {
             return {
                 ...indexValuesInitialState,
                 status: "fetched",
+                key: action.payload.key,
                 allIndexValues: action.payload.allIndexValues,
                 availableIndexValues: available,
                 indexDisplayName: action.payload.indexDisplayName,
@@ -54,10 +57,25 @@ export const indexValuesReducer = (state, action) => {
     }
 }
 
-/** Index state to use when requesting tiles: values kept from a previous
- *  model while fetching do not apply to the current one, so use defaults. */
-export function tileIndexValues(state) {
-    return state.status == "fetched" ? state : indexValuesInitialState
+/** Key of the selected model, scenario and year that index values are for. */
+export function indexValuesKey(hazardMenu) {
+    if (!hazardMenu?.selectedModel) return null
+    return [
+        hazardMenu.selectedModel.path,
+        hazardMenu.selectedScenario?.id,
+        hazardMenu.selectedYear,
+    ].join("|")
+}
+
+/** Index state to use when requesting tiles for the selection with the given
+ *  key. Values of a previous selection do not apply to the current one (e.g.
+ *  its threshold may not exist, giving missing tiles), so until the current
+ *  ones are fetched, use defaults. Note that on the first render after a
+ *  change of selection, the fetch has not even started. */
+export function tileIndexValues(state, key) {
+    return state.status == "fetched" && state.key == key
+        ? state
+        : indexValuesInitialState
 }
 
 /** e.g. "Return period: 100 years" */
