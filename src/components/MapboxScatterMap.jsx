@@ -21,8 +21,18 @@ import Button from "@mui/material/Button"
 import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
-import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
-import HazardIndexSelector from "./HazardIndexSelector.tsx"
+import {
+    differenceCaption,
+    differenceQueryParams,
+    isJbaResource,
+    withColorbarOverride,
+} from "../data/HazardInventory"
+import {
+    indexValuesInitialState,
+    indexValuesReducer,
+    tileIndexValues,
+} from "../data/HazardIndexValues"
+import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
 import InputLabel from "@mui/material/InputLabel"
@@ -33,6 +43,7 @@ import Popover from "@mui/material/Popover"
 import Select from "@mui/material/Select"
 import Stack from "@mui/material/Stack"
 import Tooltip from "@mui/material/Tooltip"
+import Typography from "@mui/material/Typography"
 import axios from "axios"
 
 export const mapboxAccessToken = window.MAPBOX_ACCESS_TOKEN
@@ -43,6 +54,7 @@ export function MapboxScatterMap(props) {
         hazardMenuDispatch,
         showHazardMenus = true,
         onClick,
+        onIndexValuesChange,
         selectedAssetIndex,
         setSelectedAssetIndex,
         assetData,
@@ -120,6 +132,8 @@ export function MapboxScatterMap(props) {
         hazardMenu?.mapInfo?.resource,
         hazardMenu?.selectedScenario?.id,
         hazardMenu?.selectedYear,
+        hazardMenu?.mapInfo?.compareScenarioId,
+        hazardMenu?.mapInfo?.compareYear,
     ])
 
     const effectiveMapInfo = withColorbarOverride(
@@ -144,54 +158,13 @@ export function MapboxScatterMap(props) {
     const effectiveOpacity =
         colorbarOverride?.opacity ?? (satellite ? 0.8 : 1.0)
 
-    const indexValuesInitialState = {
-        status: "idle",
-        error: null,
-        allIndexValues: [],
-        availableIndexValues: [],
-        indexUnits: null,
-        indexSelectedValue: null,
-        maxZoom: null,
-        tileSize: null,
-    }
-
     const [indexValuesState, indexValuesDispatch] = useReducer(
-        (state, action) => {
-            switch (action.type) {
-                case "FETCHING":
-                    return { ...indexValuesInitialState, status: "fetching" }
-                case "FETCHED":
-                    return {
-                        ...indexValuesInitialState,
-                        status: "fetched",
-                        allIndexValues: action.payload.allIndexValues,
-                        availableIndexValues:
-                            action.payload.availableIndexValues,
-                        indexDisplayName: action.payload.indexDisplayName,
-                        indexUnits: action.payload.indexUnits,
-                        indexSelectedValue:
-                            action.payload.availableIndexValues.at(-1),
-                        maxZoom: action.payload.maxZoom,
-                        tileSize: action.payload.tileSize,
-                    }
-                case "SELECTED":
-                    return {
-                        ...state,
-                        status: "fetched",
-                        indexSelectedValue: action.payload.indexSelectedValue,
-                    }
-                case "FETCH_ERROR":
-                    return {
-                        ...indexValuesInitialState,
-                        status: "error",
-                        error: action.payload,
-                    }
-                default:
-                    return state
-            }
-        },
+        indexValuesReducer,
         indexValuesInitialState
     )
+    useEffect(() => {
+        onIndexValuesChange?.(indexValuesState)
+    }, [indexValuesState])
 
     // hazard index values
     useEffect(() => {
@@ -307,8 +280,9 @@ export function MapboxScatterMap(props) {
         const apiHost = globals.value.services.apiHost
         if (!mapInfo) return ""
 
-        var maxzoom = indexValuesState.maxZoom ?? 15
-        var tileSize = indexValuesState.tileSize ?? 512
+        const tileIndex = tileIndexValues(indexValuesState)
+        var maxzoom = tileIndex.maxZoom ?? 15
+        var tileSize = tileIndex.tileSize ?? 512
 
         if (
             mapInfo.source == "mapbox" ||
@@ -337,9 +311,10 @@ export function MapboxScatterMap(props) {
                       (mapInfo.scaling ? "&scaling=" + mapInfo.scaling : "") +
                       "&tileSize=" +
                       tileSize +
-                      (indexValuesState.indexSelectedValue !== null
-                          ? "&indexValue=" + indexValuesState.indexSelectedValue
-                          : "")
+                      (tileIndex.indexSelectedValue != null
+                          ? "&indexValue=" + tileIndex.indexSelectedValue
+                          : "") +
+                      differenceQueryParams(mapInfo)
             return {
                 id: "hazard",
                 type: "raster",
@@ -652,18 +627,19 @@ export function MapboxScatterMap(props) {
                                 </IconButton>
                             </Tooltip>
 
+                            {hazardMenu?.mapInfo?.compareScenarioId ? (
+                                <Typography
+                                    sx={{
+                                        fontSize: 12,
+                                        textAlign: "center",
+                                        px: 1,
+                                    }}
+                                >
+                                    {differenceCaption(hazardMenu.mapInfo)}
+                                </Typography>
+                            ) : null}
                             <HazardIndexSelector
-                                indexSelectedValue={
-                                    indexValuesState.indexSelectedValue
-                                }
-                                indexUnits={indexValuesState.indexUnits}
-                                availableIndexValues={
-                                    indexValuesState.availableIndexValues
-                                }
-                                allIndexValues={indexValuesState.allIndexValues}
-                                indexDisplayName={
-                                    indexValuesState.indexDisplayName
-                                }
+                                indexValues={indexValuesState}
                                 indexValuesDispatch={indexValuesDispatch}
                             />
                             <Box

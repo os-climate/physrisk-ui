@@ -43,6 +43,7 @@ import SingleAssetTable from "../components/SingleAssetTable"
 import SingleAssetBarChart from "../components/SingleAssetBarChart"
 import {
     hazardMenuReducer,
+    hazardMenuInitialiser,
     loadHazardMenuData,
 } from "../data/HazardInventory.js"
 import {
@@ -63,16 +64,9 @@ import {
 
 export default function AssetViewer(props) {
     const { visible } = props
-    const hazardMenuInitialState = {
-        inventory: null,
-        menus: [],
-        menuOptions: [[], [], [], []],
-        selectedIndices: [0, 0, 0, 0],
-    }
-
     const [hazardMenu, hazardMenuDispatch] = useReducer(
         hazardMenuReducer,
-        hazardMenuInitialState
+        hazardMenuInitialiser()
     )
 
     const [portfolio, portfolioDispatch] = useReducer(

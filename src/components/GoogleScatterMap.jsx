@@ -26,14 +26,25 @@ import Popover from "@mui/material/Popover"
 import Select from "@mui/material/Select"
 import Stack from "@mui/material/Stack"
 import Tooltip from "@mui/material/Tooltip"
+import Typography from "@mui/material/Typography"
 import axios from "axios"
 import { ColourBar } from "./ColourBar.jsx"
 import Geocoder from "./Geocoder.tsx"
 import { GlobalDataContext } from "../data/GlobalData"
-import HazardIndexSelector from "./HazardIndexSelector.tsx"
+import {
+    indexValuesInitialState,
+    indexValuesReducer,
+    tileIndexValues,
+} from "../data/HazardIndexValues"
+import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import { mapboxAccessToken } from "./ScatterMap.jsx"
-import { isJbaResource, withColorbarOverride } from "../data/HazardInventory"
+import {
+    differenceCaption,
+    differenceQueryParams,
+    isJbaResource,
+    withColorbarOverride,
+} from "../data/HazardInventory"
 
 // ---------------------------------------------------------------------------
 // Inner component — must render inside <Map> to use useMap() / useMapsLibrary()
@@ -264,7 +275,8 @@ function MapInteractions({
                     `${apiHost}/api/tiles/${resource}/{z}/{x}/{y}.png` +
                     `?minValue=${minValue}&maxValue=${maxValue}` +
                     `&scenarioId=${scenarioId}&year=${year}${colormapParam}${scalingParam}` +
-                    `&tileSize=${tileSize}${indexParam}`,
+                    `&tileSize=${tileSize}${indexParam}` +
+                    differenceQueryParams(mapInfo),
                 loadOptions: { fetch: { headers: fetchHeaders } },
                 tileSize: tileSize,
                 maxZoom: (indexValuesState.maxZoom ?? 16) - 1,
@@ -350,6 +362,7 @@ export function GoogleScatterMap(props) {
         hazardMenuDispatch,
         showHazardMenus = true,
         onClick,
+        onIndexValuesChange,
         selectedAssetIndex,
         setSelectedAssetIndex,
         assetData,
@@ -380,6 +393,8 @@ export function GoogleScatterMap(props) {
         hazardMenu?.mapInfo?.resource,
         hazardMenu?.selectedScenario?.id,
         hazardMenu?.selectedYear,
+        hazardMenu?.mapInfo?.compareScenarioId,
+        hazardMenu?.mapInfo?.compareYear,
     ])
 
     const effectiveMapInfo = useMemo(
@@ -402,55 +417,14 @@ export function GoogleScatterMap(props) {
         [hazardMenu, effectiveMapInfo]
     )
 
-    // Hazard index values (same logic as MapboxScatterMap)
-    const indexValuesInitialState = {
-        status: "idle",
-        error: null,
-        allIndexValues: [],
-        availableIndexValues: [],
-        indexUnits: null,
-        indexSelectedValue: null,
-        maxZoom: null,
-        tileSize: null,
-    }
-
+    // Hazard index values
     const [indexValuesState, indexValuesDispatch] = useReducer(
-        (state, action) => {
-            switch (action.type) {
-                case "FETCHING":
-                    return { ...indexValuesInitialState, status: "fetching" }
-                case "FETCHED":
-                    return {
-                        ...indexValuesInitialState,
-                        status: "fetched",
-                        allIndexValues: action.payload.allIndexValues,
-                        availableIndexValues:
-                            action.payload.availableIndexValues,
-                        indexDisplayName: action.payload.indexDisplayName,
-                        indexUnits: action.payload.indexUnits,
-                        indexSelectedValue:
-                            action.payload.availableIndexValues.at(-1),
-                        maxZoom: action.payload.maxZoom,
-                        tileSize: action.payload.tileSize,
-                    }
-                case "SELECTED":
-                    return {
-                        ...state,
-                        status: "fetched",
-                        indexSelectedValue: action.payload.indexSelectedValue,
-                    }
-                case "FETCH_ERROR":
-                    return {
-                        ...indexValuesInitialState,
-                        status: "error",
-                        error: action.payload,
-                    }
-                default:
-                    return state
-            }
-        },
+        indexValuesReducer,
         indexValuesInitialState
     )
+    useEffect(() => {
+        onIndexValuesChange?.(indexValuesState)
+    }, [indexValuesState])
 
     useEffect(() => {
         async function fetchMapAvailableLayers() {
@@ -600,7 +574,7 @@ export function GoogleScatterMap(props) {
                             assetData={assetData}
                             assetScores={assetScores}
                             opacity={effectiveOpacity}
-                            indexValuesState={indexValuesState}
+                            indexValuesState={tileIndexValues(indexValuesState)}
                             googleMapRef={googleMapRef}
                             mapViewportRef={mapViewportRef}
                             setPopoverAnchorPos={setPopoverAnchorPos}
@@ -627,7 +601,7 @@ export function GoogleScatterMap(props) {
                         }}
                         spacing={0}
                     >
-                        <Tooltip title="Click on return/threshold for available options or colourbar to customise display.">
+                        <Tooltip title="Click on return period/threshold for the options shown on the map, or on the colourbar to customise display. Click a point on the map to view all values.">
                             <IconButton
                                 sx={{
                                     p: 0.5,
@@ -645,16 +619,19 @@ export function GoogleScatterMap(props) {
                                 />
                             </IconButton>
                         </Tooltip>
+                        {hazardMenu?.mapInfo?.compareScenarioId ? (
+                            <Typography
+                                sx={{
+                                    fontSize: 12,
+                                    textAlign: "center",
+                                    px: 1,
+                                }}
+                            >
+                                {differenceCaption(hazardMenu.mapInfo)}
+                            </Typography>
+                        ) : null}
                         <HazardIndexSelector
-                            indexSelectedValue={
-                                indexValuesState.indexSelectedValue
-                            }
-                            indexUnits={indexValuesState.indexUnits}
-                            availableIndexValues={
-                                indexValuesState.availableIndexValues
-                            }
-                            allIndexValues={indexValuesState.allIndexValues}
-                            indexDisplayName={indexValuesState.indexDisplayName}
+                            indexValues={indexValuesState}
                             indexValuesDispatch={indexValuesDispatch}
                         />
                         <Box sx={{ height: 49, width: 210, p: 0, m: 0.5 }}>
