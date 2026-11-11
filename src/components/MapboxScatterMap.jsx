@@ -29,9 +29,11 @@ import {
 } from "../data/HazardInventory"
 import {
     indexValuesInitialState,
+    indexValuesKey,
     indexValuesReducer,
     tileIndexValues,
 } from "../data/HazardIndexValues"
+import { hashCode } from "../utils/hash"
 import HazardIndexSelector from "./HazardIndexSelector.jsx"
 import HazardMenusCompare from "./HazardMenusCompare.jsx"
 import IconButton from "@mui/material/IconButton"
@@ -47,15 +49,6 @@ import Typography from "@mui/material/Typography"
 import axios from "axios"
 
 export const mapboxAccessToken = window.MAPBOX_ACCESS_TOKEN
-
-/** Short hash of a string, e.g. a tile URL, for use in IDs. */
-function hashCode(text) {
-    let hash = 0
-    for (let i = 0; i < text.length; i++) {
-        hash = (Math.imul(31, hash) + text.charCodeAt(i)) | 0
-    }
-    return (hash >>> 0).toString(36)
-}
 
 export function MapboxScatterMap(props) {
     const {
@@ -182,7 +175,7 @@ export function MapboxScatterMap(props) {
         let cancelled = false
         async function fetchMapAvailableLayers() {
             if (hazardMenu && hazardMenu.selectedModel) {
-                //hazardPointDispatch({ type: 'FETCHING' });
+                const key = indexValuesKey(hazardMenu)
                 indexValuesDispatch({ type: "FETCHING" })
                 var payload = {
                     resource: hazardMenu.selectedModel.path,
@@ -195,19 +188,20 @@ export function MapboxScatterMap(props) {
                 try {
                     const config = {
                         headers: {
-                            Authorization: "Bearer " + globals.token,
+                            Authorization: "Bearer " + globals.value.token,
                         },
                     }
                     var response = await axios.post(
                         globals.value.services.apiHost + "/api/get_image_info",
                         payload,
-                        globals.token == "" ? null : config
+                        globals.value.token ? config : null
                     )
                     var index_units = response.data.index_units
                     if (cancelled) return
                     indexValuesDispatch({
                         type: "FETCHED",
                         payload: {
+                            key,
                             allIndexValues: response.data.all_index_values,
                             availableIndexValues:
                                 response.data.available_index_values,
@@ -301,7 +295,10 @@ export function MapboxScatterMap(props) {
         const apiHost = globals.value.services.apiHost
         if (!mapInfo) return ""
 
-        const tileIndex = tileIndexValues(indexValuesState)
+        const tileIndex = tileIndexValues(
+            indexValuesState,
+            indexValuesKey(hazardMenu)
+        )
         var maxzoom = tileIndex.maxZoom ?? 15
         var tileSize = tileIndex.tileSize ?? 512
 
