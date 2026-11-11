@@ -48,6 +48,15 @@ import axios from "axios"
 
 export const mapboxAccessToken = window.MAPBOX_ACCESS_TOKEN
 
+/** Short hash of a string, e.g. a tile URL, for use in IDs. */
+function hashCode(text) {
+    let hash = 0
+    for (let i = 0; i < text.length; i++) {
+        hash = (Math.imul(31, hash) + text.charCodeAt(i)) | 0
+    }
+    return (hash >>> 0).toString(36)
+}
+
 export function MapboxScatterMap(props) {
     const {
         hazardMenu,
@@ -168,6 +177,9 @@ export function MapboxScatterMap(props) {
 
     // hazard index values
     useEffect(() => {
+        // ignore the response if the selection changes before it arrives, so
+        // that index values of a previous model are never used for the tiles
+        let cancelled = false
         async function fetchMapAvailableLayers() {
             if (hazardMenu && hazardMenu.selectedModel) {
                 //hazardPointDispatch({ type: 'FETCHING' });
@@ -192,6 +204,7 @@ export function MapboxScatterMap(props) {
                         globals.token == "" ? null : config
                     )
                     var index_units = response.data.index_units
+                    if (cancelled) return
                     indexValuesDispatch({
                         type: "FETCHED",
                         payload: {
@@ -205,6 +218,7 @@ export function MapboxScatterMap(props) {
                         },
                     })
                 } catch (error) {
+                    if (cancelled) return
                     indexValuesDispatch({
                         type: "FETCH_ERROR",
                         payload: error.message,
@@ -213,7 +227,14 @@ export function MapboxScatterMap(props) {
             }
         }
         fetchMapAvailableLayers()
-    }, [hazardMenu])
+        return () => {
+            cancelled = true
+        }
+    }, [
+        hazardMenu?.selectedModel?.path,
+        hazardMenu?.selectedScenario?.id,
+        hazardMenu?.selectedYear,
+    ])
 
     // markers
     const [markers, setMarkers] = useState([])
@@ -373,14 +394,26 @@ export function MapboxScatterMap(props) {
         }
     }
 
-    const sourceStyle = hazardMenu ? getSourceStyle(effectiveMapInfo) : null
+    // The source and layer are remounted whenever the tiles or image change
+    // (their key). Each gets an ID of its own: with a shared ID, the new ones
+    // find the old ones still on the map, and are then removed along with them
+    // until react-map-gl happens to re-render them.
+    const hazardSourceStyle = hazardMenu
+        ? getSourceStyle(effectiveMapInfo)
+        : null
+    const sourceStyle = hazardSourceStyle
+        ? {
+              ...hazardSourceStyle,
+              id: "hazard-" + hashCode(hazardSourceStyle.key),
+          }
+        : hazardSourceStyle
 
     const layerStyle = hazardMenu
         ? {
-              id: "hazard",
+              id: sourceStyle?.id,
               type: "raster",
-              key: sourceStyle.key,
-              source: "hazard",
+              key: sourceStyle?.key,
+              source: sourceStyle?.id,
               layout: {
                   visibility: "visible",
               },

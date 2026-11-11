@@ -427,6 +427,9 @@ export function GoogleScatterMap(props) {
     }, [indexValuesState])
 
     useEffect(() => {
+        // ignore the response if the selection changes before it arrives, so
+        // that index values of a previous model are never used for the tiles
+        let cancelled = false
         async function fetchMapAvailableLayers() {
             if (hazardMenu && hazardMenu.selectedModel) {
                 indexValuesDispatch({ type: "FETCHING" })
@@ -449,6 +452,7 @@ export function GoogleScatterMap(props) {
                         payload,
                         globals.value.token === "" ? null : config
                     )
+                    if (cancelled) return
                     indexValuesDispatch({
                         type: "FETCHED",
                         payload: {
@@ -462,6 +466,7 @@ export function GoogleScatterMap(props) {
                         },
                     })
                 } catch (error) {
+                    if (cancelled) return
                     indexValuesDispatch({
                         type: "FETCH_ERROR",
                         payload: error.message,
@@ -470,7 +475,14 @@ export function GoogleScatterMap(props) {
             }
         }
         fetchMapAvailableLayers()
-    }, [hazardMenu])
+        return () => {
+            cancelled = true
+        }
+    }, [
+        hazardMenu?.selectedModel?.path,
+        hazardMenu?.selectedScenario?.id,
+        hazardMenu?.selectedYear,
+    ])
 
     // Geocoder select → pan map
     const onSelectHandler = (result) => {
